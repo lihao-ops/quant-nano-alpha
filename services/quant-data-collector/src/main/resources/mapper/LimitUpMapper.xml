@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hao.datacollector.dal.dao.LimitUpMapper">
+    <!-- 查询涨停股票信息列表 -->
+    <resultMap id="LimitUpStockQueryResultMap" type="com.hao.datacollector.web.vo.limitup.LimitUpStockQueryResultVO">
+        <result property="windCode" column="wind_code"/>
+        <result property="tradeDate" column="trade_date"/>
+        <result property="windName" column="wind_name"/>
+        <result property="firstTime" column="first_time"/>
+        <result property="limitStatus" column="limit_status"/>
+        <result property="listedStock" column="listed_stock"/>
+        <result property="orderTotal" column="order_total"/>
+        <result property="volumeNetIn" column="volume_net_in"/>
+        <result property="price" column="price"/>
+        <result property="limitUpX" column="limit_up_x"/>
+        <result property="limitUpN" column="limit_up_n"/>
+        <result property="limitUpM" column="limit_up_m"/>
+        <result property="mainForces" column="main_forces"/>
+        <result property="cost" column="cost"/>
+        <result property="profit" column="profit"/>
+        <result property="mainForcesIn" column="main_forces_in"/>
+        <result property="divergency" column="divergency"/>
+        <result property="mainForcesCB" column="main_forces_c_b"/>
+        <result property="mainForcesCS" column="main_forces_c_s"/>
+        <result property="mainForcesNtimes" column="main_forces_ntimes"/>
+        <result property="mainForcesStimes" column="main_forces_stimes"/>
+        <result property="buyAvgAmount" column="buy_avg_amount"/>
+        <result property="sellAvgAmount" column="sell_avg_amount"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="topicId" column="topic_id"/>
+        <result property="topicName" column="topic_name"/>
+        <result property="color" column="color"/>
+        <result property="stockNum" column="stock_num"/>
+        <result property="topicHot" column="topic_hot"/>
+    </resultMap>
+
+    <!-- 插入基础标签数据(存在即更新) -->
+    <insert id="insertBaseTopic">
+        <![CDATA[
+        INSERT INTO `tb_base_topic` (topic_id, topic_name)
+        VALUES (#{baseTopicDTO.topicId}, #{baseTopicDTO.topicName}) ON DUPLICATE KEY
+        update `topic_name` = #{baseTopicDTO.topicName},
+            `update_time` = NOW()
+        ]]>;
+    </insert>
+
+    <!-- 批量插入股票标签关联数据 -->
+    <insert id="batchInsertStockTopicRelation" parameterType="java.util.List">
+        INSERT INTO tb_limit_up_stock_topic_relation (trade_date, wind_code, topic_id, color, stock_num, topic_hot)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.tradeDate}, #{item.windCode}, #{item.topicId}, #{item.color}, #{item.stockNum}, #{item.topicHot})
+        </foreach>
+    </insert>
+
+    <!-- 批量插入涨停股票详细信息 -->
+    <insert id="batchInsertLimitUpStockInfo" parameterType="java.util.List">
+        INSERT INTO tb_limit_up_stock_info (
+        wind_code, trade_date, wind_name, first_time, limit_status,
+        listed_stock, order_total, volume_net_in, price,
+        limit_up_x, limit_up_n, limit_up_m,
+        main_forces, cost, profit, main_forces_in, divergency,
+        main_forces_c_b, main_forces_c_s, main_forces_ntimes, main_forces_stimes,
+        buy_avg_amount, sell_avg_amount
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.windCode},
+            #{item.tradeDate},
+            #{item.windName},
+            #{item.firstTime},
+            #{item.limitStatus},
+            #{item.listedStock},
+            #{item.orderTotal},
+            #{item.volumeNetIn},
+            #{item.price},
+            #{item.limitUpX},
+            #{item.limitUpN},
+            #{item.limitUpM},
+            #{item.mainForces},
+            #{item.cost},
+            #{item.profit},
+            #{item.mainForcesIn},
+            #{item.divergency},
+            #{item.mainForcesCB},
+            #{item.mainForcesCS},
+            #{item.mainForcesNtimes},
+            #{item.mainForcesStimes},
+            #{item.buyAvgAmount},
+            #{item.sellAvgAmount}
+            )
+        </foreach>
+    </insert>
+
+
+    <!-- 根据交易日删除每日涨停股票明细数据 -->
+    <delete id="deleteLimitUpStockInfoByTradeDate">
+        DELETE
+        FROM tb_limit_up_stock_info
+        WHERE trade_date = #{tradeDate}
+    </delete>
+
+    <!-- 根据交易日删除股票标签关联数据 -->
+    <delete id="deleteStockTopicRelationByTradeDate">
+        DELETE
+        FROM tb_limit_up_stock_topic_relation
+        WHERE trade_date = #{tradeDate}
+    </delete>
+
+    <select id="queryLimitUpStockList" resultMap="LimitUpStockQueryResultMap"
+            parameterType="com.hao.datacollector.dto.param.limitup.LimitUpStockQueryParam">
+        SELECT
+        l.wind_code,
+        l.trade_date,
+        l.wind_name,
+        l.first_time,
+        l.limit_status,
+        l.listed_stock,
+        l.order_total,
+        l.volume_net_in,
+        l.price,
+        l.limit_up_x,
+        l.limit_up_n,
+        l.limit_up_m,
+        l.main_forces,
+        l.cost,
+        l.profit,
+        l.main_forces_in,
+        l.divergency,
+        l.main_forces_c_b,
+        l.main_forces_c_s,
+        l.main_forces_ntimes,
+        l.main_forces_stimes,
+        l.buy_avg_amount,
+        l.sell_avg_amount,
+        l.create_time,
+        l.update_time,
+        r.topic_id,
+        b.topic_name,
+        r.color,
+        r.stock_num,
+        r.topic_hot
+        FROM tb_limit_up_stock_info l
+        LEFT JOIN tb_limit_up_stock_topic_relation r ON l.wind_code = r.wind_code AND l.trade_date = r.trade_date
+        LEFT JOIN tb_base_topic b ON r.topic_id = b.topic_id
+        <where>
+            <if test="queryParam.windCode != null and queryParam.windCode != ''">
+                l.wind_code = #{queryParam.windCode}
+            </if>
+            <if test="queryParam.tradeDateStart != null">
+                AND l.trade_date <![CDATA[ >= ]]> #{queryParam.tradeDateStart}
+            </if>
+            <if test="queryParam.tradeDateEnd != null">
+                AND l.trade_date <![CDATA[ <= ]]> #{queryParam.tradeDateEnd}
+            </if>
+            <if test="queryParam.windName != null and queryParam.windName != ''">
+                AND l.wind_name like CONCAT('%', #{queryParam.windName}, '%')
+            </if>
+            <if test="queryParam.firstTimeStart != null and queryParam.firstTimeStart != ''">
+                AND l.first_time <![CDATA[ >= ]]> #{queryParam.firstTimeStart}
+            </if>
+            <if test="queryParam.firstTimeEnd != null and queryParam.firstTimeEnd != ''">
+                AND l.first_time <![CDATA[ <= ]]> #{queryParam.firstTimeEnd}
+            </if>
+            <if test="queryParam.limitStatus != null and queryParam.limitStatus != ''">
+                AND l.limit_status = #{queryParam.limitStatus}
+            </if>
+            <if test="queryParam.listedStockMin != null">
+                AND l.listed_stock <![CDATA[ >= ]]> #{queryParam.listedStockMin}
+            </if>
+            <if test="queryParam.listedStockMax != null">
+                AND l.listed_stock <![CDATA[ <= ]]> #{queryParam.listedStockMax}
+            </if>
+            <if test="queryParam.orderTotalMin != null">
+                AND l.order_total <![CDATA[ >= ]]> #{queryParam.orderTotalMin}
+            </if>
+            <if test="queryParam.orderTotalMax != null">
+                AND l.order_total <![CDATA[ <= ]]> #{queryParam.orderTotalMax}
+            </if>
+            <if test="queryParam.volumeNetInMin != null">
+                AND l.volume_net_in <![CDATA[ >= ]]> #{queryParam.volumeNetInMin}
+            </if>
+            <if test="queryParam.volumeNetInMax != null">
+                AND l.volume_net_in <![CDATA[ <= ]]> #{queryParam.volumeNetInMax}
+            </if>
+            <if test="queryParam.priceMin != null">
+                AND l.price <![CDATA[ >= ]]> #{queryParam.priceMin}
+            </if>
+            <if test="queryParam.priceMax != null">
+                AND l.price <![CDATA[ <= ]]> #{queryParam.priceMax}
+            </if>
+            <if test="queryParam.limitUpX != null">
+                AND l.limit_up_x = #{queryParam.limitUpX}
+            </if>
+            <if test="queryParam.limitUpNMin != null">
+                AND l.limit_up_n <![CDATA[ >= ]]> #{queryParam.limitUpNMin}
+            </if>
+            <if test="queryParam.limitUpNMax != null">
+                AND l.limit_up_n <![CDATA[ <= ]]> #{queryParam.limitUpNMax}
+            </if>
+            <if test="queryParam.limitUpMMin != null">
+                AND l.limit_up_m <![CDATA[ >= ]]> #{queryParam.limitUpMMin}
+            </if>
+            <if test="queryParam.limitUpMMax != null">
+                AND l.limit_up_m <![CDATA[ <= ]]> #{queryParam.limitUpMMax}
+            </if>
+            <if test="queryParam.mainForcesMin != null">
+                AND l.main_forces <![CDATA[ >= ]]> #{queryParam.mainForcesMin}
+            </if>
+            <if test="queryParam.mainForcesMax != null">
+                AND l.main_forces <![CDATA[ <= ]]> #{queryParam.mainForcesMax}
+            </if>
+            <if test="queryParam.costMin != null">
+                AND l.cost <![CDATA[ >= ]]> #{queryParam.costMin}
+            </if>
+            <if test="queryParam.costMax != null">
+                AND l.cost <![CDATA[ <= ]]> #{queryParam.costMax}
+            </if>
+            <if test="queryParam.profitMin != null">
+                AND l.profit <![CDATA[ >= ]]> #{queryParam.profitMin}
+            </if>
+            <if test="queryParam.profitMax != null">
+                AND l.profit <![CDATA[ <= ]]> #{queryParam.profitMax}
+            </if>
+            <if test="queryParam.mainForcesInMin != null">
+                AND l.main_forces_in <![CDATA[ >= ]]> #{queryParam.mainForcesInMin}
+            </if>
+            <if test="queryParam.mainForcesInMax != null">
+                AND l.main_forces_in <![CDATA[ <= ]]> #{queryParam.mainForcesInMax}
+            </if>
+            <if test="queryParam.divergencyMin != null">
+                AND l.divergency <![CDATA[ >= ]]> #{queryParam.divergencyMin}
+            </if>
+            <if test="queryParam.divergencyMax != null">
+                AND l.divergency <![CDATA[ <= ]]> #{queryParam.divergencyMax}
+            </if>
+            <if test="queryParam.mainForcesCBMin != null">
+                AND l.main_forces_c_b <![CDATA[ >= ]]> #{queryParam.mainForcesCBMin}
+            </if>
+            <if test="queryParam.mainForcesCBMax != null">
+                AND l.main_forces_c_b <![CDATA[ <= ]]> #{queryParam.mainForcesCBMax}
+            </if>
+            <if test="queryParam.mainForcesCSMin != null">
+                AND l.main_forces_c_s <![CDATA[ >= ]]> #{queryParam.mainForcesCSMin}
+            </if>
+            <if test="queryParam.mainForcesCSMax != null">
+                AND l.main_forces_c_s <![CDATA[ <= ]]> #{queryParam.mainForcesCSMax}
+            </if>
+            <if test="queryParam.mainForcesNtimesMin != null">
+                AND l.main_forces_ntimes <![CDATA[ >= ]]> #{queryParam.mainForcesNtimesMin}
+            </if>
+            <if test="queryParam.mainForcesNtimesMax != null">
+                AND l.main_forces_ntimes <![CDATA[ <= ]]> #{queryParam.mainForcesNtimesMax}
+            </if>
+            <if test="queryParam.mainForcesStimesMin != null">
+                AND l.main_forces_stimes <![CDATA[ >= ]]> #{queryParam.mainForcesStimesMin}
+            </if>
+            <if test="queryParam.mainForcesStimesMax != null">
+                AND l.main_forces_stimes <![CDATA[ <= ]]> #{queryParam.mainForcesStimesMax}
+            </if>
+            <if test="queryParam.buyAvgAmountMin != null">
+                AND l.buy_avg_amount <![CDATA[ >= ]]> #{queryParam.buyAvgAmountMin}
+            </if>
+            <if test="queryParam.buyAvgAmountMax != null">
+                AND l.buy_avg_amount <![CDATA[ <= ]]> #{queryParam.buyAvgAmountMax}
+            </if>
+            <if test="queryParam.sellAvgAmountMin != null">
+                AND l.sell_avg_amount <![CDATA[ >= ]]> #{queryParam.sellAvgAmountMin}
+            </if>
+            <if test="queryParam.sellAvgAmountMax != null">
+                AND l.sell_avg_amount <![CDATA[ <= ]]> #{queryParam.sellAvgAmountMax}
+            </if>
+            <if test="queryParam.topicId != null">
+                AND r.topic_id = #{queryParam.topicId}
+            </if>
+            <if test="queryParam.topicName != null and queryParam.topicName != ''">
+                AND b.topic_name like CONCAT('%', #{queryParam.topicName}, '%')
+            </if>
+            <if test="queryParam.color != null and queryParam.color != ''">
+                AND r.color = #{queryParam.color}
+            </if>
+            <if test="queryParam.stockNumMin != null">
+                AND r.stock_num <![CDATA[ >= ]]> #{queryParam.stockNumMin}
+            </if>
+            <if test="queryParam.stockNumMax != null">
+                AND r.stock_num <![CDATA[ <= ]]> #{queryParam.stockNumMax}
+            </if>
+            <if test="queryParam.topicHotMin != null">
+                AND r.topic_hot <![CDATA[ >= ]]> #{queryParam.topicHotMin}
+            </if>
+            <if test="queryParam.topicHotMax != null">
+                AND r.topic_hot <![CDATA[ <= ]]> #{queryParam.topicHotMax}
+            </if>
+        </where>
+        ORDER BY l.trade_date DESC, l.wind_code ASC
+        <if test="queryParam.pageNo != null and queryParam.pageSize != null">
+            LIMIT #{queryParam.pageSize} OFFSET #{queryParam.pageNo}
+        </if>
+    </select>
+
+    <resultMap id="LimitCodeByTradeDateMap" type="com.hao.datacollector.dto.table.limitup.LimitUpStockTradeDTO">
+    <result property="windCode" column="wind_code"/>
+    <result property="tradeDate" column="trade_date"/>
+    </resultMap>
+
+    <select id="getLimitCodeByTradeDate" resultMap="LimitCodeByTradeDateMap">
+        SELECT `wind_code`,`trade_date`
+        FROM `tb_limit_up_stock_info`
+        WHERE 1 = 1
+        <if test="tradeDateStart != null and tradeDateStart != ''">
+            AND trade_date <![CDATA[ >= ]]> #{tradeDateStart}
+        </if>
+        <if test="tradeDateEnd != null and tradeDateEnd != ''">
+            AND trade_date <![CDATA[ <= ]]> #{tradeDateEnd}
+        </if>
+    </select>
+</mapper>

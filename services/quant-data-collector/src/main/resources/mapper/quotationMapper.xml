@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hao.datacollector.dal.dao.QuotationMapper">
+    <insert id="insertQuotationStockBaseList" parameterType="java.util.List">
+        INSERT IGNORE INTO tb_quotation_stock_base (
+        wind_code,
+        trade_date,
+        open_price,
+        high_price,
+        low_price,
+        volume,
+        amount,
+        close_price,
+        turnover_rate
+        )
+        VALUES
+        <foreach collection="baseQuotationList" item="item" separator=",">
+            (
+            #{item.windCode},
+            #{item.tradeDate},
+            #{item.openPrice},
+            #{item.highPrice},
+            #{item.lowPrice},
+            #{item.volume},
+            #{item.amount},
+            #{item.closePrice},
+            #{item.turnoverRate}
+            )
+        </foreach>
+    </insert>
+
+    <select id="getJobQuotationBaseEndWindCodeList">
+        SELECT DISTINCT wind_code
+        FROM tb_quotation_stock_base
+        WHERE 1 = 1
+        <if test="startDate != null and startDate != ''">
+            AND `trade_date` <![CDATA[>=]]>  #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND `trade_date` <![CDATA[<]]>  #{endDate}
+        </if>
+    </select>
+
+
+    <insert id="insertQuotationHistoryTrendList" parameterType="java.util.List">
+        INSERT IGNORE INTO tb_quotation_history_trend_202310 (
+        wind_code,
+        trade_date,
+        latest_price,
+        total_volume,
+        average_price
+        )
+        VALUES
+        <foreach collection="historyTrendQuotationList" item="item" separator=",">
+            (
+            #{item.windCode},
+            #{item.tradeDate},
+            #{item.latestPrice},
+            #{item.totalVolume},
+            #{item.averagePrice}
+            )
+        </foreach>
+    </insert>
+
+    <select id="getMaxHistoryTrendEndDate" resultType="string">
+        SELECT DATE_FORMAT(MAX(trade_date), '%Y%m%d')
+        FROM tb_quotation_history_trend_202310
+        WHERE trade_date >= STR_TO_DATE(CONCAT(#{year}, '0101'), '%Y%m%d')
+          AND trade_date <![CDATA[<]]> STR_TO_DATE(CONCAT(#{year} + 1, '0101'), '%Y%m%d');
+    </select>
+
+    <select id="getCompletedWindCodes" resultType="string">
+        SELECT DISTINCT wind_code
+        FROM tb_quotation_history_trend_202310
+        WHERE trade_date >= STR_TO_DATE(#{maxEndDate}, '%Y%m%d')
+          AND trade_date <![CDATA[<]]> DATE_ADD(STR_TO_DATE(#{maxEndDate}, '%Y%m%d'), INTERVAL 1 DAY)
+    </select>
+</mapper>

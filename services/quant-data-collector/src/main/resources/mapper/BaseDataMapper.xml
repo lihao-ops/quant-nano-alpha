@@ -1,0 +1,612 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hao.datacollector.dal.dao.BaseDataMapper">
+    <select id="getAllAStockCode" resultType="string">
+        SELECT `wind_code`
+        FROM tb_product_stock_basic_info;
+    </select>
+
+    <resultMap id="AllStockBaseInfoMap" type="com.hao.datacollector.dto.table.base.StockBaseDTO">
+        <result column="wind_code" property="windCode"/>
+        <result column="wind_name" property="windName"/>
+    </resultMap>
+
+    <select id="getAllStockBaseInfo" resultMap="AllStockBaseInfoMap">
+        SELECT `wind_code`, `wind_name`
+        FROM tb_product_stock_basic_info;
+    </select>
+
+    <insert id="batchInsertStockFinancialMetrics" parameterType="java.util.List">
+        INSERT INTO tb_product_stock_financial_metrics (
+        wind_code,
+        trade_date,
+        shareholder_holdings_change,
+        total_market_cap,
+        top10_float_holders_ratio,
+        inst_buy_times,
+        inst_holder_names,
+        inst_holdings_total,
+        inst_holder_types,
+        pe_ttm,
+        rating_score,
+        rating_text,
+        rating_agency_count,
+        target_price,
+        pb,
+        pe,
+        ps,
+        net_profit_ttm,
+        roe_growth_3y,
+        dividend_yield,
+        esg_score,
+        patent_count,
+        esg_controversy_score,
+        roa,
+        net_profit_margin,
+        ma_trend,
+        rsi_6
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.windCode},
+            #{item.tradeDate},
+            #{item.shareholderHoldingsChange},
+            #{item.totalMarketCap},
+            #{item.top10FloatHoldersRatio},
+            #{item.instBuyTimes},
+            #{item.instHolderNames},
+            #{item.instHoldingsTotal},
+            #{item.instHolderTypes},
+            #{item.peTtm},
+            #{item.ratingScore},
+            #{item.ratingText},
+            #{item.ratingAgencyCount},
+            #{item.targetPrice},
+            #{item.pb},
+            #{item.pe},
+            #{item.ps},
+            #{item.netProfitTtm},
+            #{item.roeGrowth3y},
+            #{item.dividendYield},
+            #{item.esgScore},
+            #{item.patentCount},
+            #{item.esgControversyScore},
+            #{item.roa},
+            #{item.netProfitMargin},
+            #{item.maTrend},
+            #{item.rsi6}
+            )
+        </foreach>
+    </insert>
+
+    <insert id="batchInsertStockBasicInfo" parameterType="java.util.List">
+        INSERT INTO tb_product_stock_basic_info (
+        wind_code,
+        wind_name,
+        listing_date,
+        status_existence,
+        concept_plates,
+        hot_concepts,
+        industry_chain,
+        is_long_below_net_asset,
+        company_profile,
+        business_scope,
+        sw_industry_code,
+        sw_industry_name,
+        citic_industry_code,
+        citic_industry_name,
+        total_shares,
+        float_shares
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.windCode},
+            #{item.secName},
+            STR_TO_DATE(NULLIF(#{item.listingDate}, ''), '%Y-%m-%d'),
+            #{item.statusExistence},
+            #{item.conceptPlates},
+            #{item.hotConcepts},
+            #{item.industryChain},
+            #{item.isLongBelowNetAsset},
+            #{item.companyProfile},
+            #{item.businessScope},
+            #{item.swIndustryCode},
+            #{item.swIndustryName},
+            #{item.citicIndustryCode},
+            #{item.citicIndustryName},
+            #{item.totalShares},
+            #{item.floatShares}
+            )
+        </foreach>
+    </insert>
+
+
+    <insert id="batchInsertStockMarketData" parameterType="java.util.List" useGeneratedKeys="false">
+        insert into tb_product_stock_daiy_metrics (
+        trade_date,
+        wind_code,
+        wind_name,
+        latestconcept,
+        CHAIN,
+        OPEN,
+        high,
+        low,
+        CLOSE,
+        vwap,
+        volume_btin,
+        amount_btin,
+        pct_chg,
+        turn,
+        free_turn,
+        maxup,
+        maxdown,
+        trade_status,
+        ev,
+        mkt_freeshares,
+        open_auction_price,
+        open_auction_volume,
+        open_auction_amount,
+        mfd_buyamt_at,
+        mfd_sellamt_at,
+        mfd_buyvol_at,
+        mfd_sellvol_at,
+        mfd_inflow_m,
+        mfd_inflowproportion_m,
+        tech_turnoverrate5,
+        tech_turnoverrate10,
+        esg_rating_wind
+        )
+        values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.tradeDate},
+            #{item.windcode},
+            #{item.secName},
+            #{item.latestconcept},
+            #{item.chain},
+            #{item.open},
+            #{item.high},
+            #{item.low},
+            #{item.close},
+            #{item.vwap},
+            #{item.volumeBtin},
+            #{item.amountBtin},
+            #{item.pctChg},
+            #{item.turn},
+            #{item.freeTurn},
+            #{item.maxup},
+            #{item.maxdown},
+            #{item.tradeStatus},
+            #{item.ev},
+            #{item.mktFreeshares},
+            #{item.openAuctionPrice},
+            #{item.openAuctionVolume},
+            #{item.openAuctionAmount},
+            #{item.mfdBuyamtAt},
+            #{item.mfdSellamtAt},
+            #{item.mfdBuyvolAt},
+            #{item.mfdSellvolAt},
+            #{item.mfdInflowM},
+            #{item.mfdInflowproportionM},
+            #{item.techTurnoverrate5},
+            #{item.techTurnoverrate10},
+            #{item.esgRatingWind}
+            )
+        </foreach>
+    </insert>
+
+    <select id="getInsertMarketCode" resultType="string">
+        SELECT DISTINCT `wind_code`
+        FROM tb_product_stock_daiy_metrics
+        WHERE 1 = 1
+        <if test="startDate != null and startDate != ''">
+            AND `trade_date` <![CDATA[>=]]>  #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND `trade_date` <![CDATA[<]]>  #{endDate}
+        </if>
+    </select>
+
+    <update id="clearTradeDate">
+        TRUNCATE TABLE tb_base_trade_date_info
+    </update>
+
+    <insert id="insertTradeDate">
+        INSERT IGNORE INTO tb_base_trade_date_info (trade_date)
+        VALUES
+        <foreach collection="list" item="date" separator=",">
+            (#{date})
+        </foreach>
+    </insert>
+
+    <select id="getTradeDateListByTime" resultType="string">
+        SELECT `trade_date`
+        FROM `tb_base_trade_date_info`
+        WHERE `trade_date` <![CDATA[ >= ]]> #{startTime}
+          AND `trade_date` <![CDATA[ <= ]]> #{endTime}
+        ORDER BY `trade_date`
+    </select>
+
+    <!-- 股票基本信息查询结果映射 -->
+    <resultMap id="StockBasicInfoResultMap" type="com.hao.datacollector.web.vo.stock.StockBasicInfoQueryResultVO">
+        <result column="wind_code" property="windCode"/>
+        <result column="wind_name" property="windName"/>
+        <result column="listing_date" property="listingDate"/>
+        <result column="status_existence" property="statusExistence"/>
+        <result column="concept_plates" property="conceptPlates"/>
+        <result column="hot_concepts" property="hotConcepts"/>
+        <result column="industry_chain" property="industryChain"/>
+        <result column="is_long_below_net_asset" property="isLongBelowNetAsset"/>
+        <result column="company_profile" property="companyProfile"/>
+        <result column="business_scope" property="businessScope"/>
+        <result column="sw_industry_code" property="swIndustryCode"/>
+        <result column="sw_industry_name" property="swIndustryName"/>
+        <result column="citic_industry_code" property="citicIndustryCode"/>
+        <result column="citic_industry_name" property="citicIndustryName"/>
+        <result column="total_shares" property="totalShares"/>
+        <result column="float_shares" property="floatShares"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 查询股票基本信息 -->
+    <select id="queryStockBasicInfo" resultMap="StockBasicInfoResultMap">
+        SELECT
+        wind_code,
+        wind_name,
+        listing_date,
+        status_existence,
+        concept_plates,
+        hot_concepts,
+        industry_chain,
+        is_long_below_net_asset,
+        company_profile,
+        business_scope,
+        sw_industry_code,
+        sw_industry_name,
+        citic_industry_code,
+        citic_industry_name,
+        total_shares,
+        float_shares,
+        create_time,
+        update_time
+        FROM tb_product_stock_basic_info
+        <where>
+            <if test="windCode != null and windCode != ''">
+                AND wind_code = #{windCode}
+            </if>
+            <if test="windName != null and windName != ''">
+                AND wind_name LIKE CONCAT('%', #{windName}, '%')
+            </if>
+            <if test="swIndustryName != null and swIndustryName != ''">
+                AND sw_industry_name LIKE CONCAT('%', #{swIndustryName}, '%')
+            </if>
+            <if test="citicIndustryName != null and citicIndustryName != ''">
+                AND citic_industry_name LIKE CONCAT('%', #{citicIndustryName}, '%')
+            </if>
+            <if test="listingDateStart != null">
+                AND listing_date <![CDATA[ >= ]]> #{listingDateStart}
+            </if>
+            <if test="listingDateEnd != null">
+                AND listing_date <![CDATA[ <= ]]> #{listingDateEnd}
+            </if>
+            <if test="statusExistence != null and statusExistence != ''">
+                AND status_existence = #{statusExistence}
+            </if>
+            <if test="swIndustryCode != null and swIndustryCode != ''">
+                AND sw_industry_code = #{swIndustryCode}
+            </if>
+            <if test="conceptPlates != null and conceptPlates != ''">
+                AND concept_plates LIKE CONCAT('%', #{conceptPlates}, '%')
+            </if>
+            <if test="hotConcepts != null and hotConcepts != ''">
+                AND hot_concepts LIKE CONCAT('%', #{hotConcepts}, '%')
+            </if>
+            <if test="industryChain != null and industryChain != ''">
+                AND industry_chain LIKE CONCAT('%', #{industryChain}, '%')
+            </if>
+            <if test="isLongBelowNetAsset != null and isLongBelowNetAsset != ''">
+                AND is_long_below_net_asset = #{isLongBelowNetAsset}
+            </if>
+            <if test="companyProfile != null and companyProfile != ''">
+                AND company_profile LIKE CONCAT('%', #{companyProfile}, '%')
+            </if>
+            <if test="businessScope != null and businessScope != ''">
+                AND business_scope LIKE CONCAT('%', #{businessScope}, '%')
+            </if>
+            <if test="totalSharesMin != null">
+                AND total_shares <![CDATA[ >= ]]> #{totalSharesMin}
+            </if>
+            <if test="totalSharesMax != null">
+                AND total_shares <![CDATA[ <= ]]> #{totalSharesMax}
+            </if>
+            <if test="floatSharesMin != null">
+                AND float_shares <![CDATA[ >= ]]> #{floatSharesMin}
+            </if>
+            <if test="floatSharesMax != null">
+                AND float_shares <![CDATA[ <= ]]> #{floatSharesMax}
+            </if>
+        </where>
+        ORDER BY wind_code
+        <if test="pageSize != null and pageNo != null">
+            LIMIT #{pageNo}, #{pageSize}
+        </if>
+    </select>
+
+    <!-- 股票行情数据查询结果映射 -->
+    <resultMap id="StockMarketDataResultMap" type="com.hao.datacollector.web.vo.stock.StockMarketDataQueryResultVO">
+        <result column="wind_code" property="windCode"/>
+        <result column="wind_name" property="windName"/>
+        <result column="trade_date" property="tradeDate"/>
+        <result column="open" property="open"/>
+        <result column="close" property="close"/>
+        <result column="high" property="high"/>
+        <result column="low" property="low"/>
+        <result column="vwap" property="vwap"/>
+        <result column="volume_btin" property="volumeBtin"/>
+        <result column="amount_btin" property="amountBtin"/>
+        <result column="pct_chg" property="pctChg"/>
+        <result column="latestconcept" property="latestconcept"/>
+        <result column="chain" property="chain"/>
+        <result column="turn" property="turn"/>
+        <result column="free_turn" property="freeTurn"/>
+        <result column="maxup" property="maxup"/>
+        <result column="maxdown" property="maxdown"/>
+        <result column="trade_status" property="tradeStatus"/>
+        <result column="ev" property="ev"/>
+        <result column="mkt_freeshares" property="mktFreeshares"/>
+        <result column="open_auction_price" property="openAuctionPrice"/>
+        <result column="open_auction_volume" property="openAuctionVolume"/>
+        <result column="open_auction_amount" property="openAuctionAmount"/>
+        <result column="mfd_buyamt_at" property="mfdBuyamtAt"/>
+        <result column="mfd_sellamt_at" property="mfdSellamtAt"/>
+        <result column="mfd_buyvol_at" property="mfdBuyvolAt"/>
+        <result column="mfd_sellvol_at" property="mfdSellvolAt"/>
+        <result column="mfd_inflow_m" property="mfdInflowM"/>
+        <result column="mfd_inflowproportion_m" property="mfdInflowproportionM"/>
+        <result column="tech_turnoverrate5" property="techTurnoverrate5"/>
+        <result column="tech_turnoverrate10" property="techTurnoverrate10"/>
+        <result column="esg_rating_wind" property="esgRatingWind"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 查询股票行情数据 -->
+    <select id="queryStockMarketData" resultMap="StockMarketDataResultMap">
+        SELECT
+        wind_code,
+        wind_name,
+        trade_date,
+        open,
+        close,
+        high,
+        low,
+        vwap,
+        volume_btin,
+        amount_btin,
+        pct_chg,
+        latestconcept,
+        chain,
+        turn,
+        free_turn,
+        maxup,
+        maxdown,
+        trade_status,
+        ev,
+        mkt_freeshares,
+        open_auction_price,
+        open_auction_volume,
+        open_auction_amount,
+        mfd_buyamt_at,
+        mfd_sellamt_at,
+        mfd_buyvol_at,
+        mfd_sellvol_at,
+        mfd_inflow_m,
+        mfd_inflowproportion_m,
+        tech_turnoverrate5,
+        tech_turnoverrate10,
+        esg_rating_wind,
+        create_time,
+        update_time
+        FROM tb_product_stock_daiy_metrics
+        <where>
+            <if test="windCode != null and windCode != ''">
+                AND wind_code = #{windCode}
+            </if>
+            <if test="tradeDateStart != null">
+                AND trade_date <![CDATA[ >= ]]> #{tradeDateStart}
+            </if>
+            <if test="tradeDateEnd != null">
+                AND trade_date <![CDATA[ <= ]]> #{tradeDateEnd}
+            </if>
+            <if test="windName != null and windName != ''">
+                AND wind_name LIKE CONCAT('%', #{windName}, '%')
+            </if>
+            <if test="latestconcept != null and latestconcept != ''">
+                AND latestconcept LIKE CONCAT('%', #{latestconcept}, '%')
+            </if>
+            <if test="chain != null and chain != ''">
+                AND chain LIKE CONCAT('%', #{chain}, '%')
+            </if>
+            <if test="openMin != null">
+                AND open <![CDATA[ >= ]]> #{openMin}
+            </if>
+            <if test="openMax != null">
+                AND open <![CDATA[ <= ]]> #{openMax}
+            </if>
+            <if test="closeMin != null">
+                AND close <![CDATA[ >= ]]> #{closeMin}
+            </if>
+            <if test="closeMax != null">
+                AND close <![CDATA[ <= ]]> #{closeMax}
+            </if>
+            <if test="highMin != null">
+                AND high <![CDATA[ >= ]]> #{highMin}
+            </if>
+            <if test="highMax != null">
+                AND high <![CDATA[ <= ]]> #{highMax}
+            </if>
+            <if test="lowMin != null">
+                AND low <![CDATA[ >= ]]> #{lowMin}
+            </if>
+            <if test="lowMax != null">
+                AND low <![CDATA[ <= ]]> #{lowMax}
+            </if>
+            <if test="vwapMin != null">
+                AND vwap <![CDATA[ >= ]]> #{vwapMin}
+            </if>
+            <if test="vwapMax != null">
+                AND vwap <![CDATA[ <= ]]> #{vwapMax}
+            </if>
+            <if test="volumeBtinMin != null">
+                AND volume_btin <![CDATA[ >= ]]> #{volumeBtinMin}
+            </if>
+            <if test="volumeBtinMax != null">
+                AND volume_btin <![CDATA[ <= ]]> #{volumeBtinMax}
+            </if>
+            <if test="amountBtinMin != null">
+                AND amount_btin <![CDATA[ >= ]]> #{amountBtinMin}
+            </if>
+            <if test="amountBtinMax != null">
+                AND amount_btin <![CDATA[ <= ]]> #{amountBtinMax}
+            </if>
+            <if test="pctChgMin != null">
+                AND pct_chg <![CDATA[ >= ]]> #{pctChgMin}
+            </if>
+            <if test="pctChgMax != null">
+                AND pct_chg <![CDATA[ <= ]]> #{pctChgMax}
+            </if>
+            <if test="turnMin != null">
+                AND turn <![CDATA[ >= ]]> #{turnMin}
+            </if>
+            <if test="turnMax != null">
+                AND turn <![CDATA[ <= ]]> #{turnMax}
+            </if>
+            <if test="freeTurnMin != null">
+                AND free_turn <![CDATA[ >= ]]> #{freeTurnMin}
+            </if>
+            <if test="freeTurnMax != null">
+                AND free_turn <![CDATA[ <= ]]> #{freeTurnMax}
+            </if>
+            <if test="maxupMin != null">
+                AND maxup <![CDATA[ >= ]]> #{maxupMin}
+            </if>
+            <if test="maxupMax != null">
+                AND maxup <![CDATA[ <= ]]> #{maxupMax}
+            </if>
+            <if test="maxdownMin != null">
+                AND maxdown <![CDATA[ >= ]]> #{maxdownMin}
+            </if>
+            <if test="maxdownMax != null">
+                AND maxdown <![CDATA[ <= ]]> #{maxdownMax}
+            </if>
+            <if test="tradeStatus != null and tradeStatus != ''">
+                AND trade_status = #{tradeStatus}
+            </if>
+            <if test="evMin != null">
+                AND ev <![CDATA[ >= ]]> #{evMin}
+            </if>
+            <if test="evMax != null">
+                AND ev <![CDATA[ <= ]]> #{evMax}
+            </if>
+            <if test="mktFreesharesMin != null">
+                AND mkt_freeshares <![CDATA[ >= ]]> #{mktFreesharesMin}
+            </if>
+            <if test="mktFreesharesMax != null">
+                AND mkt_freeshares <![CDATA[ <= ]]> #{mktFreesharesMax}
+            </if>
+            <if test="openAuctionPriceMin != null">
+                AND open_auction_price <![CDATA[ >= ]]> #{openAuctionPriceMin}
+            </if>
+            <if test="openAuctionPriceMax != null">
+                AND open_auction_price <![CDATA[ <= ]]> #{openAuctionPriceMax}
+            </if>
+            <if test="openAuctionVolumeMin != null">
+                AND open_auction_volume <![CDATA[ >= ]]> #{openAuctionVolumeMin}
+            </if>
+            <if test="openAuctionVolumeMax != null">
+                AND open_auction_volume <![CDATA[ <= ]]> #{openAuctionVolumeMax}
+            </if>
+            <if test="openAuctionAmountMin != null">
+                AND open_auction_amount <![CDATA[ >= ]]> #{openAuctionAmountMin}
+            </if>
+            <if test="openAuctionAmountMax != null">
+                AND open_auction_amount <![CDATA[ <= ]]> #{openAuctionAmountMax}
+            </if>
+            <if test="mfdBuyamtAtMin != null">
+                AND mfd_buyamt_at <![CDATA[ >= ]]> #{mfdBuyamtAtMin}
+            </if>
+            <if test="mfdBuyamtAtMax != null">
+                AND mfd_buyamt_at <![CDATA[ <= ]]> #{mfdBuyamtAtMax}
+            </if>
+            <if test="mfdSellamtAtMin != null">
+                AND mfd_sellamt_at <![CDATA[ >= ]]> #{mfdSellamtAtMin}
+            </if>
+            <if test="mfdSellamtAtMax != null">
+                AND mfd_sellamt_at <![CDATA[ <= ]]> #{mfdSellamtAtMax}
+            </if>
+            <if test="mfdBuyvolAtMin != null">
+                AND mfd_buyvol_at <![CDATA[ >= ]]> #{mfdBuyvolAtMin}
+            </if>
+            <if test="mfdBuyvolAtMax != null">
+                AND mfd_buyvol_at <![CDATA[ <= ]]> #{mfdBuyvolAtMax}
+            </if>
+            <if test="mfdSellvolAtMin != null">
+                AND mfd_sellvol_at <![CDATA[ >= ]]> #{mfdSellvolAtMin}
+            </if>
+            <if test="mfdSellvolAtMax != null">
+                AND mfd_sellvol_at <![CDATA[ <= ]]> #{mfdSellvolAtMax}
+            </if>
+            <if test="mfdInflowMMin != null">
+                AND mfd_inflow_m <![CDATA[ >= ]]> #{mfdInflowMMin}
+            </if>
+            <if test="mfdInflowMMax != null">
+                AND mfd_inflow_m <![CDATA[ <= ]]> #{mfdInflowMMax}
+            </if>
+            <if test="mfdInflowproportionMMin != null">
+                AND mfd_inflowproportion_m <![CDATA[ >= ]]> #{mfdInflowproportionMMin}
+            </if>
+            <if test="mfdInflowproportionMMax != null">
+                AND mfd_inflowproportion_m <![CDATA[ <= ]]> #{mfdInflowproportionMMax}
+            </if>
+            <if test="techTurnoverrate5Min != null">
+                AND tech_turnoverrate5 <![CDATA[ >= ]]> #{techTurnoverrate5Min}
+            </if>
+            <if test="techTurnoverrate5Max != null">
+                AND tech_turnoverrate5 <![CDATA[ <= ]]> #{techTurnoverrate5Max}
+            </if>
+            <if test="techTurnoverrate10Min != null">
+                AND tech_turnoverrate10 <![CDATA[ >= ]]> #{techTurnoverrate10Min}
+            </if>
+            <if test="techTurnoverrate10Max != null">
+                AND tech_turnoverrate10 <![CDATA[ <= ]]> #{techTurnoverrate10Max}
+            </if>
+            <if test="esgRatingWind != null and esgRatingWind != ''">
+                AND esg_rating_wind = #{esgRatingWind}
+            </if>
+        </where>
+        ORDER BY trade_date DESC, wind_code
+        <if test="pageSize != null and pageNo != null">
+            LIMIT #{pageNo}, #{pageSize}
+        </if>
+    </select>
+
+    <insert id="insertAbnormalStock" parameterType="string">
+        INSERT INTO tb_product_abnormal_stock (wind_code)
+        VALUES (#{windCode}) ON DUPLICATE KEY
+        UPDATE
+            update_time = NOW();
+    </insert>
+
+    <select id="getAbnormalStockList" resultType="string">
+        SELECT wind_code
+        FROM tb_product_abnormal_stock
+        WHERE status = 1
+    </select>
+
+</mapper>

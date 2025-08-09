@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hao.datacollector.dal.dao.AnnouncementMapper">
+
+    <select id="getJobAnnouncementEndWindCodeList" resultType="string">
+        SELECT DISTINCT wind_code
+        FROM tb_stock_announcement
+        WHERE 1 = 1
+        <if test="startDate != null and startDate != ''">
+            AND `date`<![CDATA[>=]]>  #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND `date` <![CDATA[<]]>  #{endDate}
+        </if>
+    </select>
+    <select id="getJobAnnouncementEndLastDate" resultType="string">
+        SELECT DATE_FORMAT(MAX(`date`), '%Y%m%d') AS max_date FROM `tb_stock_announcement`;
+    </select>
+    <insert id="insertAnnouncementSourceData" parameterType="map">
+        INSERT IGNORE INTO tb_stock_announcement (
+        wind_code,
+        date,
+        announcement,
+        url
+        ) VALUES
+        <foreach collection="item" item="announcement" separator=",">
+            (
+            #{windCode},
+            #{announcement.date},
+            #{announcement.announcement},
+            #{announcement.url}
+            )
+        </foreach>
+    </insert>
+
+    <select id="getJobEventEndWindCodeList" resultType="string">
+        SELECT DISTINCT wind_code
+        FROM tb_stock_event
+        WHERE 1 = 1
+        <if test="startDate != null and startDate != ''">
+            AND `date`<![CDATA[>=]]>  #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND `date` <![CDATA[<]]>  #{endDate}
+        </if>
+    </select>
+
+    <select id="getJobEventEndLastDate" resultType="string">
+        SELECT DATE_FORMAT(MAX(`date`), '%Y%m%d') AS max_date FROM `tb_stock_event`;
+    </select>
+
+    <insert id="insertEventSource" parameterType="java.util.List">
+        REPLACE INTO tb_stock_event (wind_code, event, date, type)
+        VALUES
+        <foreach collection="item" item="eventItem" separator=",">
+            (#{windCode}, #{eventItem.event}, #{eventItem.date}, #{eventItem.type})
+        </foreach>
+    </insert>
+</mapper>

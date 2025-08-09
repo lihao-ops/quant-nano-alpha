@@ -1,0 +1,29 @@
+# Spring Boot 忽略规则
+target/
+*.jar
+*.war
+*.ear
+!*.md
+
+# IDE 文件
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+/bin/
+
+# 日志和缓存
+*.log
+*.cache
+*.tmp
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 配置文件 (重要！保护敏感信息)
+application*.properties
+application*.yml
+/config/
+secrets/

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hao.datacollector.dal.dao.AbnormalMapper">
+    <!-- 转档首页数据源 -->
+    <insert id="insertHomePageSourceData">
+        INSERT INTO tb_abnormal_index (
+        trade_date, wind_code, stock_name, price_change,
+        on_list_time, seats
+        ) VALUES
+        <foreach collection="item" item="vo" separator=",">
+            (
+            #{tradeDate}, #{vo.windCode}, #{vo.stockName}, #{vo.priceChange},
+            #{vo.onListTime}, #{vo.seats}
+            )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        stock_name = VALUES(stock_name),
+        price_change = VALUES(price_change),
+        on_list_time = VALUES(on_list_time),
+        seats = VALUES(seats),
+        update_time = NOW()
+    </insert>
+
+    <insert id="insertSourceListOfSeats">
+        INSERT INTO tb_abnormal_seat_rank (
+        institution_id,
+        institution,
+        seat_type,
+        listing_count,
+        win_proportion,
+        amount,
+        buy_count,
+        sell_count
+        ) VALUES
+        <foreach collection="item" item="seat" separator=",">
+            (
+            #{seat.institutionId},
+            #{seat.institution},
+            #{seat.seatType},
+            #{seat.listingCount},
+            #{seat.winProportion},
+            #{seat.amount},
+            #{seat.buyCount},
+            #{seat.sellCount}
+            )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        institution = VALUES(institution),
+        seat_type = VALUES(seat_type),
+        listing_count = VALUES(listing_count),
+        win_proportion = VALUES(win_proportion),
+        amount = VALUES(amount),
+        buy_count = VALUES(buy_count),
+        sell_count = VALUES(sell_count),
+        update_time = NOW()
+    </insert>
+
+    <insert id="insertActiveRankVOList" parameterType="java.util.List">
+        INSERT INTO tb_abnormal_active (
+        wind_code,
+        stock_name,
+        price,
+        price_change,
+        on_list_times,
+        total_buy,
+        total_sold,
+        net_buy,
+        buy_sold_rate
+        ) VALUES
+        <foreach collection="item" item="record" separator=",">
+            (
+            #{record.windCode},
+            #{record.stockName},
+            #{record.price},
+            #{record.priceChange},
+            #{record.onListTimes},
+            #{record.totalBuy},
+            #{record.totalSold},
+            #{record.netbuy},
+            #{record.buySoldRate}
+            )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        stock_name = VALUES(stock_name),
+        price = VALUES(price),
+        price_change = VALUES(price_change),
+        on_list_times = VALUES(on_list_times),
+        total_buy = VALUES(total_buy),
+        total_sold = VALUES(total_sold),
+        net_buy = VALUES(net_buy),
+        buy_sold_rate = VALUES(buy_sold_rate),
+        update_time = NOW()
+    </insert>
+</mapper>

@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hao.datacollector.dal.dao.TopicMapper">
+
+    <insert id="insertTopicInfoList" parameterType="java.util.List">
+        INSERT INTO tb_topic_info (
+        topic_id, name, brief_intro, class_layer, `desc`, plate_switch,
+        stk_switch, introduction, topic_create_time, topic_update_time,
+        is_new, power, subscribe, is_good, good_num, com_num, errcode, t,first_shelve_time, update_cache_time
+        ) VALUES
+        <foreach collection="insertList" item="item" separator=",">
+            (
+            #{item.topicId}, #{item.name}, #{item.briefIntro}, #{item.classLayer},
+            #{item.desc}, #{item.plateSwitch}, #{item.stkSwitch}, #{item.introduction},
+            #{item.topicCreateTime}, #{item.topicUpdateTime}, #{item.isNew},
+            #{item.power}, #{item.subscribe}, #{item.isGood}, #{item.goodNum},
+            #{item.comNum}, #{item.errcode}, #{item.t},#{item.firstShelveTime}, #{item.updateCacheTime}
+            )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        name = VALUES(name),
+        brief_intro = VALUES(brief_intro),
+        class_layer = VALUES(class_layer),
+        `desc` = VALUES(`desc`),
+        plate_switch = VALUES(plate_switch),
+        stk_switch = VALUES(stk_switch),
+        introduction = VALUES(introduction),
+        topic_create_time = VALUES(topic_create_time),
+        topic_update_time = VALUES(topic_update_time),
+        is_new = VALUES(is_new),
+        power = VALUES(power),
+        subscribe = VALUES(subscribe),
+        is_good = VALUES(is_good),
+        good_num = VALUES(good_num),
+        com_num = VALUES(com_num),
+        errcode = VALUES(errcode),
+        t = VALUES(t),
+        first_shelve_time = VALUES(first_shelve_time),
+        update_cache_time = VALUES(update_cache_time),
+        update_time = CURRENT_TIMESTAMP
+    </insert>
+
+    <insert id="insertCategoryList" parameterType="java.util.List">
+        INSERT INTO tb_topic_category (
+        category_id, topic_id, name, zs_code, is_new,
+        first_shelve_time, update_cache_time, parent_category_id
+        ) VALUES
+        <foreach collection="insertList" item="item" separator=",">
+            (
+            #{item.categoryId}, #{item.topicId}, #{item.name}, #{item.zsCode},
+            #{item.isNew}, #{item.firstShelveTime}, #{item.updateCacheTime}, #{item.parentId}
+            )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        topic_id = VALUES(topic_id),
+        name = VALUES(name),
+        zs_code = VALUES(zs_code),
+        is_new = VALUES(is_new),
+        first_shelve_time = VALUES(first_shelve_time),
+        update_cache_time = VALUES(update_cache_time),
+        parent_category_id = VALUES(parent_category_id),
+        update_time = CURRENT_TIMESTAMP
+    </insert>
+
+
+    <insert id="insertStockCategoryMappingList" parameterType="java.util.List">
+        INSERT INTO tb_topic_stock_category_mapping (
+        wind_code, category_id, is_zz, is_hot, reason, is_new,
+        wind_name, hot, first_shelve_time, update_cache_time
+        ) VALUES
+        <foreach collection="insertList" item="item" separator=",">
+            (
+            #{item.windCode}, #{item.categoryId}, #{item.isZz}, #{item.isHot},
+            #{item.reason}, #{item.isNew}, #{item.windName}, #{item.hot},
+            #{item.firstShelveTime}, #{item.updateCacheTime}
+            )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        is_zz = VALUES(is_zz),
+        is_hot = VALUES(is_hot),
+        reason = VALUES(reason),
+        is_new = VALUES(is_new),
+        wind_name = VALUES(wind_name),
+        hot = VALUES(hot),
+        first_shelve_time = VALUES(first_shelve_time),
+        update_cache_time = VALUES(update_cache_time),
+        update_time = CURRENT_TIMESTAMP
+    </insert>
+
+    <!-- TopicInfoVO结果映射 -->
+    <resultMap id="TopicInfoResultMap" type="com.hao.datacollector.web.vo.topic.TopicInfoKplVO">
+        <result column="topic_id" jdbcType="BIGINT" property="topicId"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="brief_intro" jdbcType="VARCHAR" property="briefIntro"/>
+        <result column="class_layer" jdbcType="VARCHAR" property="classLayer"/>
+        <result column="desc" jdbcType="VARCHAR" property="desc"/>
+        <result column="plate_switch" jdbcType="VARCHAR" property="plateSwitch"/>
+        <result column="stk_switch" jdbcType="VARCHAR" property="stkSwitch"/>
+        <result column="introduction" jdbcType="VARCHAR" property="introduction"/>
+        <result column="topic_create_time" jdbcType="VARCHAR" property="topicCreateTime"/>
+        <result column="topic_update_time" jdbcType="VARCHAR" property="topicUpdateTime"/>
+        <result column="is_new" jdbcType="INTEGER" property="isNew"/>
+        <result column="power" jdbcType="INTEGER" property="power"/>
+        <result column="subscribe" jdbcType="INTEGER" property="subscribe"/>
+        <result column="is_good" jdbcType="INTEGER" property="isGood"/>
+        <result column="good_num" jdbcType="INTEGER" property="goodNum"/>
+        <result column="com_num" jdbcType="INTEGER" property="comNum"/>
+        <result column="errcode" jdbcType="VARCHAR" property="errcode"/>
+        <result column="t" jdbcType="DOUBLE" property="t"/>
+        <result column="total_num" jdbcType="INTEGER" property="totalNum"/>
+    </resultMap>
+
+    <!-- 获取热门题材信息列表 -->
+    <select id="getKplTopicInfoList" resultMap="TopicInfoResultMap">
+        SELECT
+        topic_id,
+        name,
+        brief_intro,
+        class_layer,
+        `desc`,
+        plate_switch,
+        stk_switch,
+        introduction,
+        topic_create_time,
+        topic_update_time,
+        is_new,
+        power,
+        subscribe,
+        is_good,
+        good_num,
+        com_num,
+        errcode,
+        t,
+        (SELECT COUNT(1) FROM tb_topic_info
+        <include refid="WhereCondition"/>) AS total_num
+        FROM tb_topic_info
+        <include refid="WhereCondition"/>
+        <include refid="OrderByCondition"/>
+        <if test="param.pageNo != null and param.pageSize != null">
+            LIMIT #{param.pageNo}, #{param.pageSize}
+        </if>
+    </select>
+
+    <!-- 查询条件 -->
+    <sql id="WhereCondition">
+        <where>
+            <if test="param.status != null">
+                AND status = #{param.status}
+            </if>
+            <if test="param.topicId != null">
+                AND topic_id = #{param.topicId}
+            </if>
+            <if test="param.name != null and param.name != ''">
+                AND name LIKE CONCAT('%', #{param.name}, '%')
+            </if>
+            <if test="param.briefIntro != null and param.briefIntro != ''">
+                AND brief_intro LIKE CONCAT('%', #{param.briefIntro}, '%')
+            </if>
+            <if test="param.classLayer != null and param.classLayer != ''">
+                AND class_layer = #{param.classLayer}
+            </if>
+            <if test="param.plateSwitch != null and param.plateSwitch != ''">
+                AND plate_switch = #{param.plateSwitch}
+            </if>
+            <if test="param.stkSwitch != null and param.stkSwitch != ''">
+                AND stk_switch = #{param.stkSwitch}
+            </if>
+            <if test="param.isNew != null">
+                AND is_new = #{param.isNew}
+            </if>
+            <if test="param.minPower != null">
+                AND power >= #{param.minPower}
+            </if>
+            <if test="param.maxPower != null">
+                AND power &lt;= #{param.maxPower}
+            </if>
+            <if test="param.minSubscribe != null">
+                AND subscribe >= #{param.minSubscribe}
+            </if>
+            <if test="param.maxSubscribe != null">
+                AND subscribe &lt;= #{param.maxSubscribe}
+            </if>
+            <if test="param.minGoodNum != null">
+                AND good_num >= #{param.minGoodNum}
+            </if>
+            <if test="param.maxGoodNum != null">
+                AND good_num &lt;= #{param.maxGoodNum}
+            </if>
+            <if test="param.minComNum != null">
+                AND com_num >= #{param.minComNum}
+            </if>
+            <if test="param.isGood != null">
+                AND is_good = #{param.isGood}
+            </if>
+            <if test="param.createTimeStart != null">
+                AND create_time >= #{param.createTimeStart}
+            </if>
+            <if test="param.createTimeEnd != null">
+                AND create_time &lt;= #{param.createTimeEnd}
+            </if>
+            <if test="param.topicCreateTimeStart != null">
+                AND STR_TO_DATE(topic_create_time, '%Y-%m-%d %H:%i:%s') >= #{param.topicCreateTimeStart}
+            </if>
+            <if test="param.topicCreateTimeEnd != null">
+                AND STR_TO_DATE(topic_create_time, '%Y-%m-%d %H:%i:%s') &lt;= #{param.topicCreateTimeEnd}
+            </if>
+        </where>
+    </sql>
+
+    <!-- 排序条件 -->
+    <sql id="OrderByCondition">
+        <if test="param.orderBy != null and param.orderBy != ''">
+            ORDER BY
+            <choose>
+                <when test="param.orderBy == 'power'">power</when>
+                <when test="param.orderBy == 'goodNum'">good_num</when>
+                <when test="param.orderBy == 'subscribe'">subscribe</when>
+                <when test="param.orderBy == 'createTime'">create_time</when>
+                <otherwise>power</otherwise>
+            </choose>
+            <choose>
+                <when test="param.orderDirection == 'asc'">ASC</when>
+                <otherwise>DESC</otherwise>
+            </choose>
+        </if>
+    </sql>
+
+    <select id="getKplTopicMaxId" resultType="int">
+        SELECT MAX(topic_id)
+        FROM tb_topic_info
+    </select>
+
+    <resultMap id="TopicCategoryAndStockResultMap" type="com.hao.datacollector.web.vo.topic.TopicCategoryAndStockVO">
+        <result column="total_num" property="totalNum"/>
+
+        <!-- 题材字段 -->
+        <result column="topic_id" property="topicId"/>
+        <result column="topic_name" property="name"/>
+
+        <!-- 分类字段 -->
+        <result column="category_id" property="categoryId"/>
+        <result column="category_name" property="categoryName"/>
+        <result column="zs_code" property="categoryZsCode"/>
+        <result column="category_is_new" property="categoryIsNew"/>
+        <result column="category_first_shelve_time" property="categoryFirstShelveTime"/>
+        <result column="category_update_cache_time" property="categoryUpdateCacheTime"/>
+        <result column="parent_category_id" property="parentId"/>
+
+        <!-- 嵌套 List<InsertStockCategoryMappingDTO> -->
+        <collection property="stockCategoryList"
+                    ofType="com.hao.datacollector.dto.table.topic.InsertStockCategoryMappingDTO"
+                    notNullColumn="wind_code">
+            <result column="wind_code" property="windCode"/>
+            <result column="wind_name" property="windName"/>
+            <result column="category_id" property="categoryId"/>
+            <result column="is_zz" property="isZz"/>
+            <result column="is_hot" property="isHot"/>
+            <result column="reason" property="reason"/>
+            <result column="stock_is_new" property="isNew"/>
+            <result column="hot" property="hot"/>
+            <result column="stock_first_shelve_time" property="firstShelveTime"/>
+            <result column="stock_update_cache_time" property="updateCacheTime"/>
+        </collection>
+    </resultMap>
+
+    <select id="getKplCategoryAndStockList" resultMap="TopicCategoryAndStockResultMap">
+        SELECT
+        t.topic_id,
+        t.name AS topic_name,
+
+        c.category_id,
+        c.name AS category_name,
+        c.zs_code,
+        c.is_new AS category_is_new,
+        c.first_shelve_time AS category_first_shelve_time,
+        c.update_cache_time AS category_update_cache_time,
+        c.parent_category_id,
+
+        s.wind_code,
+        s.wind_name,
+        s.is_zz,
+        s.is_hot,
+        s.reason,
+        s.is_new AS stock_is_new,
+        s.hot,
+        s.first_shelve_time AS stock_first_shelve_time,
+        s.update_cache_time AS stock_update_cache_time,
+
+        COUNT(*) OVER() AS total_num
+
+        FROM tb_topic_category c
+        LEFT JOIN tb_topic_info t ON c.topic_id = t.topic_id
+        LEFT JOIN tb_topic_stock_category_mapping s ON c.category_id = s.category_id
+
+        <where>
+            c.status = 1
+            <if test="param.topicId != null">
+                AND c.topic_id = #{param.topicId}
+            </if>
+            <if test="param.categoryId != null">
+                AND c.category_id = #{param.categoryId}
+            </if>
+            <if test="param.parentCategoryId != null">
+                AND c.parent_category_id = #{param.parentCategoryId}
+            </if>
+            <if test="param.categoryZsCode != null and param.categoryZsCode != ''">
+                AND c.zs_code = #{param.categoryZsCode}
+            </if>
+            <if test="param.categoryName != null and param.categoryName != ''">
+                AND c.name LIKE CONCAT('%', #{param.categoryName}, '%')
+            </if>
+            <if test="param.topicName != null and param.topicName != ''">
+                AND t.name LIKE CONCAT('%', #{param.topicName}, '%')
+            </if>
+            <if test="param.windCode != null and param.windCode != ''">
+                AND s.wind_code = #{param.windCode}
+            </if>
+            <if test="param.windName != null and param.windName != ''">
+                AND s.wind_name LIKE CONCAT('%', #{param.windName}, '%')
+            </if>
+        </where>
+        ORDER BY c.update_cache_time DESC
+        LIMIT #{param.pageNo}, #{param.pageSize}
+    </select>
+
+    <select id="getKplAllTopicIdList" resultType="int">
+        SELECT `topic_id`
+        FROM `tb_topic_info`
+    </select>
+
+    <resultMap id="TopicStockDTOMap" type="com.hao.datacollector.dto.table.topic.TopicStockDTO">
+        <result column="topic_id" property="topicId"/>
+        <result column="wind_code" property="windCode"/>
+        <result column="wind_name" property="windName"/>
+    </resultMap>
+
+    <select id="getKplTopicAndStockList" resultMap="TopicStockDTOMap">
+        SELECT
+        tc.topic_id,
+        tscm.wind_code,
+        tscm.wind_name
+        FROM
+        tb_topic_category tc
+        INNER JOIN tb_topic_stock_category_mapping tscm
+        ON tc.category_id = tscm.category_id
+        <where>
+            <if test="topicIdList != null and topicIdList.size() > 0">
+                AND tc.topic_id IN
+                <foreach collection="topicIdList" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+    </select>
+</mapper>

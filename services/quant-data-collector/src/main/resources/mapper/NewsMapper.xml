@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hao.datacollector.dal.dao.NewsMapper">
+
+    <!-- 批量新增新闻相关信息 -->
+    <insert id="insertNewsInfo" parameterType="java.util.List">
+        INSERT IGNORE INTO tb_news_base_info
+        (news_id, title, sitename, publish_date)
+        VALUES
+        <foreach collection="newInfoVOList" item="item" separator=",">
+            (
+            #{item.id},
+            #{item.title},
+            #{item.sitename},
+            #{item.date}
+            )
+        </foreach>
+    </insert>
+
+    <insert id="insertNewsStockRelation" parameterType="java.util.List">
+        INSERT IGNORE INTO tb_news_stock_relation
+        (news_id, wind_code)
+        VALUES
+        <foreach collection="newsIdList" item="newsId" separator=",">
+            (
+            #{newsId},
+            #{windCode}
+            )
+        </foreach>
+    </insert>
+
+    <select id="getJobEndWindCodeList" resultType="string">
+        SELECT DISTINCT(wind_code)
+        FROM tb_news_stock_relation
+    </select>
+    
+    <!-- 查询新闻基础数据 -->
+    <select id="queryNewsBaseData" parameterType="com.hao.datacollector.dto.param.news.NewsQueryParam" 
+            resultType="com.hao.datacollector.web.vo.news.NewsQueryResultVO">
+        SELECT 
+            n.news_id as newsId,
+            n.title,
+            n.sitename,
+            n.publish_date as publishDate,
+            r.wind_code as windCode
+        FROM tb_news_base_info n
+        LEFT JOIN tb_news_stock_relation r ON n.news_id = r.news_id
+        <where>
+            <if test="queryParam.newsId != null and queryParam.newsId != ''">
+                AND n.news_id = #{queryParam.newsId}
+            </if>
+            <if test="queryParam.title != null and queryParam.title != ''">
+                AND n.title LIKE CONCAT('%', #{queryParam.title}, '%')
+            </if>
+            <if test="queryParam.sitename != null and queryParam.sitename != ''">
+                AND n.sitename = #{queryParam.sitename}
+            </if>
+            <if test="queryParam.publishDateStart != null">
+                AND n.publish_date <![CDATA[ >= ]]> #{queryParam.publishDateStart}
+            </if>
+            <if test="queryParam.publishDateEnd != null">
+                AND n.publish_date <![CDATA[ <= ]]> #{queryParam.publishDateEnd}
+            </if>
+            <if test="queryParam.windCode != null and queryParam.windCode != ''">
+                AND r.wind_code = #{queryParam.windCode}
+            </if>
+        </where>
+        ORDER BY n.publish_date DESC
+        <if test="queryParam.pageNo != null and queryParam.pageSize != null">
+            LIMIT #{queryParam.pageSize} OFFSET #{queryParam.pageNo}
+        </if>
+    </select>
+</mapper>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hao.datacollector.dal.dao.SimpleF9Mapper">
+    <!-- 批量插入更新方案 (如果需要处理多条数据) -->
+    <insert id="batchInsertCompanyProfileDataJob" parameterType="java.util.List">
+        INSERT INTO tb_f9_company_profile (
+        wind_code,
+        lan,
+        cpy_intro,
+        rating,
+        score,
+        ranking3,
+        industry_level3_count,
+        status,
+        create_time,
+        update_time
+        ) VALUES
+        <foreach collection="param" item="item" separator=",">
+            (
+            #{item.windCode},
+            #{item.lan},
+            #{item.cpyIntro},
+            #{item.rating},
+            #{item.score},
+            #{item.ranking3},
+            #{item.industryLevel3Count},
+            1,
+            NOW(),
+            NOW()
+            )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        cpy_intro = VALUES(cpy_intro),
+        rating = VALUES(rating),
+        score = VALUES(score),
+        ranking3 = VALUES(ranking3),
+        industry_level3_count = VALUES(industry_level3_count),
+        status = VALUES(status),
+        update_time = NOW()
+    </insert>
+
+    <select id="getInsertFinancialSummaryData" resultType="string">
+        SELECT DISTINCT wind_code FROM tb_f9_company_profile;
+    </select>
+</mapper>
