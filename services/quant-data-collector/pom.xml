@@ -74,12 +74,14 @@
             <artifactId>spring-kafka</artifactId>
         </dependency>
 
+        <!-- spring-boot-devtools 只在开发时使用 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
             <scope>runtime</scope>
             <optional>true</optional>
         </dependency>
+
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
