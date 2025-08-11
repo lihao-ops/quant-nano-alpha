@@ -2,64 +2,70 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
+
+    <!-- 父项目 -->
     <parent>
         <groupId>com.hli</groupId>
         <artifactId>quant-nano-alpha</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-
     <artifactId>services</artifactId>
     <packaging>pom</packaging>
-
+    <!-- 子模块声明 -->
     <modules>
         <module>quant-data-collector</module>
         <module>quant-xxl-job</module>
     </modules>
-
+    <!-- 编译及编码配置 -->
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <!-- db -->
+        <!-- mybatis 版本 -->
         <mybatis-spring-boot-starter.version>3.0.4</mybatis-spring-boot-starter.version>
     </properties>
 
     <dependencies>
-        <!-- 公共依赖 -->
+        <!-- ===== 公共依赖模块 ===== -->
         <dependency>
             <groupId>com.hli</groupId>
             <artifactId>common</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
-        <!-- starter-web：spring-webmvc + autoconfigure + logback + yaml + tomcat -->
+        <!-- ===== Spring Boot 核心依赖 ===== -->
+        <!-- Web 模块（包含Spring MVC、Tomcat等） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-        <!-- starter-actuator -->
+        <!-- 监控与管理端点（健康检查、指标等） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
+        <!-- 单元测试支持 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
 
-        <!-- mybatis-starter：mybatis + mybatis-spring + hikari（default） -->
+        <!-- ===== 数据访问依赖 ===== -->
+        <!-- MyBatis 整合（默认 Hikari 连接池） -->
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>
             <artifactId>mybatis-spring-boot-starter</artifactId>
             <version>${mybatis-spring-boot-starter.version}</version>
         </dependency>
 
-        <!--nacos服务发现-->
+        <!-- ===== Spring Cloud & Alibaba 组件 ===== -->
+        <!-- Nacos 服务发现 -->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
-            <!--排除nacos日志依赖,否则将与项目本身日志冲突-->
+            <!-- 排除 nacos 内置日志，避免与项目冲突 -->
             <exclusions>
                 <exclusion>
                     <groupId>com.alibaba.nacos</groupId>
@@ -72,11 +78,14 @@
             </exclusions>
         </dependency>
 
+        <!-- OpenFeign（声明式 HTTP 客户端） -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
 
+        <!-- ===== 工具类依赖 ===== -->
+        <!-- Lombok：简化 Java 代码 -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
