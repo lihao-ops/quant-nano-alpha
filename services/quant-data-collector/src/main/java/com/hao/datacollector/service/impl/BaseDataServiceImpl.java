@@ -16,12 +16,11 @@ import com.hao.datacollector.service.BaseDataService;
 import com.hao.datacollector.web.vo.result.ResultVO;
 import com.hao.datacollector.web.vo.stock.StockBasicInfoQueryResultVO;
 import com.hao.datacollector.web.vo.stock.StockMarketDataQueryResultVO;
-import com.wind.api.W;
-import com.wind.api.struct.WindData;
+//import com.wind.api.W;
+//import com.wind.api.struct.WindData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 
@@ -145,11 +144,11 @@ public class BaseDataServiceImpl implements BaseDataService {
      * 登录Wind
      */
     public void loginW() {
-        //登录
-        long start = W.start();
-        //获取版本
-        WindData version = W.getVersion();
-        log.info("BaseDataServiceImpl_login_version={}", version);
+//        //登录
+//        long start = W.start();
+//        //获取版本
+//        WindData version = W.getVersion();
+//        log.info("BaseDataServiceImpl_login_version={}", version);
     }
 
     public List<StockDailyMetricsDTO> getInsertStockMarketData(String windCode, String startTime, String endTime) {
@@ -188,11 +187,12 @@ public class BaseDataServiceImpl implements BaseDataService {
          * mfd_inflow_m:主力净流入额(元)
          * mfd_inflowproportion_m:主力净流入额占比
          */
-        WindData wsd = W.wsd(windCode, "lastradeday_s,windcode,sec_name,latestconcept,chain,esg_rating_wind,open,high,low,close,vwap,volume_btin,amount_btin,pct_chg,turn,free_turn,maxup,maxdown,trade_status,ev,mkt_freeshares,open_auction_price,open_auction_volume,open_auction_amount,mfd_buyamt_at,mfd_sellamt_at,mfd_buyvol_at,mfd_sellvol_at,tech_turnoverrate5,tech_turnoverrate10,mfd_inflow_m,mfd_inflowproportion_m", "2025-01-01", "2025-03-01", "");
-        if (wsd.getErrorId() != 0) {
-            throw new RuntimeException("getInsertStockMarketData_error,wsd.ErrorId=" + wsd.getErrorId());
-        }
-        return convert(wsd.getData().toString().replace("[", "").replace("]", ""));
+//        WindData wsd = W.wsd(windCode, "lastradeday_s,windcode,sec_name,latestconcept,chain,esg_rating_wind,open,high,low,close,vwap,volume_btin,amount_btin,pct_chg,turn,free_turn,maxup,maxdown,trade_status,ev,mkt_freeshares,open_auction_price,open_auction_volume,open_auction_amount,mfd_buyamt_at,mfd_sellamt_at,mfd_buyvol_at,mfd_sellvol_at,tech_turnoverrate5,tech_turnoverrate10,mfd_inflow_m,mfd_inflowproportion_m", "2025-01-01", "2025-03-01", "");
+//        if (wsd.getErrorId() != 0) {
+//            throw new RuntimeException("getInsertStockMarketData_error,wsd.ErrorId=" + wsd.getErrorId());
+//        }
+//        return convert(wsd.getData().toString().replace("[", "").replace("]", ""));
+        return null;
     }
 
 

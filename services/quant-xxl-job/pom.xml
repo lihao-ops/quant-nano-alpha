@@ -28,19 +28,6 @@
 
 
     <dependencies>
-
-        <!--        &lt;!&ndash; starter-web：spring-webmvc + autoconfigure + logback + yaml + tomcat &ndash;&gt;-->
-        <!--        <dependency>-->
-        <!--            <groupId>org.springframework.boot</groupId>-->
-        <!--            <artifactId>spring-boot-starter-web</artifactId>-->
-        <!--        </dependency>-->
-        <!-- starter-test：junit + spring-test + mockito -->
-        <!--        <dependency>-->
-        <!--            <groupId>org.springframework.boot</groupId>-->
-        <!--            <artifactId>spring-boot-starter-test</artifactId>-->
-        <!--            <scope>test</scope>-->
-        <!--        </dependency>-->
-
         <!-- freemarker-starter -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -53,18 +40,6 @@
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
-        <!--        &lt;!&ndash; starter-actuator &ndash;&gt;-->
-        <!--        <dependency>-->
-        <!--            <groupId>org.springframework.boot</groupId>-->
-        <!--            <artifactId>spring-boot-starter-actuator</artifactId>-->
-        <!--        </dependency>-->
-
-        <!--        &lt;!&ndash; mybatis-starter：mybatis + mybatis-spring + hikari（default） &ndash;&gt;-->
-        <!--        <dependency>-->
-        <!--            <groupId>org.mybatis.spring.boot</groupId>-->
-        <!--            <artifactId>mybatis-spring-boot-starter</artifactId>-->
-        <!--            <version>${mybatis-spring-boot-starter.version}</version>-->
-        <!--        </dependency>-->
         <!-- mysql -->
         <dependency>
             <groupId>com.mysql</groupId>

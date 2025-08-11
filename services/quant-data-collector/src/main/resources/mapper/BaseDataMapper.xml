@@ -127,7 +127,7 @@
 
 
     <insert id="batchInsertStockMarketData" parameterType="java.util.List" useGeneratedKeys="false">
-        insert into tb_product_stock_daiy_metrics (
+        insert into tb_product_stock_daiy_metrics_back (
         trade_date,
         wind_code,
         wind_name,
@@ -202,7 +202,7 @@
 
     <select id="getInsertMarketCode" resultType="string">
         SELECT DISTINCT `wind_code`
-        FROM tb_product_stock_daiy_metrics
+        FROM tb_product_stock_daiy_metrics_back
         WHERE 1 = 1
         <if test="startDate != null and startDate != ''">
             AND `trade_date` <![CDATA[>=]]>  #{startDate}
@@ -413,7 +413,7 @@
         esg_rating_wind,
         create_time,
         update_time
-        FROM tb_product_stock_daiy_metrics
+        FROM tb_product_stock_daiy_metrics_back
         <where>
             <if test="windCode != null and windCode != ''">
                 AND wind_code = #{windCode}
