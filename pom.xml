@@ -19,12 +19,11 @@
     <description>量化交易系统父工程:
         - **Quant**：量化，专业且有科技感
         - **Nano**：极小资金规模，突出“小资金”
-        - **Alpha**：超额收益，目标明确</description>
+        - **Alpha**：超额收益，目标明确
+    </description>
     <modules>
         <module>common</module>
         <module>services</module>
-        <module>services/quant-data-collector</module>
-        <module>services/quant-xxl-job</module>
     </modules>
     <properties>
         <!-- Java 配置 -->

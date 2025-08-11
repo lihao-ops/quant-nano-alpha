@@ -10,13 +10,21 @@
     </parent>
 
     <artifactId>services</artifactId>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>quant-data-collector</module>
+        <module>quant-xxl-job</module>
+    </modules>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
     <dependencies>
+        <!-- 公共依赖 -->
         <dependency>
             <groupId>com.hli</groupId>
             <artifactId>common</artifactId>
@@ -48,7 +56,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <scope>annotationProcessor</scope>
+            <scope>annotationProcessorPaths</scope>
         </dependency>
     </dependencies>
 </project>
