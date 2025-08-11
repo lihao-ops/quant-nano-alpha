@@ -75,6 +75,10 @@
                     <groupId>com.alibaba.nacos</groupId>
                     <artifactId>nacos-log4j2-adapter</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
 

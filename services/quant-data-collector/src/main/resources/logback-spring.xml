@@ -98,6 +98,18 @@
         </rollingPolicy>
     </appender>
 
+    <!-- Nacos日志文件 -->
+    <appender name="FILE_NACOS" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/nacos.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/nacos.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
     <!-- 异步日志配置 -->
     <appender name="ASYNC_APPLICATION" class="ch.qos.logback.classic.AsyncAppender">
         <discardingThreshold>0</discardingThreshold>
@@ -157,6 +169,7 @@
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="ASYNC_APPLICATION"/>
             <appender-ref ref="ASYNC_ERROR"/>
+            <appender-ref ref="FILE_NACOS"/>
         </root>
     </springProfile>
 
@@ -165,6 +178,7 @@
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="ASYNC_APPLICATION"/>
             <appender-ref ref="ASYNC_ERROR"/>
+            <appender-ref ref="FILE_NACOS"/>
         </root>
     </springProfile>
 
@@ -172,6 +186,7 @@
         <root level="WARN">
             <appender-ref ref="ASYNC_APPLICATION"/>
             <appender-ref ref="ASYNC_ERROR"/>
+            <appender-ref ref="FILE_NACOS"/>
         </root>
     </springProfile>
 
