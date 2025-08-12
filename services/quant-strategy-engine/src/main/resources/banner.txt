@@ -1,3 +1,4 @@
+                                                                  ${AnsiColor.BRIGHT_RED}
                                                                            /)  (\
                                                                       .-._((,~~.))_.-,
                                                                        `=.   99   ,='
@@ -13,3 +14,14 @@
                                                                      \_(.-( )--( )-.)_/
                                                                      /_,\ ) /  \ ( /._\
                                                                          /_,\  /._\
+
+                                                        ${AnsiColor.BRIGHT_GREEN} :: dataCollectionService start successfully!
+                                                                      :: Spring Boot :: ${spring-boot.version}
+                                                        ${AnsiColor.BRIGHT_YELLOW}
+                                                        项目名称   : ${spring.application.name}
+                                                        运行端口   : ${server.port}
+                                                        注册中心   : ${spring.cloud.nacos.server-addr}
+                                                        调度中心   : ${xxl.job.admin.addresses}
+                                                        执行器名称 : ${xxl.job.executor.appname}
+                                                        当前环境   : ${spring.profiles.active}
+                                                        ${AnsiColor.DEFAULT}

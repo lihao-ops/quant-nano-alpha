@@ -1,0 +1,16 @@
+                                                           ${AnsiColor.BRIGHT_BLUE}
+
+                                                                 ██   ██████    ██████
+                                                                 ██   ██   ██   ██   ██
+                                                                 ██   ██   ██   ██████
+                                                            ██   ██   ██   ██   ██   ██
+                                                             █████     ██████   ██████
+
+                                                           ${AnsiColor.BRIGHT_GREEN} :: XXL-JOB executor start successfully!
+                                                                                   :: Spring Boot :: ${spring-boot.version}
+                                                           ${AnsiColor.BRIGHT_YELLOW}
+                                                           项目名称   : ${spring.application.name}
+                                                           运行端口   : ${server.port}
+                                                           注册中心   : ${spring.cloud.nacos.server-addr}
+                                                           当前环境   : ${spring.profiles.active}
+                                                           ${AnsiColor.DEFAULT}
