@@ -82,6 +82,12 @@
             </exclusions>
         </dependency>
 
+        <!--nacos配置中心-->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+        </dependency>
+
         <!-- OpenFeign（声明式 HTTP 客户端） -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>

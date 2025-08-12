@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * @author hli
- * @program: cloud2025
+ * @program: xxl-job
  * @Date 2025-08-10 15:54:51
  * @description: 配置类
  */
@@ -20,7 +20,7 @@ public class XxlJobProperties {
     /**
      * 注:在配置文件中配置的是-,则在此使用小驼峰形式对应首字母大写！
      * order:
-     *     auto-confirm: 71d
+     * auto-confirm: 71d
      */
     private String autoConfirm;
 
