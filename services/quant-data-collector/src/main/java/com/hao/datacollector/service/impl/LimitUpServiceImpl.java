@@ -3,25 +3,26 @@ package com.hao.datacollector.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hao.datacollector.cache.DateCache;
-import constants.DataSourceConstants;
-import constants.DateTimeFormatConstants;
-import util.DateUtil;
 import com.hao.datacollector.common.utils.HttpUtil;
-import util.PageUtil;
 import com.hao.datacollector.dal.dao.LimitUpMapper;
 import com.hao.datacollector.dto.param.limitup.LimitUpStockQueryParam;
 import com.hao.datacollector.dto.table.limitup.LimitUpStockInfoInsertDTO;
 import com.hao.datacollector.dto.table.limitup.LimitUpStockTopicRelationInsertDTO;
 import com.hao.datacollector.dto.table.limitup.LimitUpStockTradeDTO;
 import com.hao.datacollector.dto.table.topic.BaseTopicInsertDTO;
+import com.hao.datacollector.properties.DataCollectorProperties;
 import com.hao.datacollector.service.LimitUpService;
 import com.hao.datacollector.web.vo.limitup.*;
+import constants.DataSourceConstants;
+import constants.DateTimeFormatConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import util.DateUtil;
+import util.PageUtil;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -45,8 +46,8 @@ public class LimitUpServiceImpl implements LimitUpService {
     @Value("${wind_base.limit_up.url}") // Corrected @Value annotation
     private String limitUpBaseUrl;
 
-    @Value("${wind_base.session_id}")
-    private String windSessionId;
+    @Autowired
+    private DataCollectorProperties properties;
 
     /**
      * 获取解析后的涨停选股接口数据
@@ -69,7 +70,7 @@ public class LimitUpServiceImpl implements LimitUpService {
             //url具体参数含义可查看TopicDetailParam,日期格式必须类似20250609
             String url = String.format(limitUpBaseUrl, tradeTime);
             org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-            headers.set(DataSourceConstants.WIND_SESSION_NAME, windSessionId);
+            headers.set(DataSourceConstants.WIND_SESSION_NAME, properties.getWindSessionId());
             String response = HttpUtil.sendGetRequest(DataSourceConstants.WIND_PROD_WGQ + url, headers, 10000, 30000).getBody();
             if (!StringUtils.hasLength(response)) {
                 log.error("LimitUpServiceImpl_getLimitUpData: HTTP response body is empty for tradeTime: {}", tradeTime);

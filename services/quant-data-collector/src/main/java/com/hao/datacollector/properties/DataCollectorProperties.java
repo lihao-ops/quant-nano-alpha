@@ -15,14 +15,10 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "data-collector")
 @Component
 public class DataCollectorProperties {
-    private String timeout;
-
     /**
      * 注:在配置文件中配置的是-,则在此使用小驼峰形式对应首字母大写！
      * order:
      * auto-confirm: 71d
      */
-    private String autoConfirm;
-
-    private String dbUrl;
+    private String windSessionId;
 }

@@ -4,18 +4,18 @@ package com.hao.datacollector.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.alibaba.fastjson.parser.Feature;
-import constants.CommonConstants;
-import constants.DataSourceConstants;
-import constants.DateTimeFormatConstants;
-import util.DateUtil;
 import com.hao.datacollector.common.utils.ExtremeValueUtil;
 import com.hao.datacollector.common.utils.HttpUtil;
 import com.hao.datacollector.dal.dao.AbnormalMapper;
 import com.hao.datacollector.dto.param.abnormal.IndexSourceParam;
+import com.hao.datacollector.properties.DataCollectorProperties;
 import com.hao.datacollector.service.AbnormalService;
 import com.hao.datacollector.web.vo.abnormal.AbnormalIndexVO;
 import com.hao.datacollector.web.vo.abnormal.ActiveRankRecordVO;
 import com.hao.datacollector.web.vo.abnormal.ActiveSeatsRankVO;
+import constants.CommonConstants;
+import constants.DataSourceConstants;
+import constants.DateTimeFormatConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +25,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import util.DateUtil;
 
 import java.util.List;
 
@@ -36,8 +37,8 @@ import java.util.List;
 @Slf4j
 @Service
 public class AbnormalServiceImpl implements AbnormalService {
-    @Value("${wind_base.session_id}")
-    private String windSessionId;
+    @Autowired
+    private DataCollectorProperties properties;
 
     @Value("${wind_base.abnormal.home_page.url}")
     private String homePageUrl;
@@ -70,7 +71,7 @@ public class AbnormalServiceImpl implements AbnormalService {
             throw new RuntimeException("not_support_tradeDate!");
         }
         HttpHeaders httpHeader = new HttpHeaders();
-        httpHeader.set(DataSourceConstants.WIND_POINT_SESSION_NAME, windSessionId);
+        httpHeader.set(DataSourceConstants.WIND_POINT_SESSION_NAME, properties.getWindSessionId());
         //param
         String url = String.format(DataSourceConstants.WIND_PROD_WGQ + homePageUrl);
         MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
@@ -128,7 +129,7 @@ public class AbnormalServiceImpl implements AbnormalService {
             throw new RuntimeException("not_support_tradeDate!");
         }
         HttpHeaders httpHeader = new HttpHeaders();
-        httpHeader.set(DataSourceConstants.WIND_POINT_SESSION_NAME, windSessionId);
+        httpHeader.set(DataSourceConstants.WIND_POINT_SESSION_NAME, properties.getWindSessionId());
         //param
         MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
         queryParams.add("period", period.toString());
@@ -188,7 +189,7 @@ public class AbnormalServiceImpl implements AbnormalService {
             throw new RuntimeException("not_support_tradeDate!");
         }
         HttpHeaders httpHeader = new HttpHeaders();
-        httpHeader.set(DataSourceConstants.WIND_POINT_SESSION_NAME, windSessionId);
+        httpHeader.set(DataSourceConstants.WIND_POINT_SESSION_NAME, properties.getWindSessionId());
         //param
         MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
         queryParams.add("period", period.toString());

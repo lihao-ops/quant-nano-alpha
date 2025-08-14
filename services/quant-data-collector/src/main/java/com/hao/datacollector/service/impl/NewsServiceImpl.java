@@ -2,21 +2,22 @@ package com.hao.datacollector.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import constants.CommonConstants;
-import constants.DataSourceConstants;
 import com.hao.datacollector.common.utils.HttpUtil;
-import util.PageUtil;
 import com.hao.datacollector.dal.dao.BaseDataMapper;
 import com.hao.datacollector.dal.dao.NewsMapper;
 import com.hao.datacollector.dto.param.news.NewsQueryParam;
 import com.hao.datacollector.dto.param.news.NewsRequestParams;
+import com.hao.datacollector.properties.DataCollectorProperties;
 import com.hao.datacollector.service.NewsService;
 import com.hao.datacollector.web.vo.news.NewsInfoVO;
 import com.hao.datacollector.web.vo.news.NewsQueryResultVO;
+import constants.CommonConstants;
+import constants.DataSourceConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import util.PageUtil;
 
 import java.util.HashMap;
 import java.util.List;
@@ -39,8 +40,8 @@ public class NewsServiceImpl implements NewsService {
     @Autowired
     private BaseDataMapper baseDataMapper;
 
-    @Value("${wind_base.session_id}")
-    private String windSessionId;
+    @Autowired
+    private DataCollectorProperties properties;
 
     @Value("${wind_base.news.stock_news_url}")
     private String stockNewsUrl;
@@ -55,7 +56,7 @@ public class NewsServiceImpl implements NewsService {
     public Boolean transferNewsStockData(String windCode) {
         String url = DataSourceConstants.WIND_PROD_WGQ + stockNewsUrl;
         HashMap<String, String> header = new HashMap<>(4);
-        header.put(DataSourceConstants.WIND_POINT_SESSION_NAME, windSessionId);
+        header.put(DataSourceConstants.WIND_POINT_SESSION_NAME, properties.getWindSessionId());
         NewsRequestParams params = new NewsRequestParams();
         params.setWindCode(windCode);
         // 发送请求，设置超时时间

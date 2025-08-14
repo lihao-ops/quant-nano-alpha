@@ -2,6 +2,7 @@ package com.hao.datacollector.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.hao.datacollector.properties.DataCollectorProperties;
 import constants.DataSourceConstants;
 import constants.DateTimeFormatConstants;
 import util.DateUtil;
@@ -36,8 +37,9 @@ import java.util.Map;
 @Slf4j
 @Service
 public class QuotationServiceImpl implements QuotationService {
-    @Value("${wind_base.session_id}")
-    private String windSessionId;
+
+    @Autowired
+    private DataCollectorProperties properties;
 
     @Value("${wind_base.quotation.base.url}")
     private String QuotationBaseUrl;
@@ -64,7 +66,7 @@ public class QuotationServiceImpl implements QuotationService {
     @Override
     public Boolean transferQuotationBaseByStock(String windCode, String startDate, String endDate) {
         HttpHeaders headers = new HttpHeaders();
-        headers.add(DataSourceConstants.WIND_POINT_SESSION_NAME, windSessionId);
+        headers.add(DataSourceConstants.WIND_POINT_SESSION_NAME, properties.getWindSessionId());
         String url = DataSourceConstants.WIND_PROD_WGQ + String.format(QuotationBaseUrl, windCode, startDate, endDate);
         ResponseEntity<String> response = HttpUtil.sendGetRequest(url, headers, 30000, 30000);
         List<List<Long>> quotationList = JSON.parseObject(response.getBody(), new TypeReference<List<List<Long>>>() {
@@ -135,7 +137,7 @@ public class QuotationServiceImpl implements QuotationService {
      */
     private List<HistoryTrendDTO> getQuotationHistoryTrendList(int tradeDate, String windCodes, Integer dateType) {
         HttpHeaders headers = new HttpHeaders();
-        headers.add(DataSourceConstants.WIND_POINT_SESSION_NAME, windSessionId);
+        headers.add(DataSourceConstants.WIND_POINT_SESSION_NAME, properties.getWindSessionId());
         String url = DataSourceConstants.WIND_PROD_WGQ + String.format(QuotationHistoryTrendUrl, tradeDate, windCodes, dateType);
         int retryCount = 0;
         int maxRetries = 2; // 最多重试2次

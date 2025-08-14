@@ -2,12 +2,13 @@ package com.hao.datacollector.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
-import constants.DataSourceConstants;
 import com.hao.datacollector.common.utils.HttpUtil;
 import com.hao.datacollector.dal.dao.AnnouncementMapper;
+import com.hao.datacollector.properties.DataCollectorProperties;
 import com.hao.datacollector.service.AnnouncementService;
 import com.hao.datacollector.web.vo.announcement.AnnouncementVO;
 import com.hao.datacollector.web.vo.announcement.BigEventVO;
+import constants.DataSourceConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,8 +33,8 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     @Autowired
     private AnnouncementMapper announcementMapper;
 
-    @Value("${wind_base.session_id}")
-    private String windSessionId;
+    @Autowired
+    private DataCollectorProperties properties;
 
     @Value("${wind_base.announcement.url}")
     private String AnnouncementUrl;
@@ -61,7 +62,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     public List<AnnouncementVO> getAnnouncementSourceData(String windCode, String startDate, String endDate, Integer pageNo, Integer pageSize) {
         String url = String.format(DataSourceConstants.WIND_PROD_WGQ + AnnouncementUrl, windCode);
         org.springframework.http.HttpHeaders headers = new HttpHeaders();
-        headers.set(DataSourceConstants.WIND_POINT_SESSION_NAME, windSessionId);
+        headers.set(DataSourceConstants.WIND_POINT_SESSION_NAME, properties.getWindSessionId());
         MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
         queryParams.add("startDate", startDate);
         queryParams.add("endDate", endDate);
@@ -128,7 +129,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     public List<BigEventVO> getEventSourceData(String windCode, String startDate, String endDate, Integer pageNo, Integer pageSize) {
         String url = String.format(DataSourceConstants.WIND_PROD_WGQ + eventUrl, windCode);
         org.springframework.http.HttpHeaders headers = new HttpHeaders();
-        headers.set(DataSourceConstants.WIND_POINT_SESSION_NAME, windSessionId);
+        headers.set(DataSourceConstants.WIND_POINT_SESSION_NAME, properties.getWindSessionId());
         MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
         queryParams.add("startDate", startDate);
         queryParams.add("endDate", endDate);

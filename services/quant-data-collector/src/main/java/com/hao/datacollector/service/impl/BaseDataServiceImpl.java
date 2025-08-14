@@ -3,21 +3,22 @@ package com.hao.datacollector.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import constants.DataSourceConstants;
-import constants.DateTimeFormatConstants;
-import com.hao.datacollector.common.utils.*;
+import com.hao.datacollector.common.utils.ExcelReaderUtil;
+import com.hao.datacollector.common.utils.ExcelToDtoConverter;
+import com.hao.datacollector.common.utils.HttpUtil;
 import com.hao.datacollector.dal.dao.BaseDataMapper;
 import com.hao.datacollector.dto.param.stock.StockBasicInfoQueryParam;
 import com.hao.datacollector.dto.param.stock.StockMarketDataQueryParam;
 import com.hao.datacollector.dto.table.base.StockBasicInfoInsertDTO;
 import com.hao.datacollector.dto.table.base.StockDailyMetricsDTO;
 import com.hao.datacollector.dto.table.base.StockFinancialMetricsInsertDTO;
+import com.hao.datacollector.properties.DataCollectorProperties;
 import com.hao.datacollector.service.BaseDataService;
 import com.hao.datacollector.web.vo.result.ResultVO;
 import com.hao.datacollector.web.vo.stock.StockBasicInfoQueryResultVO;
 import com.hao.datacollector.web.vo.stock.StockMarketDataQueryResultVO;
-//import com.wind.api.W;
-//import com.wind.api.struct.WindData;
+import constants.DataSourceConstants;
+import constants.DateTimeFormatConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,9 +52,8 @@ import static com.hao.datacollector.common.utils.ExcelReaderUtil.readHeaders;
 @Slf4j
 @Service
 public class BaseDataServiceImpl implements BaseDataService {
-
-    @Value("${wind_base.session_id}")
-    private String windSessionId;
+    @Autowired
+    private DataCollectorProperties properties;
 
     /**
      * 交易日历url
@@ -283,7 +283,7 @@ public class BaseDataServiceImpl implements BaseDataService {
     public Boolean setTradeDateList(String startTime, String endTime) {
         String requestTradeDateUrl = String.format(tradeDateBaseUrl, startTime, endTime);
         HttpHeaders headers = new HttpHeaders();
-        headers.set(DataSourceConstants.WIND_SESSION_NAME, windSessionId);
+        headers.set(DataSourceConstants.WIND_SESSION_NAME, properties.getWindSessionId());
         String response = HttpUtil.sendGetRequest(DataSourceConstants.WIND_PROD_WGQ + requestTradeDateUrl, headers, 10000, 30000).getBody();
         // 解析JSON响应为LimitResultVO对象
         // 配置忽略未知字段，避免反序列化错误

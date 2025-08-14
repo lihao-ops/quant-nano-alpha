@@ -3,11 +3,13 @@ package com.hao.datacollector.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.alibaba.fastjson.parser.Feature;
-import constants.DataSourceConstants;
 import com.hao.datacollector.common.utils.HttpUtil;
+import com.hao.datacollector.properties.DataCollectorProperties;
 import com.hao.datacollector.service.StockProfileService;
 import com.hao.datacollector.web.vo.stockProfile.SearchKeyBoardVO;
+import constants.DataSourceConstants;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
@@ -24,11 +26,12 @@ import java.util.List;
 @Slf4j
 @Service
 public class StockProfileServiceImpl implements StockProfileService {
-    @Value("${wind_base.session_id}")
-    private String windSessionId;
 
     @Value("${wind_base.keyword.url}")
     private String keywordUrl;
+
+    @Autowired
+    private DataCollectorProperties properties;
 
     /**
      * 获取键盘精灵数据
@@ -42,7 +45,7 @@ public class StockProfileServiceImpl implements StockProfileService {
     public List<SearchKeyBoardVO> getSearchKeyBoard(String keyword, Integer pageNo, Integer pageSize) {
         String url = String.format(keywordUrl, keyword, pageNo, pageSize);
         HttpHeaders headers = new HttpHeaders();
-        headers.set(DataSourceConstants.WIND_SESSION_NAME, windSessionId);
+        headers.set(DataSourceConstants.WIND_SESSION_NAME, properties.getWindSessionId());
         String response = HttpUtil.sendGetRequest(DataSourceConstants.WIND_PROD_WGQ + url, headers, 10000, 30000).getBody();
         return JSONObject.parseObject(response, new TypeReference<List<SearchKeyBoardVO>>() {
         }, Feature.OrderedField);
