@@ -1,7 +1,7 @@
 package com.hao.datacollector.web.controller;
 
 import constants.DateTimeFormatConstants;
-import com.hao.datacollector.common.utils.DateUtil;
+import util.DateUtil;
 import com.hao.datacollector.dto.param.stock.StockBasicInfoQueryParam;
 import com.hao.datacollector.dto.param.stock.StockMarketDataQueryParam;
 import com.hao.datacollector.service.BaseDataService;

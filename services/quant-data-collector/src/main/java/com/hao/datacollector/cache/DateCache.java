@@ -1,7 +1,7 @@
 package com.hao.datacollector.cache;
 
 import constants.DateTimeFormatConstants;
-import com.hao.datacollector.common.utils.DateUtil;
+import util.DateUtil;
 import com.hao.datacollector.service.BaseDataService;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;

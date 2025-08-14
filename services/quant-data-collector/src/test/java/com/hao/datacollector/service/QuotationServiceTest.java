@@ -3,7 +3,7 @@ package com.hao.datacollector.service;
 import com.hao.datacollector.cache.DateCache;
 import com.hao.datacollector.cache.StockCache;
 import constants.DateTimeFormatConstants;
-import com.hao.datacollector.common.utils.DateUtil;
+import util.DateUtil;
 import com.hao.datacollector.dal.dao.QuotationMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;

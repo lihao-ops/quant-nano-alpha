@@ -7,7 +7,7 @@ import com.alibaba.fastjson.parser.Feature;
 import constants.CommonConstants;
 import constants.DataSourceConstants;
 import constants.DateTimeFormatConstants;
-import com.hao.datacollector.common.utils.DateUtil;
+import util.DateUtil;
 import com.hao.datacollector.common.utils.ExtremeValueUtil;
 import com.hao.datacollector.common.utils.HttpUtil;
 import com.hao.datacollector.dal.dao.AbnormalMapper;

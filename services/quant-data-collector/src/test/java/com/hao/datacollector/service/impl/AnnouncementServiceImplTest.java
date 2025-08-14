@@ -2,7 +2,7 @@ package com.hao.datacollector.service.impl;
 
 import com.hao.datacollector.cache.StockCache;
 import constants.DateTimeFormatConstants;
-import com.hao.datacollector.common.utils.DateUtil;
+import util.DateUtil;
 import com.hao.datacollector.dal.dao.AnnouncementMapper;
 import com.hao.datacollector.dal.dao.BaseDataMapper;
 import com.hao.datacollector.service.AnnouncementService;

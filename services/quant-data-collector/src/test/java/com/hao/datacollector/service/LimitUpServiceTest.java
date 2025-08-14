@@ -6,7 +6,7 @@ import com.hao.datacollector.cache.DateCache;
 import com.hao.datacollector.cache.TopicCache;
 import constants.DateTimeFormatConstants;
 import constants.RedisKeyConstants;
-import com.hao.datacollector.common.utils.DateUtil;
+import util.DateUtil;
 import com.hao.datacollector.integration.redis.RedisClient;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
