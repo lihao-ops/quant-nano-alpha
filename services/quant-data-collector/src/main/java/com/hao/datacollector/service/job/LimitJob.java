@@ -28,7 +28,7 @@ public class LimitJob {
     public ReturnT<String> todayLimitUpTransferJob() {
         String jobParam = XxlJobHelper.getJobParam();
         XxlJobHelper.log("todayLimitUpTransferJob_start,jobParam={}", jobParam);
-        Boolean success = limitUpService.transferLimitUpDataToDatabase(null);
+        Boolean success = limitUpService.transferLimitUpDataToDatabase(jobParam);
         return success ? ReturnT.SUCCESS : ReturnT.FAIL;
     }
 }
