@@ -3,14 +3,15 @@ package com.hao.datacollector.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
-import constants.DataSourceConstants;
 import com.hao.datacollector.common.utils.HttpUtil;
 import com.hao.datacollector.dal.dao.SimpleF9Mapper;
 import com.hao.datacollector.dto.f9.*;
 import com.hao.datacollector.dto.param.f9.F9Param;
 import com.hao.datacollector.dto.table.f9.InsertCompanyProfileDTO;
+import com.hao.datacollector.properties.DataCollectorProperties;
 import com.hao.datacollector.service.SimpleF9Service;
 import com.hao.datacollector.web.vo.result.ResultVO;
+import constants.DataSourceConstants;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -46,15 +47,13 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
     @Value("${wind_base.f9.base_url}")
     private String baseUrl;
 
-    @Value("${wind_base.session_id}")
-    private String sessionId;
+    @Autowired
+    private DataCollectorProperties properties;
 
     private static String f9BaseUlr = null;
-    private static String windSessionId = null;
 
     @PostConstruct
     private void init() {
-        windSessionId = sessionId;
         f9BaseUlr = baseUrl;
     }
 
@@ -63,10 +62,10 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
     @Autowired
     private SimpleF9Mapper simpleF9Mapper;
 
-    private static ResponseEntity<String> getF9Request(String lan, String windCode, String path) {
+    private static ResponseEntity<String> getF9Request(String lan, String windCode, String path, String sessionId) {
         String url = DataSourceConstants.WIND_PROD_WGQ + String.format(f9BaseUlr, path, lan, windCode);
         HttpHeaders headers = new HttpHeaders();
-        headers.set(DataSourceConstants.WIND_SESSION_NAME, windSessionId);
+        headers.set(DataSourceConstants.WIND_SESSION_NAME, sessionId);
         return HttpUtil.sendGet(url, headers, TIME_OUT_NUM, TIME_OUT_NUM);
     }
 
@@ -79,7 +78,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
      */
     @Override
     public CompanyProfileDTO getCompanyProfileSource(String lan, String windCode) {
-        ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_COMPANY_PROFILE);
+        ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_COMPANY_PROFILE, properties.getWindSessionId());
         ResultVO<CompanyProfileDTO> resultVO = null;
         try {
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<CompanyProfileDTO>>() {
@@ -103,7 +102,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
      */
     @Override
     public List<InformationOceanDTO> getInformationSource(String lan, String windCode) {
-        ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_INFORMATION);
+        ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_INFORMATION, properties.getWindSessionId());
         ResultVO<List<InformationOceanDTO>> resultVO = null;
         try {
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<List<InformationOceanDTO>>>() {
@@ -127,7 +126,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
      */
     @Override
     public KeyStatisticsDTO getKeyStatisticsSource(String lan, String windCode) {
-        ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_KEY_STATISTICS);
+        ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_KEY_STATISTICS, properties.getWindSessionId());
         ResultVO<KeyStatisticsDTO> resultVO = null;
         try {
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<KeyStatisticsDTO>>() {
@@ -151,7 +150,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
      */
     @Override
     public CompanyInfo getCompanyInfoSource(String lan, String windCode) {
-        ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_COMPANY_INFO);
+        ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_COMPANY_INFO, properties.getWindSessionId());
         ResultVO<CompanyInfo> resultVO = null;
         try {
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<CompanyInfo>>() {
@@ -175,7 +174,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
      */
     @Override
     public List<NoticeDTO> getNoticeSource(String lan, String windCode) {
-        ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_NOTICE);
+        ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_NOTICE, properties.getWindSessionId());
         ResultVO<List<NoticeDTO>> resultVO = null;
         try {
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<List<NoticeDTO>>>() {
@@ -199,7 +198,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
      */
     @Override
     public List<GreatEventDTO> getGreatEventSource(String lan, String windCode) {
-        ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_GREAT_EVENT);
+        ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_GREAT_EVENT, properties.getWindSessionId());
         ResultVO<List<GreatEventDTO>> resultVO = null;
         try {
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<List<GreatEventDTO>>>() {
@@ -223,7 +222,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
      */
     @Override
     public ProfitForecastDTO getProfitForecastSource(String lan, String windCode) {
-        ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_PROFIT_FORECAST);
+        ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_PROFIT_FORECAST, properties.getWindSessionId());
         ResultVO<ProfitForecastDTO> resultVO = null;
         try {
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<ProfitForecastDTO>>() {
@@ -247,7 +246,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
      */
     @Override
     public MarketPerformanceDTO getMarketPerformanceSource(String lan, String windCode) {
-        ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_MARKET_PERFORMANCE);
+        ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_MARKET_PERFORMANCE, properties.getWindSessionId());
         ResultVO<MarketPerformanceDTO> resultVO = null;
         try {
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<MarketPerformanceDTO>>() {
@@ -272,7 +271,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
      */
     @Override
     public List<PeBandVO> getPeBandSource(String lan, String windCode) {
-        ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_PE_BAND);
+        ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_PE_BAND, properties.getWindSessionId());
         ResultVO<List<List<Object>>> resultVO = null;
         try {
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<List<List<Object>>>>() {
@@ -312,7 +311,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
      */
     @Override
     public List<ValuationIndexDTO> getSecurityMarginSource(String lan, String windCode) {
-        ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_SECURITY_MARGIN);
+        ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_SECURITY_MARGIN, properties.getWindSessionId());
         ResultVO<List<ValuationIndexDTO>> resultVO = null;
         try {
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<List<ValuationIndexDTO>>>() {
@@ -336,7 +335,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
      */
     @Override
     public List<QuickViewGrowthDTO> getFinancialSummarySource(String lan, String windCode) {
-        ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_FINANCIAL_SUMMARY);
+        ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_FINANCIAL_SUMMARY, properties.getWindSessionId());
         ResultVO<List<QuickViewGrowthDTO>> resultVO = null;
         try {
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<List<QuickViewGrowthDTO>>>() {
