@@ -1,4 +1,4 @@
-package com.hao.datacollector.common.cache;
+package com.hao.datacollector.cache;
 
 import com.hao.datacollector.dal.dao.TopicMapper;
 import com.hao.datacollector.dto.table.topic.TopicStockDTO;

@@ -1,7 +1,7 @@
 package com.hao.datacollector.service;
 
 import com.alibaba.fastjson.JSON;
-import com.hao.datacollector.common.cache.StockCache;
+import com.hao.datacollector.cache.StockCache;
 import com.hao.datacollector.dal.dao.SimpleF9Mapper;
 import com.hao.datacollector.dto.f9.*;
 import com.hao.datacollector.dto.param.f9.F9Param;

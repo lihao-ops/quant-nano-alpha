@@ -3,7 +3,7 @@ package com.hao.datacollector.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
-import com.hao.datacollector.common.constant.DataSourceConstants;
+import constants.DataSourceConstants;
 import com.hao.datacollector.common.utils.HttpUtil;
 import com.hao.datacollector.dal.dao.SimpleF9Mapper;
 import com.hao.datacollector.dto.f9.*;

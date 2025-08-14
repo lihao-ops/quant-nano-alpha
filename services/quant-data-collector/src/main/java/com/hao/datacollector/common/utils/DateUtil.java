@@ -1,7 +1,7 @@
 package com.hao.datacollector.common.utils;
 
 
-import com.hao.datacollector.common.constant.DateTimeFormatConstants;
+import constants.DateTimeFormatConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 

@@ -1,4 +1,4 @@
-package com.hao.datacollector.common.utils;
+package util;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

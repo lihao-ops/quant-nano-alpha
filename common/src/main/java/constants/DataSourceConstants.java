@@ -1,4 +1,4 @@
-package com.hao.datacollector.common.constant;
+package constants;
 
 /**
  * @author hli

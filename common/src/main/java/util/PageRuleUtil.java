@@ -1,8 +1,8 @@
-package com.hao.datacollector.common.utils;
+package util;
 
 
-import com.hao.datacollector.common.constant.CommonConstants;
-import com.hao.datacollector.dto.PageNumDTO;
+import constants.CommonConstants;
+import dto.PageNumDTO;
 
 /**
  * @author LiHao

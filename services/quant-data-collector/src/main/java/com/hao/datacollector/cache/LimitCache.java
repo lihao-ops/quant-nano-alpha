@@ -1,7 +1,7 @@
-package com.hao.datacollector.common.cache;
+package com.hao.datacollector.cache;
 
 import com.alibaba.fastjson.JSON;
-import com.hao.datacollector.common.constant.RedisKeyConstants;
+import constants.RedisKeyConstants;
 import com.hao.datacollector.integration.redis.RedisClient;
 import com.hao.datacollector.service.LimitUpService;
 import jakarta.annotation.PostConstruct;

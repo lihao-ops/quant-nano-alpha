@@ -1,6 +1,6 @@
 package com.hao.datacollector.service;
 
-import com.hao.datacollector.common.cache.StockCache;
+import com.hao.datacollector.cache.StockCache;
 import com.hao.datacollector.dal.dao.BaseDataMapper;
 import com.hao.datacollector.dal.dao.NewsMapper;
 import lombok.extern.slf4j.Slf4j;

@@ -2,10 +2,10 @@ package com.hao.datacollector.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.hao.datacollector.common.constant.CommonConstants;
-import com.hao.datacollector.common.constant.DataSourceConstants;
+import constants.CommonConstants;
+import constants.DataSourceConstants;
 import com.hao.datacollector.common.utils.HttpUtil;
-import com.hao.datacollector.common.utils.PageUtil;
+import util.PageUtil;
 import com.hao.datacollector.dal.dao.BaseDataMapper;
 import com.hao.datacollector.dal.dao.NewsMapper;
 import com.hao.datacollector.dto.param.news.NewsQueryParam;

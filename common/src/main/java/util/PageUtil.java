@@ -1,4 +1,4 @@
-package com.hao.datacollector.common.utils;
+package util;
 
 /**
  * @author hli

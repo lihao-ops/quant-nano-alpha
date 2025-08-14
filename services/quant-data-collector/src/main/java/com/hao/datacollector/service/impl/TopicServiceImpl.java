@@ -1,12 +1,12 @@
 package com.hao.datacollector.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hao.datacollector.common.cache.StockCache;
+import com.hao.datacollector.cache.StockCache;
 import com.hao.datacollector.common.utils.DateUtil;
 import com.hao.datacollector.common.utils.HttpUtil;
-import com.hao.datacollector.common.utils.PageRuleUtil;
+import util.PageRuleUtil;
 import com.hao.datacollector.dal.dao.TopicMapper;
-import com.hao.datacollector.dto.PageNumDTO;
+import dto.PageNumDTO;
 import com.hao.datacollector.dto.kpl.CategoryLevel;
 import com.hao.datacollector.dto.kpl.HotTopicKpl;
 import com.hao.datacollector.dto.kpl.StockDetail;

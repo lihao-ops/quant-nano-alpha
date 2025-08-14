@@ -1,4 +1,4 @@
-package com.hao.datacollector.common.utils;
+package util;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;

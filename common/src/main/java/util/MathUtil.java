@@ -1,4 +1,4 @@
-package com.hao.datacollector.common.utils;
+package util;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

@@ -2,11 +2,11 @@ package com.hao.datacollector.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
-import com.hao.datacollector.common.constant.DataSourceConstants;
-import com.hao.datacollector.common.constant.DateTimeFormatConstants;
+import constants.DataSourceConstants;
+import constants.DateTimeFormatConstants;
 import com.hao.datacollector.common.utils.DateUtil;
 import com.hao.datacollector.common.utils.HttpUtil;
-import com.hao.datacollector.common.utils.MathUtil;
+import util.MathUtil;
 import com.hao.datacollector.dal.dao.QuotationMapper;
 import com.hao.datacollector.dto.quotation.HistoryTrendDTO;
 import com.hao.datacollector.dto.table.quotation.QuotationStockBaseDTO;

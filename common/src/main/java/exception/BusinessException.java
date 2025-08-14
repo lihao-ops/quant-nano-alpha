@@ -1,4 +1,4 @@
-package com.hao.datacollector.common.exception;
+package exception;
 
 import lombok.Data;
 
