@@ -9,6 +9,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 
 import java.util.concurrent.Executor;
@@ -16,6 +17,7 @@ import java.util.concurrent.Executors;
 
 @Slf4j
 @MapperScan("com.hao.strategyengine.dal.dao")
+@EnableFeignClients//开启Feign远程调用功能
 @EnableDiscoveryClient//开启服务发现功能
 @SpringBootApplication
 public class StrategyEngineApplication {
