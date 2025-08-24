@@ -18,6 +18,7 @@
         <module>quant-data-collector</module>
         <module>quant-xxl-job</module>
         <module>quant-strategy-engine</module>
+        <module>quant-risk-control</module>
     </modules>
     <!-- 编译及编码配置 -->
     <properties>

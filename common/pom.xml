@@ -22,6 +22,8 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <version>1.18.32</version> <!-- 建议指定版本，不要偷懒 -->
+            <scope>provided</scope>
             <optional>true</optional>
         </dependency>
         <!-- swagger 文档（Knife4j） -->
