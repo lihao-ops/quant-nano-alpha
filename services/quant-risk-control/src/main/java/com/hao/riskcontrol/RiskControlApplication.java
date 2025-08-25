@@ -6,6 +6,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
 /**
  * @author hli
@@ -16,6 +17,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 @Slf4j
 @MapperScan("com.hao.riskcontrol.dal.dao")
 @SpringBootApplication
+@EnableFeignClients//开启Feign远程调用功能
 @EnableDiscoveryClient//开启服务发现功能
 @EnableCaching//缓存
 //@EnableRetry
