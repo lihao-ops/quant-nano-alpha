@@ -22,13 +22,13 @@ class AbnormalServiceImplTest {
 
     @Test
     public void getHomePage() {
-        //2021已转
-        List<String> tradeDateList = DateUtil.formatLocalDateList(DateCache.Year2020TradeDateList, DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT);
+        //2021，2024已转，20250826(未完整)
+        List<String> tradeDateList = DateUtil.formatLocalDateList(DateCache.CurrentYearTradeDateList, DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT);
         for (String tradeDate : tradeDateList) {
             IndexSourceParam indexSourceParam = new IndexSourceParam();
             indexSourceParam.setTradeDate(tradeDate);
             Boolean result = false;
-//            if (tradeDate.equals("20200111"。20220127)){
+//            if (tradeDate.equals("20200111"。20220127,20230810)){
 //                continue;
 //            }
             try {
