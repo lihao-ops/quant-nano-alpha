@@ -1,15 +1,18 @@
 package com.hao.datacollector.service;
 
 
-import com.alibaba.fastjson.JSON;
+import com.hao.datacollector.cache.DateCache;
 import com.hao.datacollector.dto.param.abnormal.IndexSourceParam;
-import com.hao.datacollector.web.vo.abnormal.ActiveRankRecordVO;
+import constants.DateTimeFormatConstants;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import util.DateUtil;
 
 import java.util.List;
 
+@Slf4j
 @SpringBootTest
 class AbnormalServiceImplTest {
 
@@ -19,9 +22,22 @@ class AbnormalServiceImplTest {
 
     @Test
     public void getHomePage() {
-//        IndexSourceParam indexSourceParam = new IndexSourceParam();
-//        indexSourceParam.setTradeDate("20250620");
-//        Boolean b = abnormalService.transferHomePage(indexSourceParam);
+        //2021已转
+        List<String> tradeDateList = DateUtil.formatLocalDateList(DateCache.Year2020TradeDateList, DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT);
+        for (String tradeDate : tradeDateList) {
+            IndexSourceParam indexSourceParam = new IndexSourceParam();
+            indexSourceParam.setTradeDate(tradeDate);
+            Boolean result = false;
+//            if (tradeDate.equals("20200111"。20220127)){
+//                continue;
+//            }
+            try {
+                result = abnormalService.transferHomePage(indexSourceParam);
+            } catch (Exception e) {
+                result = abnormalService.transferHomePage(indexSourceParam);
+            }
+            log.info("getHomePage_tradeDate={},result={}", tradeDate, result);
+        }
 
 
         Boolean sourceListOfSeats = abnormalService.transferListOfSeats(3, 0, 1, 10000, 1, -1);
