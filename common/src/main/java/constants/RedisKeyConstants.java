@@ -17,4 +17,11 @@ public class RedisKeyConstants {
      * tradingDateMappingStockMap:业务自定义
      */
     public static final String DATA_LIMIT_UP_TRADING_DATE_MAPPING_STOCK_MAP = "DATA_LIMIT_UP_TRADING_DATE_MAPPING_STOCK_MAP";
+
+    /**
+     * 每个题材映射股票代码映射关系
+     * key:题材ID
+     * value:对应股票代码列表
+     */
+    public static final String DATA_TOPIC_MAPPING_STOCK_MAP = "DATA_TOPIC_MAPPING_STOCK_MAP";
 }

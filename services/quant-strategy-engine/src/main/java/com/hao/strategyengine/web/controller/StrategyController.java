@@ -14,4 +14,5 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "策略模块")
 @RestController("strategy")
 public class StrategyController {
+
 }

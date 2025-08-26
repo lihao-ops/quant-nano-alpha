@@ -1,7 +1,10 @@
 package com.hao.datacollector.cache;
 
+import com.alibaba.fastjson.JSON;
 import com.hao.datacollector.dal.dao.TopicMapper;
 import com.hao.datacollector.dto.table.topic.TopicStockDTO;
+import com.hao.datacollector.integration.redis.RedisClient;
+import constants.RedisKeyConstants;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +23,9 @@ import java.util.*;
 public class TopicCache {
     @Autowired
     private TopicMapper topicMapper;
+
+    @Autowired
+    private RedisClient<String> redisClient;
     /**
      * 题材信息缓存Map
      * key:题材id
@@ -42,6 +48,7 @@ public class TopicCache {
                     .add(dto.getWindCode());
         }
         topicMappingStockMap = resultMap;
+        redisClient.set(RedisKeyConstants.DATA_TOPIC_MAPPING_STOCK_MAP, JSON.toJSONString(topicMappingStockMap));
         log.info("TopicCache_allTopicIdList.size={}", kplTopicAndStockList.size());
     }
 }
