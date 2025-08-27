@@ -4,7 +4,6 @@ import com.hao.datacollector.cache.DateCache;
 import com.hao.datacollector.cache.StockCache;
 import com.hao.datacollector.dal.dao.QuotationMapper;
 import constants.DateTimeFormatConstants;
-import enums.market.RiskMarketIndexEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +11,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import util.DateUtil;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 

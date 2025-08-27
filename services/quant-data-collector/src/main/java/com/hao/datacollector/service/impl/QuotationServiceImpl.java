@@ -2,22 +2,22 @@ package com.hao.datacollector.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
-import com.hao.datacollector.properties.DataCollectorProperties;
-import constants.DataSourceConstants;
-import constants.DateTimeFormatConstants;
-import util.DateUtil;
 import com.hao.datacollector.common.utils.HttpUtil;
-import util.MathUtil;
 import com.hao.datacollector.dal.dao.QuotationMapper;
 import com.hao.datacollector.dto.quotation.HistoryTrendDTO;
 import com.hao.datacollector.dto.table.quotation.QuotationStockBaseDTO;
+import com.hao.datacollector.properties.DataCollectorProperties;
 import com.hao.datacollector.service.QuotationService;
+import constants.DataSourceConstants;
+import constants.DateTimeFormatConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import util.DateUtil;
+import util.MathUtil;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
