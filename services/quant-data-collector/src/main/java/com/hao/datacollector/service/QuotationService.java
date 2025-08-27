@@ -27,4 +27,15 @@ public interface QuotationService {
      * @return 操作结果
      */
     Boolean transferQuotationHistoryTrend(int tradeDate, String windCodes, Integer dateType);
+
+
+    /**
+     * 转档指标历史分时数据
+     *
+     * @param tradeDate 交易日期,如:20220608
+     * @param windCodes 指标代码List
+     * @param dateType  时间类型,0表示固定时间
+     * @return 操作结果
+     */
+    Boolean transferQuotationIndexHistoryTrend(int tradeDate, String windCodes, Integer dateType);
 }

@@ -128,6 +128,25 @@ public class QuotationServiceImpl implements QuotationService {
     }
 
     /**
+     * 转档指标历史分时数据
+     *
+     * @param tradeDate 交易日期,如:20220608
+     * @param windCodes 股票代码List
+     * @param dateType  时间类型,0表示固定时间
+     * @return 操作结果
+     */
+    @Override
+    public Boolean transferQuotationIndexHistoryTrend(int tradeDate, String windCodes, Integer dateType) {
+        List<HistoryTrendDTO> quotationHistoryTrendList = getQuotationHistoryTrendList(tradeDate, windCodes, dateType);
+        if (quotationHistoryTrendList.isEmpty()) {
+            log.error("quotationHistoryTrendList.isEmpty()!tradeDate={},windCodes={},dateType={}", tradeDate, windCodes, dateType);
+            return false;
+        }
+        int insertResult = quotationMapper.insertQuotationIndexHistoryTrendList(quotationHistoryTrendList);
+        return insertResult > 0;
+    }
+
+    /**
      * 获取股票历史分时对象List
      *
      * @param tradeDate 交易日期,如:20220608

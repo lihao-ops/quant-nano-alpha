@@ -33,6 +33,13 @@ public interface QuotationMapper {
     int insertQuotationHistoryTrendList(@Param("historyTrendQuotationList") List<HistoryTrendDTO> historyTrendQuotationList);
 
     /**
+     * 批量插入指标历史分时行情数据
+     *
+     * @param historyTrendQuotationList 历史分时行情数据列表
+     * @return 插入数量
+     */
+    int insertQuotationIndexHistoryTrendList(@Param("historyTrendQuotationList") List<HistoryTrendDTO> historyTrendQuotationList);
+    /**
      * 获取指定年份的股票历史分时数据结束日期
      *
      * @param year 年份 yyyy

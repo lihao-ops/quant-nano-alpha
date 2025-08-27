@@ -1,4 +1,4 @@
-package com.hao.riskcontrol.common.enums.market;
+package enums.market;
 
 import lombok.Getter;
 
