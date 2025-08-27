@@ -81,7 +81,7 @@ class QuotationServiceTest {
             }
         }
     }
-
+//todo 待修复historyTrendDTO.setAveragePrice(averagePrice += dataArrays.get(i).get(averagePriceIndex));越界bug
 //    @Test
 //    void transferQuotationHistoryTrendMarketIndex() {
 //        List<String> allIndexCodeList = new ArrayList<>(Arrays.asList(
