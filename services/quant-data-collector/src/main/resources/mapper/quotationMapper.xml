@@ -43,7 +43,7 @@
 
 
     <insert id="insertQuotationHistoryTrendList" parameterType="java.util.List">
-        INSERT IGNORE INTO tb_quotation_history_trend_202507 (
+        INSERT IGNORE INTO tb_quotation_history_trend_202508 (
         wind_code,
         trade_date,
         latest_price,
@@ -64,14 +64,14 @@
 
     <select id="getMaxHistoryTrendEndDate" resultType="string">
         SELECT DATE_FORMAT(MAX(trade_date), '%Y%m%d')
-        FROM tb_quotation_history_trend_202507
+        FROM tb_quotation_history_trend_202508
         WHERE trade_date >= STR_TO_DATE(CONCAT(#{year}, '0101'), '%Y%m%d')
           AND trade_date <![CDATA[<]]> STR_TO_DATE(CONCAT(#{year} + 1, '0101'), '%Y%m%d');
     </select>
 
     <select id="getCompletedWindCodes" resultType="string">
         SELECT DISTINCT wind_code
-        FROM tb_quotation_history_trend_202507
+        FROM tb_quotation_history_trend_202508
         WHERE trade_date >= STR_TO_DATE(#{maxEndDate}, '%Y%m%d')
           AND trade_date <![CDATA[<]]> DATE_ADD(STR_TO_DATE(#{maxEndDate}, '%Y%m%d'), INTERVAL 1 DAY)
     </select>
