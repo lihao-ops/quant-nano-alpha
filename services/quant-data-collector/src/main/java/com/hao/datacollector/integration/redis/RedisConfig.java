@@ -6,7 +6,9 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.util.StringUtils;
@@ -809,4 +811,51 @@ public class RedisConfig implements RedisClient<String>, InitializingBean, Dispo
             return false;
         }
     }
+
+    /* ------------------ 分布式锁操作 ------------------ */
+
+    /**
+     * 尝试获取分布式锁
+     *
+     * @param key        锁名称（不能为空）
+     * @param value      锁值，一般用 UUID（不能为空）
+     * @param expireTime 过期时间（秒，必须>0）
+     * @return true 获取成功，false 获取失败
+     * <p>
+     * 使用场景：控制分布式环境下同一资源的并发访问
+     */
+    public boolean tryLock(String key, String value, int expireTime) {
+        validateKey(key, "key");
+        validateKey(value, "value");
+        if (expireTime <= 0) {
+            throw new IllegalArgumentException("expireTime must be greater than 0");
+        }
+        Boolean success = redisTemplate.opsForValue().setIfAbsent(key, value, Duration.ofSeconds(expireTime));
+        return Boolean.TRUE.equals(success);
+    }
+
+    /**
+     * 释放分布式锁（Lua脚本方式，保证原子性）
+     */
+    public boolean releaseLock(String key, String value) {
+        validateKey(key, "key");
+        validateKey(value, "value");
+
+        String script = "if redis.call('get', KEYS[1]) == ARGV[1] then " +
+                "return redis.call('del', KEYS[1]) " +
+                "else return 0 end";
+
+        RedisCallback<Long> callback = connection ->
+                connection.eval(
+                        script.getBytes(),
+                        ReturnType.INTEGER,
+                        1,
+                        key.getBytes(),
+                        value.getBytes()
+                );
+
+        Object result = redisTemplate.execute(callback);
+        return Long.valueOf(1).equals(result);
+    }
+
 }
