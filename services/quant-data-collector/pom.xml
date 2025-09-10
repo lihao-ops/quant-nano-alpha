@@ -37,6 +37,7 @@
         <spring-boot-starter-cache.version>2.1.4.RELEASE</spring-boot-starter-cache.version>
         <jakarta.annotation.version>2.1.0</jakarta.annotation.version>
         <knife4j.version>4.5.0</knife4j.version>
+        <spring-kafka.version>4.0.0</spring-kafka.version>
     </properties>
     <dependencies>
 
@@ -102,7 +103,9 @@
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
+            <version>3.3.6</version> <!-- 对应 Spring Boot 3.x -->
         </dependency>
+
 
         <!-- ======================== 文档与工具 ======================== -->
         <!-- swagger 文档（Knife4j） -->
@@ -168,11 +171,11 @@
             <version>3.0.4</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.kafka</groupId>
-            <artifactId>spring-kafka-test</artifactId>
-            <scope>test</scope>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.kafka</groupId>-->
+<!--            <artifactId>spring-kafka-test</artifactId>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
 
     </dependencies>
 

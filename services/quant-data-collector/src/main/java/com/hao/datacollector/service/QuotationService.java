@@ -1,5 +1,9 @@
 package com.hao.datacollector.service;
 
+import com.hao.datacollector.dto.quotation.HistoryTrendDTO;
+
+import java.util.List;
+
 /**
  * @author hli
  * @program: datacollector
@@ -38,4 +42,13 @@ public interface QuotationService {
      * @return 操作结果
      */
     Boolean transferQuotationIndexHistoryTrend(int tradeDate, String windCodes, Integer dateType);
+
+    /**
+     * 根据时间区间获取A股历史分时数据
+     *
+     * @param startDate 起始日期
+     * @param endDate   结束日期
+     * @return 历史分时数据
+     */
+    List<HistoryTrendDTO> getHistoryTrendDataByDate(String startDate, String endDate);
 }

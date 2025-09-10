@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import util.DateUtil;
 import util.MathUtil;
 
@@ -248,5 +249,20 @@ public class QuotationServiceImpl implements QuotationService {
         }
         log.info("getQuotationHistoryTrendList_allHistoryTrendList.size={}", allHistoryTrendList.size());
         return allHistoryTrendList;
+    }
+
+    /**
+     * 根据时间区间获取A股历史分时数据
+     *
+     * @param startDate 起始日期
+     * @param endDate   结束日期
+     * @return 历史分时数据
+     */
+    @Override
+    public List<HistoryTrendDTO> getHistoryTrendDataByDate(String startDate, String endDate) {
+        if (!StringUtils.hasLength(endDate)) {
+            endDate = DateUtil.getCurrentDateTimeByStr(DateTimeFormatConstants.COMPACT_DATE_FORMAT);
+        }
+        return quotationMapper.getHistoryTrendDataByDate(startDate, endDate);
     }
 }

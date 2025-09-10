@@ -43,6 +43,13 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- ======================== 消息队列 ======================== -->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+            <version>3.3.6</version> <!-- 对应 Spring Boot 3.x -->
+        </dependency>
+
         <!-- ======================== 文档与工具 ======================== -->
         <!-- swagger 文档（Knife4j） -->
         <dependency>

@@ -39,6 +39,7 @@ public interface QuotationMapper {
      * @return 插入数量
      */
     int insertQuotationIndexHistoryTrendList(@Param("historyTrendQuotationList") List<HistoryTrendDTO> historyTrendQuotationList);
+
     /**
      * 获取指定年份的股票历史分时数据结束日期
      *
@@ -54,4 +55,13 @@ public interface QuotationMapper {
      * @return 已完成的股票列表
      */
     List<String> getCompletedWindCodes(String maxEndDate);
+
+    /**
+     * 获取指定时间段内的股票历史分时数据
+     *
+     * @param startDate 开始时间
+     * @param endDate   结束时间
+     * @return 股票历史分时数据列表
+     */
+    List<HistoryTrendDTO> getHistoryTrendDataByDate(@Param("startDate") String startDate, @Param("endDate") String endDate);
 }

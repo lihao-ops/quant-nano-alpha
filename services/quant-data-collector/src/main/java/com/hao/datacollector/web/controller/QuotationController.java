@@ -1,17 +1,18 @@
 package com.hao.datacollector.web.controller;
 
+import com.hao.datacollector.dto.quotation.HistoryTrendDTO;
 import com.hao.datacollector.service.QuotationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * @author hli
@@ -58,5 +59,15 @@ public class QuotationController {
             return ResponseEntity.badRequest().body("数据转档失败");
         }
         return ResponseEntity.ok("数据转档成功");
+    }
+
+    @Operation(summary = "股票历史分时", description = "根据时间区间获取股票历史分时数据")
+    @GetMapping("/get_history_trend")
+    public List<HistoryTrendDTO> getHistoryTrendDataByDate(
+            @Parameter(description = "起始日期，格式yyyy-MM-dd", required = true)
+            @RequestParam String startDate,
+            @Parameter(description = "结束日期，格式yyyy-MM-dd", required = false)
+            @RequestParam(required = false) String endDate) {
+        return quotationService.getHistoryTrendDataByDate(startDate, endDate);
     }
 }
