@@ -106,6 +106,6 @@
 
     <select id="getHistoryTrendDataByDate" resultMap="HistoryTrendDataMap">
         SELECT `wind_code`, `trade_date`, `latest_price`, `total_volume`, `average_price`
-        FROM `tb_quotation_history_trend_202508`
+        FROM `tb_quotation_history_trend_202508` WHERE `wind_code` = '600519.SH' AND `trade_date` > '2025-08-01' AND `trade_date` <![CDATA[<]]> '2025-08-31'
     </select>
 </mapper>
