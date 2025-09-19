@@ -36,8 +36,8 @@
         <caffeine.version>2.7.0</caffeine.version>
         <spring-boot-starter-cache.version>2.1.4.RELEASE</spring-boot-starter-cache.version>
         <jakarta.annotation.version>2.1.0</jakarta.annotation.version>
-        <knife4j.version>4.5.0</knife4j.version>
         <spring-kafka.version>4.0.0</spring-kafka.version>
+        <knife4j.version>4.5.0</knife4j.version>
     </properties>
     <dependencies>
 
@@ -108,12 +108,18 @@
 
 
         <!-- ======================== 文档与工具 ======================== -->
-        <!-- swagger 文档（Knife4j） -->
         <dependency>
             <groupId>com.github.xiaoymin</groupId>
             <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
             <version>${knife4j.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springdoc</groupId>
+                    <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
+
         <!-- 处理 Excel -->
         <dependency>
             <groupId>org.apache.poi</groupId>

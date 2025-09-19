@@ -77,7 +77,8 @@
 
 
     <build>
-        <plugins> <!--直接使用 plugins，而不是 pluginManagement,子项目均自动继承此配置,如需自定义jdk版本等，可以在子模块显示配置指定-->
+        <plugins>
+            <!-- 统一编译器插件 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -91,12 +92,27 @@
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
-                            <version>1.18.32</version>
+                            <version>${lombok.version}</version>
                         </path>
                     </annotationProcessorPaths>
+                    <!-- 如果所有模块都使用 preview 特性，可在父 POM 配置 -->
+                    <!-- <compilerArgs>enable-preview</compilerArgs> -->
+                </configuration>
+            </plugin>
+
+            <!-- Spring Boot 打包插件 -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-
 </project>
