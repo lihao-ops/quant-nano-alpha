@@ -96,6 +96,12 @@
             <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
 
+        <!--服务保护-->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
+        </dependency>
+
         <!-- ===== 工具类依赖 ===== -->
         <!-- Lombok：简化 Java 代码 -->
         <dependency>

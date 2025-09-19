@@ -1,5 +1,7 @@
 package com.hao.datacollector.service.impl;
 
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
+import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,6 +27,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import util.DateUtil;
+import util.ExceptionUtil;
 import util.PageUtil;
 
 import java.io.File;
@@ -325,6 +328,7 @@ public class BaseDataServiceImpl implements BaseDataService {
      * @param endTime   结束日期
      * @return 交易日历
      */
+    @SentinelResource(value = "getTradeDateListByTime", blockHandler = "getTradeDateListByTimeFallback")
     @Override
 //    @Cacheable(cacheNames = "tradeDateListByTime", key = "#startTime + #endTime", cacheManager = "dateCaffeineCacheManager")
     public List<LocalDate> getTradeDateListByTime(String startTime, String endTime) {
@@ -334,6 +338,19 @@ public class BaseDataServiceImpl implements BaseDataService {
         return listByTime.stream()
                 .map(LocalDate::parse) // 默认是 yyyy-MM-dd 格式
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * getTradeDateListByTime的Sentinel自定义限流兜底回调方法
+     *
+     * @param startTime 起始日期
+     * @param endTime   结束日期
+     * @param e         限流原因
+     * @return 兜底内容
+     */
+    public List<LocalDate> getTradeDateListByTimeFallback(String startTime, String endTime, BlockException e) {
+        log.error("getTradeDateListByTimeFallback={},errorClass={}", ExceptionUtil.getStackTrace(e), e.getClass());
+        return new ArrayList<>();
     }
 
     /**
