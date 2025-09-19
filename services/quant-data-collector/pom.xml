@@ -96,9 +96,8 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-cache</artifactId>
-            <version>${spring-boot-starter-cache.version}</version>
+<!--            <version>${spring-boot-starter-cache.version}</version>-->
         </dependency>
-
         <!-- ======================== 消息队列 ======================== -->
         <dependency>
             <groupId>org.springframework.kafka</groupId>
@@ -112,12 +111,6 @@
             <groupId>com.github.xiaoymin</groupId>
             <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
             <version>${knife4j.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springdoc</groupId>
-                    <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <!-- 处理 Excel -->
@@ -177,12 +170,6 @@
             <version>3.0.4</version>
             <scope>test</scope>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.kafka</groupId>-->
-<!--            <artifactId>spring-kafka-test</artifactId>-->
-<!--            <scope>test</scope>-->
-<!--        </dependency>-->
-
     </dependencies>
 
 
