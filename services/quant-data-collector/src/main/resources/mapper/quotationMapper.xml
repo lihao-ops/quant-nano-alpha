@@ -108,4 +108,23 @@
         SELECT `wind_code`, `trade_date`, `latest_price`, `total_volume`, `average_price`
         FROM `tb_quotation_history_trend_202508` WHERE `wind_code` = '600519.SH' AND `trade_date` > '2025-08-01' AND `trade_date` <![CDATA[<]]> '2025-08-31'
     </select>
+
+    <select id="selectByWindCodeListAndDate" resultMap="HistoryTrendDataMap">
+        SELECT
+        wind_code,
+        trade_date,
+        latest_price,
+        total_volume,
+        average_price
+        FROM tb_quotation_history_trend_202508
+        WHERE trade_date &gt; #{startDate}
+        AND trade_date &lt; #{endDate}
+        <if test="windCodeList != null and !windCodeList.isEmpty()">
+            AND wind_code IN
+            <foreach collection="windCodeList" item="code" open="(" separator="," close=")">
+                #{code}
+            </foreach>
+        </if>
+        ORDER BY trade_date ASC
+    </select>
 </mapper>
