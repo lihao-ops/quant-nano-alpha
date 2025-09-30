@@ -82,7 +82,6 @@ class QuotationServiceTest {
         }
     }
 
-    //todo 待修复historyTrendDTO.setAveragePrice(averagePrice += dataArrays.get(i).get(averagePriceIndex));越界bug
     @Test
     void transferQuotationHistoryTrendMarketIndex() {
         List<String> allIndexCodeList = new ArrayList<>(Arrays.asList(
@@ -93,10 +92,10 @@ class QuotationServiceTest {
                 RiskMarketIndexEnum.CHINEXT.getCode(),
                 RiskMarketIndexEnum.STAR_50.getCode(),
                 RiskMarketIndexEnum.SSE_50.getCode()));
-        List<String> yearTradeDateList = DateUtil.formatLocalDateList(DateCache.Year2024TradeDateList, DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT);
+        List<String> yearTradeDateList = DateUtil.formatLocalDateList(DateCache.Year2022TradeDateList, DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT);
         //从当年已转档的最大日期(包含),并且剔除最大日期已经转档过的windCode,继续开始转档
-        String maxEndDate = quotationMapper.getMaxHistoryIndexTrendEndDate("2024");
-//        String maxEndDate = "20240102";
+        String maxEndDate = quotationMapper.getMaxHistoryIndexTrendEndDate("2022");
+//        String maxEndDate = "20220104";//20220513
         List<String> completedWindCodes = quotationMapper.getCompletedIndexCodes(maxEndDate);
         int tradeDateIndexOf = yearTradeDateList.indexOf(maxEndDate);
         int batchSize = 100;
@@ -119,9 +118,9 @@ class QuotationServiceTest {
     private void transferOneDayMarketIndex(List<String> yearTradeDateList, List<String> windCodes, int batchSize) {
         int totalSize = windCodes.size();
         for (String tradeDate : yearTradeDateList) {
-            if (tradeDate.contains("2025")) {
+            if (tradeDate.contains("2023")) {
                 log.error("out!,tradeDate={}", tradeDate);
-                throw new RuntimeException("2025!!!!");
+                throw new RuntimeException("2023!!!!");
             }
             for (int i = 0; i < totalSize; i += batchSize) {
                 List<String> subList = windCodes.subList(i, Math.min(i + batchSize, totalSize));
