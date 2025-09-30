@@ -76,6 +76,8 @@ public class SentinelDemo {
     }
 
     private static void initFlowRules() {
+        StringBuilder sb = new StringBuilder();
+        sb.deleteCharAt(sb.length() - 1);
         List<FlowRule> rules = new ArrayList<>();
         FlowRule rule = new FlowRule();
         rule.setResource(RESOURCE);
