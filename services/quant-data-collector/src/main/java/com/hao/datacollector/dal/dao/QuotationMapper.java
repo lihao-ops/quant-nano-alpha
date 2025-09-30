@@ -1,6 +1,7 @@
 package com.hao.datacollector.dal.dao;
 
 import com.hao.datacollector.dto.quotation.HistoryTrendDTO;
+import com.hao.datacollector.dto.quotation.HistoryTrendIndexDTO;
 import com.hao.datacollector.dto.table.quotation.QuotationStockBaseDTO;
 import org.apache.ibatis.annotations.Param;
 
@@ -38,7 +39,7 @@ public interface QuotationMapper {
      * @param historyTrendQuotationList 历史分时行情数据列表
      * @return 插入数量
      */
-    int insertQuotationIndexHistoryTrendList(@Param("historyTrendQuotationList") List<HistoryTrendDTO> historyTrendQuotationList);
+    int insertQuotationIndexHistoryTrendList(@Param("historyTrendQuotationList") List<HistoryTrendIndexDTO> historyTrendQuotationList);
 
     /**
      * 获取指定年份的股票历史分时数据结束日期
@@ -49,12 +50,28 @@ public interface QuotationMapper {
     String getMaxHistoryTrendEndDate(@Param("year") String year);
 
     /**
+     * 获取指定年份的指标历史分时数据结束日期
+     *
+     * @param year 年份 yyyy
+     * @return 当前年份最大日期yyyyMMdd
+     */
+    String getMaxHistoryIndexTrendEndDate(@Param("year") String year);
+
+    /**
      * 获取指定日期已完成的股票列表
      *
      * @param maxEndDate 最大结束日期
      * @return 已完成的股票列表
      */
     List<String> getCompletedWindCodes(String maxEndDate);
+
+    /**
+     * 获取指定日期已完成的指标代码列表
+     *
+     * @param maxEndDate 最大结束日期
+     * @return 已完成的股票列表
+     */
+    List<String> getCompletedIndexCodes(String maxEndDate);
 
     /**
      * 获取指定时间段内的股票历史分时数据
@@ -70,8 +87,8 @@ public interface QuotationMapper {
      * 查询指定交易日范围内，指定股票列表的分时行情数据
      *
      * @param windCodeList 股票代码列表
-     * @param startDate   开始时间（含）
-     * @param endDate     结束时间（不含）
+     * @param startDate    开始时间（含）
+     * @param endDate      结束时间（不含）
      * @return 分时行情数据列表
      */
     List<HistoryTrendDTO> selectByWindCodeListAndDate(
