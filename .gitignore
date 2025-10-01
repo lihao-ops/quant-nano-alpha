@@ -17,6 +17,7 @@ target/
 *.log
 *.cache
 *.tmp
+*.gz
 logs/
 
 # 系统文件
