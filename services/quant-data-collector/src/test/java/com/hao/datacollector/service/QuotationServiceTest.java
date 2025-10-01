@@ -92,10 +92,10 @@ class QuotationServiceTest {
                 RiskMarketIndexEnum.CHINEXT.getCode(),
                 RiskMarketIndexEnum.STAR_50.getCode(),
                 RiskMarketIndexEnum.SSE_50.getCode()));
-        List<String> yearTradeDateList = DateUtil.formatLocalDateList(DateCache.Year2020TradeDateList, DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT);
+        List<String> yearTradeDateList = DateUtil.formatLocalDateList(DateCache.CurrentYearTradeDateList, DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT);
         //从当年已转档的最大日期(包含),并且剔除最大日期已经转档过的windCode,继续开始转档
-        String maxEndDate = quotationMapper.getMaxHistoryIndexTrendEndDate("2020");
-//        String maxEndDate = "20200102";
+        String maxEndDate = quotationMapper.getMaxHistoryIndexTrendEndDate("2025");
+//        String maxEndDate = "20250102";
         List<String> completedWindCodes = quotationMapper.getCompletedIndexCodes(maxEndDate);
         int tradeDateIndexOf = yearTradeDateList.indexOf(maxEndDate);
         int batchSize = 100;
@@ -118,9 +118,9 @@ class QuotationServiceTest {
     private void transferOneDayMarketIndex(List<String> yearTradeDateList, List<String> windCodes, int batchSize) {
         int totalSize = windCodes.size();
         for (String tradeDate : yearTradeDateList) {
-            if (tradeDate.contains("2021")) {
+            if (tradeDate.contains("2026")) {
                 log.error("out!,tradeDate={}", tradeDate);
-                throw new RuntimeException("2021!!!!");
+                throw new RuntimeException("2026!!!!");
             }
             for (int i = 0; i < totalSize; i += batchSize) {
                 List<String> subList = windCodes.subList(i, Math.min(i + batchSize, totalSize));
