@@ -76,11 +76,11 @@ public class JVMMonitor {
         int threadCount = threadMXBean.getThreadCount();
         int threadPeak = threadMXBean.getPeakThreadCount();
         double threadRate = (double) threadCount / threadPeak;
-        if (threadRate >= THREAD_STACK_THRESHOLD) {
-            logger.error("[JVM MONITOR]_线程数量接近峰值:{}/{}({})%",
-                    threadCount,
-                    threadPeak,
-                    String.format("%.2f", threadRate * 100));
-        }
+//        if (threadRate >= THREAD_STACK_THRESHOLD) {
+//            logger.error("[JVM MONITOR]_线程数量接近峰值:{}/{}({})%",
+//                    threadCount,
+//                    threadPeak,
+//                    String.format("%.2f", threadRate * 100));
+//        }
     }
 }
