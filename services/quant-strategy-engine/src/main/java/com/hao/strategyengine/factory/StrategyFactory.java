@@ -4,6 +4,7 @@ import com.hao.strategyengine.core.Strategy;
 import com.hao.strategyengine.decorator.PositionSizeDecorator;
 import com.hao.strategyengine.decorator.StopLossDecorator;
 import com.hao.strategyengine.decorator.TakeProfitDecorator;
+import com.hao.strategyengine.strategies.LongOneStrategy;
 import com.hao.strategyengine.strategies.MacdStrategy;
 import com.hao.strategyengine.strategies.MaStrategy;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ public class StrategyFactory {
         // 注册内置策略
         registerStrategy("MA", MaStrategy.class);
         registerStrategy("MACD", MacdStrategy.class);
+        registerStrategy("LongOne", LongOneStrategy.class);
         // 可继续注册其他策略...
     }
     

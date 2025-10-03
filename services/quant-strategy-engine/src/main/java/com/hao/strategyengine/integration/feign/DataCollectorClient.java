@@ -1,6 +1,8 @@
 package com.hao.strategyengine.integration.feign;
 
 import com.hao.strategyengine.web.vo.datacollector.StockBasicInfoQueryResultVO;
+import dto.HistoryTrendDTO;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -65,4 +67,14 @@ public interface DataCollectorClient {
             @RequestParam(defaultValue = "1") Integer pageNo,
             @Parameter(description = "每页大小", example = "20")
             @RequestParam(defaultValue = "20") Integer pageSize);
+
+    @Operation(summary = "获取指定股票列表当日分时数据", description = "根据交易日获取指定股票列表当日分时数据")
+    @GetMapping(BASE_URL + "/quotation/get_date_trend")
+    List<HistoryTrendDTO> getHistoryTrendDataByStockList(
+            @Parameter(description = "起始日期，格式yyyy-MM-dd", required = true)
+            @RequestParam String startDate,
+            @Parameter(description = "结束日期，格式yyyy-MM-dd", required = true)
+            @RequestParam String endDate,
+            @Parameter(description = "股票列表", required = true)
+            @RequestParam List<String> stockList);
 }

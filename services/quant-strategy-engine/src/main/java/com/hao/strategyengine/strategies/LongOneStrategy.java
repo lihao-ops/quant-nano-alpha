@@ -2,15 +2,19 @@ package com.hao.strategyengine.strategies;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.hao.strategyengine.config.SpringContextHolder;
 import com.hao.strategyengine.core.StrategyContext;
 import com.hao.strategyengine.integration.feign.DataCollectorClient;
 import com.hao.strategyengine.integration.redis.RedisClient;
 import com.hao.strategyengine.model.Signal;
 import com.hao.strategyengine.template.AbstractStrategy;
 import constants.RedisKeyConstants;
+import dto.HistoryTrendDTO;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 龙一战法（Long One Strategy）
@@ -24,9 +28,20 @@ import java.util.*;
 public class LongOneStrategy extends AbstractStrategy {
 
     // Feign 客户端，用于远程数据查询
-    private final DataCollectorClient collectorClient;
+    private DataCollectorClient collectorClient;
 
-    private final RedisClient<String> redisClient;
+    private RedisClient<String> redisClient;
+
+    public LongOneStrategy() {
+        super("LONG_ONE_STRATEGY");
+    }
+
+    private void initDependencies() {
+        if (collectorClient == null || redisClient == null) {
+            collectorClient = SpringContextHolder.getBean(DataCollectorClient.class);
+            redisClient = SpringContextHolder.getBean(RedisClient.class);
+        }
+    }
 
     /**
      * 构造函数注入 DataCollectorClient
@@ -48,6 +63,8 @@ public class LongOneStrategy extends AbstractStrategy {
      */
     @Override
     protected void calculateIndicators(StrategyContext context) {
+        //初始化依赖
+        initDependencies();
         // 1. 获取交易日列表（示例：年份固定为 "2022"；实际可通过上下文传入）
         List<String> tradeDates;
         try {
@@ -107,20 +124,20 @@ public class LongOneStrategy extends AbstractStrategy {
      */
     @Override
     protected Signal generateSignal(StrategyContext context) {
+        List<Signal> result = new ArrayList<>();
         // 从 context 取出之前缓存的数据
         @SuppressWarnings("unchecked")
         List<String> tradeDates = (List<String>) context.getData("tradeDates");
         //key:交易日期,value:当天涨停股票代码Set
         @SuppressWarnings("unchecked")
-        Map<String, List<String>> topicStockMap = (Map<String, List<String>>) context.getData("topicMappingStockMap");
+        Map<String, Set<String>> topicStockMap = (Map<String, Set<String>>) context.getData("topicMappingStockMap");
         @SuppressWarnings("unchecked")
-        Map<String, List<String>> limitUpMap = (Map<String, List<String>>) context.getData("limitUpMappingStockMap");
+        Map<String, Set<String>> limitUpMap = (Map<String, Set<String>>) context.getData("limitUpMappingStockMap");
 
         if (tradeDates == null || topicStockMap == null || limitUpMap == null) {
             // 缓存数据不完整，直接返回 null
             return null;
         }
-        Signal signal = new Signal();
         /**
          * 龙一战法策略
          * 1. 遍历交易日列表，获取涨停股
@@ -128,24 +145,97 @@ public class LongOneStrategy extends AbstractStrategy {
          * 3. 获取涨停股列表中属于任一题材的股票
          */
         for (String tradeDate : tradeDates) {
-            List<String> limitUpStockByDate = limitUpMap.get(tradeDate);
-            for (List<String> topicStockList : topicStockMap.values()){
+            Set<String> limitUpStockSet = limitUpMap.get(tradeDate);
+            List<String> limitUpStockByDate = limitUpStockSet == null ? Collections.emptyList() : new ArrayList<>(limitUpStockSet);
+
+            for (Set<String> topicStockSet : topicStockMap.values()) {
+                List<String> topicStockList = topicStockSet == null ? Collections.emptyList() : new ArrayList<>(topicStockSet);
                 // 取交集
                 Set<String> intersection = new HashSet<>(limitUpStockByDate);
                 intersection.retainAll(topicStockList);
                 // 比例：交集 ÷ limitUpStockByDate
                 double ratio = limitUpStockByDate.isEmpty() ? 0 : (double) intersection.size() / limitUpStockByDate.size();
                 if (ratio >= Double.parseDouble(context.getParameters().get("topicLimitRatio").toString())) {
+                    List<String> intersectionList = intersection.stream().toList();
                     //找出龙一
-                    collectorClient.queryStockBasicInfo()
+                    List<HistoryTrendDTO> trendDataByStockList = collectorClient.getHistoryTrendDataByStockList(tradeDate, tradeDate, intersectionList);
+                    /**
+                     * 龙一必须满足两个条件：
+                     * 1.在当天所有板块下的涨停股票中最先涨停
+                     * 2.涨停成交额最大
+                     */
+                    String longOneStock = findLongOne(trendDataByStockList);
+                    if (longOneStock != null) {
+                        Signal signal = new Signal();
+                        signal.setSymbol(longOneStock);
+                        signal.setReason(tradeDate);
+                        signal.setType(Signal.SignalType.BUY);
+                        signal.setStrategyName("LongOneStrategy");
+                        signal.setTimestamp(LocalDateTime.now());
+                        result.add(signal);
+                    }
                 }
             }
-
         }
-
+        if (!result.isEmpty()) {
+            Signal signal = new Signal();
+            signal.setType(Signal.SignalType.CLOSE);
+            signal.setStrategyName("LongOneStrategy");
+            signal.setTimestamp(LocalDateTime.now());
+            signal.setExtra(result);
+            return signal;
+        }
         // 未命中条件，返回空信号
         return null;
     }
+
+    /**
+     * 找出龙一
+     *
+     * @param trendData 多股票列表的当日分时数据
+     * @return 符合龙一条件的股票代码
+     */
+    public String findLongOne(List<HistoryTrendDTO> trendData) {
+        if (trendData.isEmpty()) {
+            return null;
+        }
+        Map<String, HistoryTrendDTO> candidateMap = new HashMap<>();
+        // 按股票分组
+        Map<String, List<HistoryTrendDTO>> grouped = trendData.stream()
+                .collect(Collectors.groupingBy(HistoryTrendDTO::getWindCode));
+        for (Map.Entry<String, List<HistoryTrendDTO>> entry : grouped.entrySet()) {
+            String stock = entry.getKey();
+            List<HistoryTrendDTO> data = entry.getValue();
+            data.sort(Comparator.comparing(HistoryTrendDTO::getTradeDate)); // 时间升序
+
+            boolean firstLimitFound = false;
+            double limitPrice = 0.0;
+            for (int i = 0; i < data.size(); i++) {
+                HistoryTrendDTO dto = data.get(i);
+                // 找第一笔涨停
+                if (!firstLimitFound) {
+                    limitPrice = dto.getLatestPrice();
+                    firstLimitFound = true;
+                    // 检查之后是否有破价
+                    double finalLimitPrice = limitPrice;
+                    boolean broken = data.stream()
+                            .skip(i + 1)
+                            .anyMatch(d -> d.getLatestPrice() < finalLimitPrice);
+                    if (!broken) {
+                        // 满足“最早且全天不破该价”
+                        candidateMap.put(stock, dto);
+                        break; // 找到该股票符合条件的第一笔，跳出
+                    }
+                }
+            }
+        }
+        // 按成交额排序
+        return candidateMap.entrySet().stream()
+                .max(Comparator.comparingDouble(e -> e.getValue().getTotalVolume() * e.getValue().getLatestPrice()))
+                .map(Map.Entry::getKey)
+                .orElse(null);
+    }
+
 
     /**
      * 辅助方法：在给定日期的涨停股票列表中，挑选一个候选股票
@@ -173,5 +263,7 @@ public class LongOneStrategy extends AbstractStrategy {
         parameters.put("endTime", "2024-12-31");
         parameters.put("topicLimitRatio", 0.1);
         context.setParameters(parameters);
+        this.ready = true;
+        log.info("LONG_ONE_STRATEGY策略初始化完成");
     }
 }

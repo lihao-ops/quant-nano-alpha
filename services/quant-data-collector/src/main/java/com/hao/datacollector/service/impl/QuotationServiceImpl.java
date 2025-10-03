@@ -538,7 +538,7 @@ public class QuotationServiceImpl implements QuotationService {
      */
     @Override
     public List<HistoryTrendDTO> getHistoryTrendDataByStockList(String startDate, String endDate, List<String> stockList) {
-        DateTimeFormatter pattern = DateTimeFormatter.ofPattern(DateTimeFormatConstants.DEFAULT_DATE_FORMAT);
+        DateTimeFormatter pattern = DateTimeFormatter.ofPattern(DateTimeFormatConstants.COMPACT_DATE_FORMAT);
         LocalDate start = LocalDate.parse(startDate, pattern);
         LocalDate end = LocalDate.parse(endDate, pattern);
         List<HistoryTrendDTO> result = new ArrayList<>();
@@ -552,7 +552,9 @@ public class QuotationServiceImpl implements QuotationService {
             LocalDate monthEnd = current.withDayOfMonth(current.lengthOfMonth());
             // 限制在 start/end 范围内
             String queryStart = (current.equals(start.withDayOfMonth(1)) ? start : monthStart).format(pattern);
+            //处理精度问题
             String queryEnd = (current.equals(endMonth) ? end : monthEnd).format(pattern);
+            queryEnd = DateUtil.stringTimeToAdjust(queryEnd, DateTimeFormatConstants.COMPACT_DATE_FORMAT, 1);
             // 调试日志
             log.info("Query table={}, range {} ~ {}, stockList={}", tableName, queryStart, queryEnd, stockList);
             List<HistoryTrendDTO> part = quotationMapper.selectByWindCodeListAndDate(

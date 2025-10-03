@@ -24,6 +24,7 @@ public class Signal {
     private String strategyName;          // 策略名称
     private LocalDateTime timestamp;      // 时间戳
     private String reason;                // 信号原因
+    private Object extra;
     
     public static Signal hold(String symbol) {
         Signal signal = new Signal();

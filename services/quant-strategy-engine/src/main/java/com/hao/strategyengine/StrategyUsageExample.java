@@ -8,6 +8,7 @@ import com.hao.strategyengine.factory.StrategyFactory;
 import com.hao.strategyengine.model.Signal;
 import com.hao.strategyengine.model.market.MarketData;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -19,10 +20,39 @@ import java.time.LocalDateTime;
 public class StrategyUsageExample {
     
     public static void main(String[] args) {
-        exampleBasicStrategy();
-        exampleCompositeStrategy();
-        exampleCustomStrategy();
+        LongOneBasicStrategy();
+//        exampleBasicStrategy();
+//        exampleCompositeStrategy();
+//        exampleCustomStrategy();
     }
+
+    /**
+     * 示例1：基础策略使用
+     */
+    public static void LongOneBasicStrategy() {
+        log.info("=== 示例1：基础策略使用 ===");
+
+        // 1. 创建策略工厂
+        StrategyFactory factory = new StrategyFactory();
+        // 2. 使用默认配置创建MA策略
+        StrategyConfig config = StrategyConfig.defaultConfig("LongOne");
+        Strategy strategy = factory.createStrategy(config);
+        // 3. 初始化策略上下文
+        StrategyContext context = new StrategyContext();
+        context.setSymbol("AAPL");
+        context.setAvailableFund(new BigDecimal("100000"));
+        // 4. 初始化策略
+        strategy.initialize(context);
+        // 5. 模拟市场数据
+//        MarketData marketData = new MarketData();
+        // 6. 分析生成信号
+        if (strategy.isReady()) {
+            Signal signal = strategy.analyze(context);
+            log.info("生成信号: type={}, confidence={}, reason={}",
+                    signal.getType(), signal.getConfidence(), signal.getReason());
+        }
+    }
+
     
     /**
      * 示例1：基础策略使用
