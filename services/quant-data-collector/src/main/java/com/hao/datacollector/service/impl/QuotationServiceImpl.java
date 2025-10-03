@@ -527,4 +527,40 @@ public class QuotationServiceImpl implements QuotationService {
         }
         return quotationMapper.getHistoryTrendDataByDate(startDate, endDate);
     }
+
+    /**
+     * 根据时间区间获取指定股票列表的A股历史分时数据
+     *
+     * @param startDate 起始日期
+     * @param endDate   结束日期
+     * @param stockList 股票列表
+     * @return 历史分时数据
+     */
+    @Override
+    public List<HistoryTrendDTO> getHistoryTrendDataByStockList(String startDate, String endDate, List<String> stockList) {
+        DateTimeFormatter pattern = DateTimeFormatter.ofPattern(DateTimeFormatConstants.DEFAULT_DATE_FORMAT);
+        LocalDate start = LocalDate.parse(startDate, pattern);
+        LocalDate end = LocalDate.parse(endDate, pattern);
+        List<HistoryTrendDTO> result = new ArrayList<>();
+        // 遍历所有跨越的月份
+        LocalDate current = LocalDate.of(start.getYear(), start.getMonth(), 1);
+        LocalDate endMonth = LocalDate.of(end.getYear(), end.getMonth(), 1);
+        while (!current.isAfter(endMonth)) {
+            String tableName = String.format("tb_quotation_history_trend_%d%02d", current.getYear(), current.getMonthValue());
+            // 该月的起始和结束日期
+            LocalDate monthStart = current.withDayOfMonth(1);
+            LocalDate monthEnd = current.withDayOfMonth(current.lengthOfMonth());
+            // 限制在 start/end 范围内
+            String queryStart = (current.equals(start.withDayOfMonth(1)) ? start : monthStart).format(pattern);
+            String queryEnd = (current.equals(endMonth) ? end : monthEnd).format(pattern);
+            // 调试日志
+            log.info("Query table={}, range {} ~ {}, stockList={}", tableName, queryStart, queryEnd, stockList);
+            List<HistoryTrendDTO> part = quotationMapper.selectByWindCodeListAndDate(
+                    tableName, queryStart, queryEnd, stockList
+            );
+            result.addAll(part);
+            current = current.plusMonths(1);
+        }
+        return result;
+    }
 }

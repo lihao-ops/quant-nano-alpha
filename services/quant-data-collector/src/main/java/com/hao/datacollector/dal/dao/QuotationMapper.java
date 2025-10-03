@@ -82,18 +82,19 @@ public interface QuotationMapper {
      */
     List<HistoryTrendDTO> getHistoryTrendDataByDate(@Param("startDate") String startDate, @Param("endDate") String endDate);
 
-
     /**
-     * 查询指定交易日范围内，指定股票列表的分时行情数据
+     * 查询指定表内的历史分时数据
      *
-     * @param windCodeList 股票代码列表
-     * @param startDate    开始时间（含）
-     * @param endDate      结束时间（不含）
-     * @return 分时行情数据列表
+     * @param tableName 表名（动态拼接）
+     * @param startDate 开始日期
+     * @param endDate   结束日期
+     * @param stockList 股票代码集合
+     * @return 历史数据
      */
     List<HistoryTrendDTO> selectByWindCodeListAndDate(
-            @Param("windCodeList") List<String> windCodeList,
+            @Param("tableName") String tableName,
             @Param("startDate") String startDate,
-            @Param("endDate") String endDate
+            @Param("endDate") String endDate,
+            @Param("windCodeList") List<String> stockList
     );
 }

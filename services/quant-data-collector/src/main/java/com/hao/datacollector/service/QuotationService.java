@@ -51,4 +51,14 @@ public interface QuotationService {
      * @return 历史分时数据
      */
     List<HistoryTrendDTO> getHistoryTrendDataByDate(String startDate, String endDate);
+
+    /**
+     * 根据时间区间获取指定股票列表的A股历史分时数据
+     *
+     * @param startDate 起始日期
+     * @param endDate   结束日期
+     * @param stockList 股票列表
+     * @return 历史分时数据
+     */
+    List<HistoryTrendDTO> getHistoryTrendDataByStockList(String startDate, String endDate, List<String> stockList);
 }

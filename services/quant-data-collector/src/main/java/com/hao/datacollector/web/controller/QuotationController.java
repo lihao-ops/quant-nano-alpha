@@ -70,4 +70,16 @@ public class QuotationController {
             @RequestParam(required = false) String endDate) {
         return quotationService.getHistoryTrendDataByDate(startDate, endDate);
     }
+
+    @Operation(summary = "获取指定股票列表当日分时数据", description = "根据交易日获取指定股票列表当日分时数据")
+    @GetMapping("/get_date_trend")
+    public List<HistoryTrendDTO> getHistoryTrendDataByStockList(
+            @Parameter(description = "起始日期，格式yyyy-MM-dd", required = true)
+            @RequestParam String startDate,
+            @Parameter(description = "结束日期，格式yyyy-MM-dd", required = true)
+            @RequestParam String endDate,
+            @Parameter(description = "股票列表", required = true)
+            @RequestParam List<String> stockList) {
+        return quotationService.getHistoryTrendDataByStockList(startDate, endDate, stockList);
+    }
 }
