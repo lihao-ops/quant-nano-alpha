@@ -3,6 +3,7 @@ package com.hao.datacollector.service;
 import com.hao.datacollector.cache.DateCache;
 import com.hao.datacollector.cache.StockCache;
 import com.hao.datacollector.dal.dao.QuotationMapper;
+import com.hao.datacollector.dto.quotation.HistoryTrendDTO;
 import constants.DateTimeFormatConstants;
 import enums.market.RiskMarketIndexEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -129,5 +130,14 @@ class QuotationServiceTest {
                 log.info("transferQuotationHistoryTrend_result={}, tradeDate={}, windCodes={}", transferResult, tradeDate, windCodeStr);
             }
         }
+    }
+
+
+
+    @Test
+    public void getHistoryTrendDataByStockList() {
+//        List<String> allWindCodeList = new ArrayList<>(StockCache.allWindCode);
+//        List<HistoryTrendDTO> trendDTOS = quotationMapper.selectByWindCodeListAndDate("tb_quotation_history_trend_202508", "20250801", "20250802", allWindCodeList);
+//        log.info("trendDTOS={}", trendDTOS.size());
     }
 }
