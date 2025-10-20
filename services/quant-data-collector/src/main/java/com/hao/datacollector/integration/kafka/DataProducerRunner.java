@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.hao.datacollector.dto.quotation.HistoryTrendDTO;
 import com.hao.datacollector.service.KafkaProducerService;
 import com.hao.datacollector.service.QuotationService;
+import integration.kafka.KafkaTopics;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -69,7 +70,7 @@ public class DataProducerRunner implements CommandLineRunner {
      */
     @Override
     public void run(String... args) throws Exception {
-        String topic = "quotation"; // Kafka 统一 topic
+        String topic = KafkaTopics.QUOTATION.code(); // Kafka 统一 topic
 
         List<HistoryTrendDTO> historyTrendDataByDate = quotationService.getHistoryTrendDataByDate("20250801", null);
         if (historyTrendDataByDate == null || historyTrendDataByDate.isEmpty()) {
