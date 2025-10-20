@@ -16,8 +16,8 @@
     <description>量化系统统一日志与数据审计中心</description>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>21</java.version>
         <jakarta.annotation.version>2.1.0</jakarta.annotation.version>
@@ -110,6 +110,13 @@
             <artifactId>fastjson</artifactId>
             <version>1.2.83</version>
         </dependency>
+
+        <!-- ======================== 消息队列 ======================== -->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+            <version>3.3.6</version> <!-- 对应 Spring Boot 3.x -->
+        </dependency>
         
         <!-- Lombok （注解处理器，编译期提供） -->
         <dependency>
@@ -134,7 +141,6 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
-                    <release>17</release>
                     <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
             </plugin>
