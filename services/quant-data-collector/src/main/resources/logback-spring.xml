@@ -3,6 +3,10 @@
     <!-- 定义日志文件路径 -->
     <property name="LOG_PATH" value="./logs"/>
     <property name="APP_NAME" value="data-collector"/>
+    <property name="LOG_TOPIC" value="log-quant-data-collector"/>
+    <property name="KAFKA_BOOTSTRAP" value="${spring.kafka.bootstrap-servers:-localhost:9092}"/>
+    <property name="HOST_PORT" value="${server.port}"/>
+    <property name="HOST_IP" value="${HOST_IP:-unknown}"/>
 
     <!-- 控制台输出配置 -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
@@ -170,6 +174,7 @@
             <appender-ref ref="ASYNC_APPLICATION"/>
             <appender-ref ref="ASYNC_ERROR"/>
             <appender-ref ref="FILE_NACOS"/>
+            <appender-ref ref="ASYNC_KAFKA"/>
         </root>
     </springProfile>
 
@@ -179,6 +184,7 @@
             <appender-ref ref="ASYNC_APPLICATION"/>
             <appender-ref ref="ASYNC_ERROR"/>
             <appender-ref ref="FILE_NACOS"/>
+            <appender-ref ref="ASYNC_KAFKA"/>
         </root>
     </springProfile>
 
@@ -187,7 +193,50 @@
             <appender-ref ref="ASYNC_APPLICATION"/>
             <appender-ref ref="ASYNC_ERROR"/>
             <appender-ref ref="FILE_NACOS"/>
+            <appender-ref ref="ASYNC_KAFKA"/>
         </root>
     </springProfile>
 
+    <appender name="kafkaAppender" class="com.github.danielwegener.logback.kafka.KafkaAppender">
+    <!-- 使用LogstashEncoder将日志格式化为JSON格式 -->
+    <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+        <providers class="net.logstash.logback.composite.loggingevent.LoggingEventJsonProviders">
+            <!-- 自定义JSON格式模式 -->
+            <pattern>
+                <pattern>
+                    {
+                    "env": "${env}",                                                <!-- 环境变量，如dev、test、prod -->
+                    "service":"${APP_NAME}",                                         <!-- 服务名称 -->
+                    "ip":"${HOST_IP}",
+                    "port" : "${HOST_PORT}",
+<!--                    "level":"%level",                                               &lt;!&ndash; 日志级别 &ndash;&gt;-->
+<!--                    "thread": "%thread",                                            &lt;!&ndash; 线程名称 &ndash;&gt;-->
+<!--                    "logger": "%logger{36}",                                        &lt;!&ndash; 日志记录器名称，最多36个字符 &ndash;&gt;-->
+                    "exception":"%exception",                                       <!-- 异常堆栈信息(如果存在) -->
+                    "timestamp": "%date{yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'}",          <!-- 日期时间格式 -->
+                    "message":"%msg"                                                <!-- 日志消息内容 -->
+                    }
+                </pattern>
+            </pattern>
+        </providers>
+    </encoder>
+    <!-- Kafka主题名称，使用服务名称作为主题后缀 -->
+    <topic>${LOG_TOPIC}</topic>
+    <!-- 键策略：不使用键(所有消息随机分布到分区) -->
+    <keyingStrategy class="com.github.danielwegener.logback.kafka.keying.NoKeyKeyingStrategy"/>
+    <!-- 传递策略：异步发送日志到Kafka(不阻塞应用程序) -->
+    <deliveryStrategy class="com.github.danielwegener.logback.kafka.delivery.AsynchronousDeliveryStrategy"/>
+
+<!--    &lt;!&ndash; Kafka生产者配置 &ndash;&gt;-->
+<!--    <producerConfig>acks=0</producerConfig>                       &lt;!&ndash; 确认级别：0表示不等待确认(最快但最不可靠) &ndash;&gt;-->
+<!--    <producerConfig>linger.ms=1000</producerConfig>               &lt;!&ndash; 延迟发送时间：批量发送以提高吞吐量(1秒) &ndash;&gt;-->
+<!--    <producerConfig>max.block.ms=0</producerConfig>               &lt;!&ndash; 阻塞时间：0表示不阻塞，立即返回 &ndash;&gt;-->
+        <producerConfig>bootstrap.servers=${spring.kafka.bootstrap-servers:-192.168.254.2:9092,192.168.254.3:9092,192.168.254.4:9092}</producerConfig>
+    </appender>
+
+    <appender name="ASYNC_KAFKA" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>1024</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="kafkaAppender"/>
+    </appender>
 </configuration>

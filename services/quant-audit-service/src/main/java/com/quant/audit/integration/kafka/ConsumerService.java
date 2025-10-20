@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Service
-public class KafkaConsumerService {
+public class ConsumerService {
 
     private final AtomicInteger counter = new AtomicInteger(0);
     private volatile long windowStart = System.currentTimeMillis();
@@ -21,7 +21,7 @@ public class KafkaConsumerService {
 
     private final ThreadPoolTaskExecutor ioTaskExecutor;
 
-    public KafkaConsumerService(@Qualifier("ioTaskExecutor") ThreadPoolTaskExecutor ioTaskExecutor) {
+    public ConsumerService(@Qualifier("ioTaskExecutor") ThreadPoolTaskExecutor ioTaskExecutor) {
         this.ioTaskExecutor = ioTaskExecutor;
     }
 
