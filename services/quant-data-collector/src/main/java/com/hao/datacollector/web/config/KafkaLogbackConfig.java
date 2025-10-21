@@ -66,7 +66,8 @@ public class KafkaLogbackConfig implements ApplicationListener<ApplicationReadyE
             // 先设置系统属性，确保在 appender 重启前就可用
             String hostName = getHostName();
             String hostIp = getBestHostIp();
-            
+            //todo 剩余解决HOST_NAME，HOST_IP无法生效问题
+            //{"env":"dev","service":"quant-data-collector","hostname":"unknown","ip":"unknown","port":"8801","level":"INFO","thread":"kafka-producer-network-thread | producer-2","logger":"org.apache.kafka.clients.Metadata","timestamp":"2025-10-21T23:49:58.452000Z","message":"[Producer clientId=producer-2] Cluster ID: n8vjTMpNSPWbUOrWJNnHJg","exception":""}
             System.setProperty("HOST_NAME", hostName);
             System.setProperty("HOST_IP", hostIp);
             System.setProperty("server.port", serverPort);
