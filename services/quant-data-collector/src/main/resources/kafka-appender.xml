@@ -8,7 +8,6 @@
     <springProperty scope="context" name="hostPort" source="server.port" defaultValue="8080"/>
     
     <!-- 从系统属性读取主机信息 -->
-    <property name="hostName" value="${HOST_NAME:-unknown}"/>
     <property name="hostIp" value="${HOST_IP:-unknown}"/>
 
     <!-- Kafka日志追加器配置 - 将日志事件发送到Kafka集群 -->
@@ -22,7 +21,6 @@
                         {
                         "env": "${env}",
                         "service": "${service}",
-                        "hostname": "${hostName}",
                         "ip": "${hostIp}",
                         "port": "${hostPort}",
                         "level": "%level",
