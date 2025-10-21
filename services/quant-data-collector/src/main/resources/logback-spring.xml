@@ -2,13 +2,13 @@
 <configuration>
     <!-- 定义日志文件路径 -->
     <property name="LOG_PATH" value="./logs"/>
-    <property name="APP_NAME" value="data-collector"/>
-    <property name="LOG_TOPIC" value="log-quant-data-collector"/>
-    <property name="KAFKA_BOOTSTRAP" value="${spring.kafka.bootstrap-servers:-192.168.254.2:9092,192.168.254.3:9092,192.168.254.4:9092}"/>
-    <property name="HOST_NAME" value="${HOST_NAME:-unknown}"/>
-    <property name="HOST_IP" value="${HOST_IP:-unknown}"/>
-    <property name="HOST_PORT" value="${server.port:-8080}"/>
-    <property name="ENV" value="${spring.profiles.active:-dev}"/>
+
+    <!-- 引入Kafka Appender配置 -->
+    <include resource="kafka-appender.xml"/>
+    <!-- 日志输出级别 -->
+    <root level="INFO">
+        <appender-ref ref="kafkaAppender"/>
+    </root>
 
     <!-- 控制台输出配置 -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
@@ -116,49 +116,6 @@
         </encoder>
     </appender>
 
-    <!-- Kafka 日志 Appender -->
-    <appender name="KAFKA" class="com.github.danielwegener.logback.kafka.KafkaAppender">
-        <!-- 使用LogstashEncoder将日志格式化为JSON格式 -->
-        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
-            <providers class="net.logstash.logback.composite.loggingevent.LoggingEventJsonProviders">
-                <!-- 自定义JSON格式模式 -->
-                <pattern>
-                    <pattern>
-                        {
-                        "env": "${ENV}",
-                        "service": "${APP_NAME}",
-                        "hostname": "${HOST_NAME}",
-                        "ip": "${HOST_IP}",
-                        "port": "${HOST_PORT}",
-                        "level": "%level",
-                        "thread": "%thread",
-                        "logger": "%logger{36}",
-                        "timestamp": "%date{yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'}",
-                        "message": "%msg",
-                        "exception": "%exception"
-                        }
-                    </pattern>
-                </pattern>
-            </providers>
-        </encoder>
-        <!-- Kafka主题名称 -->
-        <topic>${LOG_TOPIC}</topic>
-        <!-- 键策略：使用服务名+IP作为键，便于分区和消费端识别 -->
-        <keyingStrategy class="com.github.danielwegener.logback.kafka.keying.HostNameKeyingStrategy"/>
-        <!-- 传递策略：异步发送日志到Kafka -->
-        <deliveryStrategy class="com.github.danielwegener.logback.kafka.delivery.AsynchronousDeliveryStrategy"/>
-        
-        <!-- Kafka生产者配置 -->
-        <producerConfig>bootstrap.servers=${KAFKA_BOOTSTRAP}</producerConfig>
-        <producerConfig>acks=1</producerConfig>
-        <producerConfig>linger.ms=100</producerConfig>
-        <producerConfig>batch.size=16384</producerConfig>
-        <producerConfig>buffer.memory=33554432</producerConfig>
-        <producerConfig>compression.type=snappy</producerConfig>
-        <producerConfig>retries=3</producerConfig>
-        <producerConfig>max.block.ms=5000</producerConfig>
-    </appender>
-
     <!-- 异步日志配置 -->
     <appender name="ASYNC_APPLICATION" class="ch.qos.logback.classic.AsyncAppender">
         <discardingThreshold>0</discardingThreshold>
@@ -174,12 +131,12 @@
         <appender-ref ref="ERROR_FILE"/>
     </appender>
 
-    <appender name="ASYNC_KAFKA" class="ch.qos.logback.classic.AsyncAppender">
-        <queueSize>1024</queueSize>
-        <discardingThreshold>0</discardingThreshold>
-        <includeCallerData>false</includeCallerData>
-        <appender-ref ref="KAFKA"/>
-    </appender>
+<!--    <appender name="ASYNC_KAFKA" class="ch.qos.logback.classic.AsyncAppender">-->
+<!--        <queueSize>1024</queueSize>-->
+<!--        <discardingThreshold>0</discardingThreshold>-->
+<!--        <includeCallerData>false</includeCallerData>-->
+<!--        <appender-ref ref="KAFKA"/>-->
+<!--    </appender>-->
 
     <!-- 特定包的日志级别配置 -->
     <logger name="com.hao.datacollector" level="INFO" additivity="false">
@@ -225,7 +182,7 @@
             <appender-ref ref="ASYNC_APPLICATION"/>
             <appender-ref ref="ASYNC_ERROR"/>
             <appender-ref ref="FILE_NACOS"/>
-            <appender-ref ref="ASYNC_KAFKA"/>
+<!--            <appender-ref ref="ASYNC_KAFKA"/>-->
         </root>
     </springProfile>
 
@@ -235,7 +192,7 @@
             <appender-ref ref="ASYNC_APPLICATION"/>
             <appender-ref ref="ASYNC_ERROR"/>
             <appender-ref ref="FILE_NACOS"/>
-            <appender-ref ref="ASYNC_KAFKA"/>
+<!--            <appender-ref ref="ASYNC_KAFKA"/>-->
         </root>
     </springProfile>
 
@@ -244,7 +201,7 @@
             <appender-ref ref="ASYNC_APPLICATION"/>
             <appender-ref ref="ASYNC_ERROR"/>
             <appender-ref ref="FILE_NACOS"/>
-            <appender-ref ref="ASYNC_KAFKA"/>
+<!--            <appender-ref ref="ASYNC_KAFKA"/>-->
         </root>
     </springProfile>
 </configuration>
