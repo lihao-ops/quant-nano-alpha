@@ -140,6 +140,13 @@ public class StrategyEngineFacade {
             return bundle;
         };
 
+        /**
+         * todo 目前方案功能上没错：锁在 compute 外，保证了同一组合不会重复计算
+         *
+         * 优化空间在于：缩小锁粒度 → 锁只保护 CPU/IO 核心计算，不阻塞缓存/Kafka
+         *
+         * 面试加分点：你可以说：“锁保护核心计算，异步发布和缓存操作不占锁，最大化吞吐量”，这样既安全又高效
+         */
         // Step 4️⃣ 分布式锁控制 —— 仅允许一个节点执行计算，其余节点等待结果
         return lockService.acquireOrWait(comboKey, compute);
     }

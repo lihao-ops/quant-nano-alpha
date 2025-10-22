@@ -96,6 +96,7 @@ public class DistributedLockService {
                 StrategyResultBundle result = compute.get();
 
                 // Step 4️⃣ 唤醒等待中的任务（如果存在）
+                //todo 在真正的分布式环境下，本地 pending 只对单机有效，可能让多实例高并发时出现重复计算或等待超时
                 CompletableFuture<StrategyResultBundle> waiting = pending.remove(comboKey);
                 if (waiting != null) {
                     waiting.complete(result);
