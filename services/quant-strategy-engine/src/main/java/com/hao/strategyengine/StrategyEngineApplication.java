@@ -16,7 +16,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 @Slf4j
-@MapperScan("com.hao.strategyengine.dal.dao")
+@MapperScan("com.hao.strategyengine.integration.db.mapper")
 @EnableFeignClients//开启Feign远程调用功能
 @EnableDiscoveryClient//开启服务发现功能
 @SpringBootApplication

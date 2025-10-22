@@ -1,9 +1,6 @@
 package com.hao.strategyengine.strategies;
 
 import com.hao.strategyengine.model.market.MarketData;
-import com.hao.strategyengine.model.Signal;
-import com.hao.strategyengine.core.Strategy;
-import com.hao.strategyengine.core.StrategyContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

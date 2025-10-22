@@ -42,6 +42,12 @@
             <scope>runtime</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.redisson</groupId>
+            <artifactId>redisson-spring-boot-starter</artifactId>
+            <version>3.27.2</version>
+        </dependency>
+
         <!-- ======================== 消息队列 ======================== -->
         <dependency>
             <groupId>org.springframework.kafka</groupId>

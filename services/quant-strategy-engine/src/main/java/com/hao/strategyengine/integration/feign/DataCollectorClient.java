@@ -1,6 +1,6 @@
 package com.hao.strategyengine.integration.feign;
 
-import com.hao.strategyengine.web.vo.datacollector.StockBasicInfoQueryResultVO;
+import com.hao.strategyengine.model.vo.datacollector.StockBasicInfoQueryResultVO;
 import dto.HistoryTrendDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

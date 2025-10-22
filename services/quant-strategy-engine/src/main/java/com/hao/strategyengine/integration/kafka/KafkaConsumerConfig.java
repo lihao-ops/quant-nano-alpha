@@ -1,5 +1,7 @@
 package com.hao.strategyengine.integration.kafka;
 
+import com.alibaba.fastjson.JSON;
+import com.hao.strategyengine.model.response.StrategyResultBundle;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,6 +20,10 @@ public class KafkaConsumerConfig {
 
     @Value("${spring.kafka.bootstrap-servers}")
     private String serversConfig;
+
+    public KafkaConsumerConfig(KafkaTemplate<String, String> kafka) {
+        this.kafka = kafka;
+    }
 
     @Bean
     public ConsumerFactory<String, String> consumerFactory() {
@@ -38,5 +45,10 @@ public class KafkaConsumerConfig {
                 org.springframework.kafka.listener.ContainerProperties.AckMode.MANUAL_IMMEDIATE
         ); // ⚠️ 设置手动提交模式
         return factory;
+    }
+    private final KafkaTemplate<String, String> kafka;
+
+    public void publish(String topic, StrategyResultBundle bundle) {
+        kafka.send(topic, bundle.getComboKey(), JSON.toJSONString(bundle));
     }
 }
