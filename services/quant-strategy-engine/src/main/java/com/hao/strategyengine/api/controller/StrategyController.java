@@ -2,9 +2,9 @@ package com.hao.strategyengine.api.controller;
 
 import com.hao.strategyengine.core.facade.StrategyEngineFacade;
 import com.hao.strategyengine.integration.kafka.KafkaConsumerConfig;
-import com.hao.strategyengine.model.core.StrategyContext;
-import com.hao.strategyengine.model.request.StrategyRequest;
-import com.hao.strategyengine.model.response.StrategyResultBundle;
+import com.hao.strategyengine.common.model.core.StrategyContext;
+import com.hao.strategyengine.common.model.request.StrategyRequest;
+import com.hao.strategyengine.common.model.response.StrategyResultBundle;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;

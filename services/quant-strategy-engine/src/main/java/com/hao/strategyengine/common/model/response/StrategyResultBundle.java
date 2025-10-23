@@ -1,4 +1,4 @@
-package com.hao.strategyengine.model.response;
+package com.hao.strategyengine.common.model.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

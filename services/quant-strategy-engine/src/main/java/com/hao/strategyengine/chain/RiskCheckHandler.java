@@ -1,7 +1,7 @@
 package com.hao.strategyengine.chain;
 
 import com.hao.strategyengine.core.StrategyHandler;
-import com.hao.strategyengine.model.core.StrategyContext;
+import com.hao.strategyengine.common.model.core.StrategyContext;
 import org.springframework.stereotype.Component;
 
 /**

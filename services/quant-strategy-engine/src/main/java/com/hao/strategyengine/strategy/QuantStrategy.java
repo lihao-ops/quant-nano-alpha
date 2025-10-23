@@ -1,8 +1,8 @@
 package com.hao.strategyengine.strategy;
 
 
-import com.hao.strategyengine.model.core.StrategyContext;
-import com.hao.strategyengine.model.response.StrategyResult;
+import com.hao.strategyengine.common.model.core.StrategyContext;
+import com.hao.strategyengine.common.model.response.StrategyResult;
 
 /**
  * 策略模式（Strategy）

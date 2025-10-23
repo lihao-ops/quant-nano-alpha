@@ -1,7 +1,7 @@
 package com.hao.strategyengine.integration.kafka;
 
 import com.alibaba.fastjson.JSON;
-import com.hao.strategyengine.model.response.StrategyResultBundle;
+import com.hao.strategyengine.common.model.response.StrategyResultBundle;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;

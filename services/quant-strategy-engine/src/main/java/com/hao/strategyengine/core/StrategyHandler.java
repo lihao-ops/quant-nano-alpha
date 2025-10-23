@@ -1,6 +1,6 @@
 package com.hao.strategyengine.core;
 
-import com.hao.strategyengine.model.core.StrategyContext;
+import com.hao.strategyengine.common.model.core.StrategyContext;
 
 /**
  * StrategyHandler

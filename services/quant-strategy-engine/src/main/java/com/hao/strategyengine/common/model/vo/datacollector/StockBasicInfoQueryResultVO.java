@@ -1,4 +1,4 @@
-package com.hao.strategyengine.model.vo.datacollector;
+package com.hao.strategyengine.common.model.vo.datacollector;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

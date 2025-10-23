@@ -2,7 +2,7 @@ package com.hao.strategyengine.strategies;
 
 import com.hao.strategyengine.factory.StrategyConfig;
 import com.hao.strategyengine.factory.StrategyFactory;
-import com.hao.strategyengine.model.market.MarketData;
+import com.hao.strategyengine.common.model.market.MarketData;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

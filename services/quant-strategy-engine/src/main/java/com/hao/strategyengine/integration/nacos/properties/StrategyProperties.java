@@ -1,4 +1,4 @@
-package com.hao.strategyengine.common.properties;
+package com.hao.strategyengine.integration.nacos.properties;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

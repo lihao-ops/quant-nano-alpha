@@ -1,4 +1,4 @@
-package com.hao.strategyengine.model.core;
+package com.hao.strategyengine.common.model.core;
 
 import lombok.Builder;
 import lombok.Data;

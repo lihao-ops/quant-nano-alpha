@@ -2,8 +2,8 @@ package com.hao.strategyengine.strategy.impl;
 
 
 
-import com.hao.strategyengine.model.core.StrategyContext;
-import com.hao.strategyengine.model.response.StrategyResult;
+import com.hao.strategyengine.common.model.core.StrategyContext;
+import com.hao.strategyengine.common.model.response.StrategyResult;
 import com.hao.strategyengine.strategy.QuantStrategy;
 
 import java.util.ArrayList;

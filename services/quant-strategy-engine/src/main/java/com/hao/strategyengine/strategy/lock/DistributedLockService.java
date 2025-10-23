@@ -1,6 +1,6 @@
 package com.hao.strategyengine.strategy.lock;
 
-import com.hao.strategyengine.model.response.StrategyResultBundle;
+import com.hao.strategyengine.common.model.response.StrategyResultBundle;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;

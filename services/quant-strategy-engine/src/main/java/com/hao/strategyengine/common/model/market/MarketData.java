@@ -1,4 +1,4 @@
-package com.hao.strategyengine.model.market;
+package com.hao.strategyengine.common.model.market;
 
 import lombok.Data;
 

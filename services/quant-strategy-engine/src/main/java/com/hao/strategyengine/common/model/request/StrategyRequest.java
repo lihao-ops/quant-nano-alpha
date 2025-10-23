@@ -1,4 +1,4 @@
-package com.hao.strategyengine.model.request;
+package com.hao.strategyengine.common.model.request;
 
 import lombok.Data;
 import java.util.List;

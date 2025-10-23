@@ -1,4 +1,4 @@
-package com.hao.strategyengine.config;
+package com.hao.strategyengine.common.config;
 
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;

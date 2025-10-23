@@ -1,8 +1,8 @@
 package com.hao.strategyengine.common.cache;
 
 import com.alibaba.fastjson.JSON;
-import com.hao.strategyengine.model.response.StrategyResult;
-import com.hao.strategyengine.model.response.StrategyResultBundle;
+import com.hao.strategyengine.common.model.response.StrategyResult;
+import com.hao.strategyengine.common.model.response.StrategyResultBundle;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
