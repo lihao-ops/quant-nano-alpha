@@ -3,6 +3,7 @@ package com.hao.strategyengine.strategy.impl;
 import com.hao.strategyengine.common.model.core.StrategyContext;
 import com.hao.strategyengine.common.model.response.StrategyResult;
 import com.hao.strategyengine.strategy.QuantStrategy;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
@@ -33,7 +34,7 @@ import org.springframework.stereotype.Component;
  * StrategyResult result = strategy.execute(ctx);
  * System.out.println(result.getData());
  * }</pre>
- *
+ * <p>
  * Lombok/注解说明：
  * - @Component 注入 Spring 容器，允许自动装配
  * </p>
@@ -41,10 +42,13 @@ import org.springframework.stereotype.Component;
  * @author hli
  * @date 2025-10-22
  */
+@Slf4j
 @Component
 public class MovingAverageStrategy implements QuantStrategy {
 
-    /** 策略唯一标识 */
+    /**
+     * 策略唯一标识
+     */
     @Override
     public String getId() {
         return "MA";
@@ -62,10 +66,15 @@ public class MovingAverageStrategy implements QuantStrategy {
 
         // TODO: 真正实现需从DB或Feign调用历史行情数据计算均线
         double value = Math.random() * 100; // 模拟计算结果
-
+        try {
+            Thread.sleep(3000);
+            log.info("Thread={},execute={}", Thread.currentThread().getName(), "MA");
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         return StrategyResult.builder()
                 .strategyId(getId())
-                .data(value)
+                .data("MA" + value)
                 .durationMs(System.currentTimeMillis() - start)
                 .build();
     }

@@ -120,6 +120,9 @@ public class StrategyEngineFacade {
         String comboKey = KeyUtils.comboKey(strategyIds);
 
         // Step 3️⃣ 构建计算逻辑 Supplier —— 包含并行执行多个策略的逻辑
+        //当执行到这行时：
+        //✅ compute 只是被“定义”出来（函数体还没执行）这里的 compute 是一个 惰性执行（lazy execution） 的计算逻辑。
+        //❌ 真正的策略计算逻辑（CompletableFuture那段）此时还没跑。
         Supplier<StrategyResultBundle> compute = () -> {
             // （1）异步并行执行每个策略
             List<CompletableFuture<StrategyResult>> futures = strategyIds.stream()

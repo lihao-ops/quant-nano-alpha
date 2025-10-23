@@ -2,6 +2,8 @@ package com.hao.strategyengine.common.model.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.List;
 
 /**
@@ -37,6 +39,7 @@ import java.util.List;
  */
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class StrategyResultBundle {
 
     /** 策略组合唯一标识，用于缓存或快速查找 */

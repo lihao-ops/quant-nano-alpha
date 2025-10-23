@@ -3,6 +3,7 @@ package com.hao.strategyengine.strategy.impl;
 import com.hao.strategyengine.common.model.core.StrategyContext;
 import com.hao.strategyengine.common.model.response.StrategyResult;
 import com.hao.strategyengine.strategy.QuantStrategy;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
@@ -33,7 +34,7 @@ import org.springframework.stereotype.Component;
  * StrategyResult result = strategy.execute(ctx);
  * System.out.println(result.getData());
  * }</pre>
- *
+ * <p>
  * Lombok/注解说明：
  * - @Component 注入 Spring 容器，允许自动装配
  * </p>
@@ -41,10 +42,13 @@ import org.springframework.stereotype.Component;
  * @author hli
  * @date 2025-10-22
  */
+@Slf4j
 @Component
 public class MomentumStrategy implements QuantStrategy {
 
-    /** 策略唯一标识 */
+    /**
+     * 策略唯一标识
+     */
     @Override
     public String getId() {
         return "MOM";
@@ -62,11 +66,16 @@ public class MomentumStrategy implements QuantStrategy {
 
         // 模拟策略计算逻辑
         double value = Math.random() * 10;
-
+        try {
+            Thread.sleep(3000);
+            log.info("Thread={},execute={}", Thread.currentThread().getName(), "MOM");
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         // 构建策略执行结果
         return StrategyResult.builder()
                 .strategyId(getId())
-                .data(value)
+                .data("MOM" + value)
                 .durationMs(System.currentTimeMillis() - start)
                 .build();
     }
