@@ -112,7 +112,7 @@ public class StrategyEngineFacade {
      *
      * @throws Exception 可能抛出线程池或锁等待异常
      */
-    public StrategyResultBundle executeAll(String userId, List<String> strategyIds, StrategyContext ctx) throws Exception {
+    public StrategyResultBundle executeAll(Integer userId, List<String> strategyIds, StrategyContext ctx) throws Exception {
         // Step 1️⃣ 前置责任链风控校验 —— 防止违规策略执行
         chain.apply(ctx);
 

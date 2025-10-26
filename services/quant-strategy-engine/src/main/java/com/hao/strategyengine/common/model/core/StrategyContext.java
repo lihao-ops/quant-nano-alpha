@@ -47,7 +47,7 @@ import java.util.Map;
 public class StrategyContext {
 
     /** 用户唯一标识 */
-    private String userId;
+    private Integer userId;
 
     /** 交易标的代码，例如股票代码 "AAPL" */
     private String symbol;

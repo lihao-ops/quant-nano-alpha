@@ -25,7 +25,7 @@ public class StrategyRequest {
      * 用户唯一标识
      * 用于区分不同用户的请求。
      */
-    private String userId;
+    private Integer userId;
 
     /**
      * 交易标的（股票、期货等）代码

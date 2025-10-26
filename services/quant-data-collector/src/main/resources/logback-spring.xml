@@ -5,10 +5,11 @@
 
     <!-- 引入Kafka Appender配置 -->
     <include resource="kafka-appender.xml"/>
-    <!-- 日志输出级别 -->
-    <root level="INFO">
-        <appender-ref ref="kafkaAppender"/>
-    </root>
+    <!--KafkaAppender 根本不支持 <lazy> 属性。KafkaAppender 依然在 Logback 初始化阶段立即启动；-->
+    <!--    &lt;!&ndash; 日志输出级别 &ndash;&gt;-->
+    <!--    <root level="INFO">-->
+    <!--        <appender-ref ref="kafkaAppender"/>-->
+    <!--    </root>-->
 
     <!-- 控制台输出配置 -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
@@ -131,12 +132,12 @@
         <appender-ref ref="ERROR_FILE"/>
     </appender>
 
-<!--    <appender name="ASYNC_KAFKA" class="ch.qos.logback.classic.AsyncAppender">-->
-<!--        <queueSize>1024</queueSize>-->
-<!--        <discardingThreshold>0</discardingThreshold>-->
-<!--        <includeCallerData>false</includeCallerData>-->
-<!--        <appender-ref ref="KAFKA"/>-->
-<!--    </appender>-->
+    <!--    <appender name="ASYNC_KAFKA" class="ch.qos.logback.classic.AsyncAppender">-->
+    <!--        <queueSize>1024</queueSize>-->
+    <!--        <discardingThreshold>0</discardingThreshold>-->
+    <!--        <includeCallerData>false</includeCallerData>-->
+    <!--        <appender-ref ref="KAFKA"/>-->
+    <!--    </appender>-->
 
     <!-- 特定包的日志级别配置 -->
     <logger name="com.hao.datacollector" level="INFO" additivity="false">
@@ -182,7 +183,7 @@
             <appender-ref ref="ASYNC_APPLICATION"/>
             <appender-ref ref="ASYNC_ERROR"/>
             <appender-ref ref="FILE_NACOS"/>
-<!--            <appender-ref ref="ASYNC_KAFKA"/>-->
+            <appender-ref ref="kafkaAppender"/>
         </root>
     </springProfile>
 
@@ -192,7 +193,7 @@
             <appender-ref ref="ASYNC_APPLICATION"/>
             <appender-ref ref="ASYNC_ERROR"/>
             <appender-ref ref="FILE_NACOS"/>
-<!--            <appender-ref ref="ASYNC_KAFKA"/>-->
+            <appender-ref ref="kafkaAppender"/>
         </root>
     </springProfile>
 
@@ -201,7 +202,7 @@
             <appender-ref ref="ASYNC_APPLICATION"/>
             <appender-ref ref="ASYNC_ERROR"/>
             <appender-ref ref="FILE_NACOS"/>
-<!--            <appender-ref ref="ASYNC_KAFKA"/>-->
+            <appender-ref ref="kafkaAppender"/>
         </root>
     </springProfile>
 </configuration>

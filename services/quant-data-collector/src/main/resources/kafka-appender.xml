@@ -4,9 +4,10 @@
     <springProperty scope="context" name="service" source="spring.application.name" defaultValue="data-collector"/>
     <springProperty scope="context" name="topic" source="logging.kafka.topic" defaultValue="log-quant-data-collector"/>
     <springProperty scope="context" name="env" source="spring.profiles.active" defaultValue="dev"/>
-    <springProperty scope="context" name="bootstrapServers" source="spring.kafka.bootstrap-servers" defaultValue="localhost:9092"/>
+    <springProperty scope="context" name="bootstrapServers" source="spring.kafka.bootstrap-servers"
+                    defaultValue="localhost:9092"/>
     <springProperty scope="context" name="hostPort" source="server.port" defaultValue="8080"/>
-    
+
     <!-- 从系统属性读取主机信息 -->
     <property name="hostIp" value="${HOST_IP:-unknown}"/>
 
