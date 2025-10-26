@@ -74,7 +74,6 @@ public class HotTopicStrategy implements QuantStrategy {
                 }
         );
         List<String> resultStocks = new ArrayList<>();
-
         // Step 2️⃣ 根据输入参数判断查询类型
         if (extra != null) {
             Object topicIdObj = extra.get("topicId");
@@ -90,25 +89,21 @@ public class HotTopicStrategy implements QuantStrategy {
                 }
                 log.info("[HotTopicStrategy] 按题材ID={} 查询匹配股票数={}", topicId, resultStocks.size());
             }
-
             // 按名称模糊查询（这里演示匹配Redis中的key或模拟查库）
             else if (topicNameObj != null) {
                 String topicName = topicNameObj.toString().toLowerCase();
-
                 // 🔹 模拟模糊匹配逻辑（真实情况应从数据库或TopicCache模糊匹配）
                 for (Map.Entry<Integer, Set<String>> entry : topicMap.entrySet()) {
                     if (String.valueOf(entry.getKey()).contains(topicName)) {
                         resultStocks.addAll(entry.getValue());
                     }
                 }
-
                 // 🔹 模拟库查询（仅当Redis无匹配时）
                 if (resultStocks.isEmpty()) {
                     log.info("[HotTopicStrategy] Redis未命中，尝试从DB/远程服务加载...");
                     // 示例：从数据库加载或RPC调用
                     // List<String> dbResult = topicMapper.queryByNameLike(topicName);
                 }
-
                 log.info("[HotTopicStrategy] 按名称模糊查询={}, 匹配股票数={}", topicName, resultStocks.size());
             }
         }
