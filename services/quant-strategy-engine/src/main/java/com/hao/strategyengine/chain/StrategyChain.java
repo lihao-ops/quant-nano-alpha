@@ -99,6 +99,7 @@ public class StrategyChain {
         // Step 1️⃣ 依次执行所有前置 Handler
         for (StrategyHandler handler : handlers) {
             handler.handle(ctx);
+
         }
 
         // Step 2️⃣ 所有 Handler 校验通过，放行策略计算阶段

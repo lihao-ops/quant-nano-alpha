@@ -10,6 +10,7 @@ import com.hao.strategyengine.common.model.response.StrategyResult;
 import com.hao.strategyengine.common.model.response.StrategyResultBundle;
 import com.hao.strategyengine.strategy.lock.DistributedLockService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -55,6 +56,7 @@ import java.util.stream.Collectors;
  *      Controller(第1层) → Service(第2层) → Facade(第3层)
  *      → Dispatcher(第4层) → Strategy(第5层)
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class StrategyEngineFacade {
@@ -114,7 +116,13 @@ public class StrategyEngineFacade {
      */
     public StrategyResultBundle executeAll(Integer userId, List<String> strategyIds, StrategyContext ctx) throws Exception {
         // Step 1️⃣ 前置责任链风控校验 —— 防止违规策略执行
-        chain.apply(ctx);
+        try {
+            chain.apply(ctx);
+        } catch (Exception e) {
+            log.error("责任链执行异常：{}", e.getMessage(), e);
+            // 可视情况决定：是否中断策略执行 / 返回默认结果
+        }
+
 
         // Step 2️⃣ 生成组合Key（如 "MA_MOM_DRAGON_TWO"）
         String comboKey = KeyUtils.comboKey(strategyIds);

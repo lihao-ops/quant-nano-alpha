@@ -2,6 +2,7 @@ package com.hao.strategyengine.common.model.core;
 
 import lombok.Builder;
 import lombok.Data;
+
 import java.time.Instant;
 import java.util.Map;
 
@@ -33,7 +34,7 @@ import java.util.Map;
  *     <li>extra 字段建议使用约定好的 key，以保证策略执行一致性</li>
  *     <li>requestTime 可用于执行限时策略或计算请求延迟</li>
  * </ul>
- *
+ * <p>
  * Lombok 注解说明：
  * - @Data 提供 getter、setter、toString、equals、hashCode 方法
  * - @Builder 提供建造者模式方便构造对象
@@ -46,15 +47,23 @@ import java.util.Map;
 @Builder
 public class StrategyContext {
 
-    /** 用户唯一标识 */
+    /**
+     * 用户唯一标识
+     */
     private Integer userId;
 
-    /** 交易标的代码，例如股票代码 "AAPL" */
+    /**
+     * 交易标的代码，例如股票代码 "AAPL"
+     */
     private String symbol;
 
-    /** 扩展字段，用于存储策略执行所需的额外参数 */
+    /**
+     * 扩展字段，用于存储策略执行所需的额外参数
+     */
     private Map<String, Object> extra;
 
-    /** 请求时间，记录策略执行发起的时间 */
+    /**
+     * 请求时间，记录策略执行发起的时间
+     */
     private Instant requestTime;
 }

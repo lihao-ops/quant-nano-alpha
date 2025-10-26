@@ -41,7 +41,7 @@ public class HotTopicStrategyTest {
         Map<String, Object> extra = new HashMap<>();
         extra.put("topicId", 298);
         StrategyContext context = StrategyContext.builder()
-                .userId("user001")
+                .userId(001)
                 .symbol("AAPL")
                 .extra(extra)
                 .build();
