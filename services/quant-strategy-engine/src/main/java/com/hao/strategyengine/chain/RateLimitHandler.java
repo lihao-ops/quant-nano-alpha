@@ -3,6 +3,7 @@ package com.hao.strategyengine.chain;
 import com.google.common.util.concurrent.RateLimiter;
 import com.hao.strategyengine.common.model.core.StrategyContext;
 import com.hao.strategyengine.core.StrategyHandler;
+import com.hao.strategyengine.monitoring.RateLimitMetrics;
 import enums.strategy.StrategyMetaEnum;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
@@ -32,6 +33,9 @@ public class RateLimitHandler implements StrategyHandler {
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+
+    @Resource
+    private RateLimitMetrics rateLimitMetrics;
 
     // ==================== 配置参数 ====================
     /**
@@ -152,6 +156,7 @@ public class RateLimitHandler implements StrategyHandler {
 
     @Override
     public void handle(StrategyContext ctx) throws Exception {
+        long start = System.currentTimeMillis();
         if (!rateLimitEnabled) {
             log.info("🚫 限流功能已关闭，直接放行: userId={}", ctx.getUserId());
             return;
@@ -172,10 +177,12 @@ public class RateLimitHandler implements StrategyHandler {
             checkStrategyTypeRateLimit(strategyType);
 
             log.info("✅ 限流检查通过: userId={}, strategyType={}", userId, strategyType);
-
+//            boolean acquired = localUserLimiter.tryAcquire(100, TimeUnit.MILLISECONDS);
+            rateLimitMetrics.recordWaitTime("checkHandleRateLimit_USER", System.currentTimeMillis() - start);
         } catch (RateLimitException e) {
-            log.warn("⛔ 限流拒绝: userId={}, strategyType={}, reason={}",
-                    userId, strategyType, e.getMessage());
+            log.warn("⛔ 限流拒绝: userId={}, strategyType={}, reason={}", userId, strategyType, e.getMessage());
+            //监控
+            rateLimitMetrics.recordRateLimitReject(e.getLimitType(), ctx.getUserId().toString(), strategyType);
             throw e;
         }
     }
@@ -203,8 +210,8 @@ public class RateLimitHandler implements StrategyHandler {
      * 第二层: 用户维度限流
      */
     private void checkUserRateLimit(Integer userId) throws RateLimitException {
+        long start = System.currentTimeMillis();
         String key = redisKeyPrefix + "user:" + userId;
-
         if (distributedEnabled) {
             // 分布式限流
             if (!tryAcquireDistributed(key, 1, userQps)) {
@@ -216,6 +223,7 @@ public class RateLimitHandler implements StrategyHandler {
                 throw new RateLimitException("USER", String.format("操作过于频繁,请稍后重试 (单机用户QPS限制: %d)", userQps));
             }
         }
+        rateLimitMetrics.recordWaitTime("checkUserRateLimit_USER", System.currentTimeMillis() - start);
     }
 
     /**
