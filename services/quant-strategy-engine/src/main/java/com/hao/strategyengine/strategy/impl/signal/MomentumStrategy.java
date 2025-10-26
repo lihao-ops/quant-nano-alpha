@@ -1,8 +1,9 @@
-package com.hao.strategyengine.strategy.impl;
+package com.hao.strategyengine.strategy.impl.signal;
 
 import com.hao.strategyengine.common.model.core.StrategyContext;
 import com.hao.strategyengine.common.model.response.StrategyResult;
 import com.hao.strategyengine.strategy.QuantStrategy;
+import enums.strategy.StrategyMetaEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -51,7 +52,7 @@ public class MomentumStrategy implements QuantStrategy {
      */
     @Override
     public String getId() {
-        return "MOM";
+        return StrategyMetaEnum.SIG_MOMENTUM.getId();
     }
 
     /**
@@ -68,14 +69,14 @@ public class MomentumStrategy implements QuantStrategy {
         double value = Math.random() * 10;
         try {
             Thread.sleep(3000);
-            log.info("Thread={},execute={}", Thread.currentThread().getName(), "MOM");
+            log.info("Thread={},execute={}", Thread.currentThread().getName(), StrategyMetaEnum.SIG_MOMENTUM.getId());
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
         // 构建策略执行结果
         return StrategyResult.builder()
                 .strategyId(getId())
-                .data("MOM" + value)
+                .data(StrategyMetaEnum.SIG_MOMENTUM.getId() + value)
                 .durationMs(System.currentTimeMillis() - start)
                 .build();
     }

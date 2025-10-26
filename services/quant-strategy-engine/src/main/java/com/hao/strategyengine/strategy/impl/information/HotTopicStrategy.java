@@ -1,4 +1,4 @@
-package com.hao.strategyengine.strategy.impl;
+package com.hao.strategyengine.strategy.impl.information;
 
 import com.alibaba.fastjson.JSON;
 import com.hao.strategyengine.common.model.core.StrategyContext;
@@ -6,6 +6,7 @@ import com.hao.strategyengine.common.model.response.StrategyResult;
 import com.hao.strategyengine.integration.redis.RedisClient;
 import com.hao.strategyengine.strategy.QuantStrategy;
 import constants.RedisKeyConstants;
+import enums.strategy.StrategyMetaEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -19,21 +20,21 @@ import java.util.stream.Collectors;
  * HotTopicStrategy
  * ===============================================
  * 【功能定位】
- *  ⦿ 基于题材库的热点策略（Hot Topic Strategy）
- *  ⦿ 支持按题材名称模糊搜索或题材ID精确查询
- *  ⦿ 查询数据源优先使用 Redis 缓存
+ * ⦿ 基于题材库的热点策略（Hot Topic Strategy）
+ * ⦿ 支持按题材名称模糊搜索或题材ID精确查询
+ * ⦿ 查询数据源优先使用 Redis 缓存
  * ===============================================
- *
+ * <p>
  * 【Redis 缓存数据结构】
  * Key: RedisKeyConstants.DATA_TOPIC_MAPPING_STOCK_MAP
  * Value: JSON Map<Integer topicId, Set<String> stockCodes>
- *
+ * <p>
  * 【输入参数】
- *  context.getExtra().get("topicId")   → 精确查询
- *  context.getExtra().get("topicName") → 模糊查询
- *
+ * context.getExtra().get("topicId")   → 精确查询
+ * context.getExtra().get("topicName") → 模糊查询
+ * <p>
  * 【输出】
- *  StrategyResult.data = 匹配的股票代码集合
+ * StrategyResult.data = 匹配的股票代码集合
  *
  * @author hli
  * @date 2025-10-26
@@ -47,7 +48,7 @@ public class HotTopicStrategy implements QuantStrategy {
 
     @Override
     public String getId() {
-        return "HOT_TOPIC";
+        return StrategyMetaEnum.INFO_HOT_TOPIC.getId();
     }
 
     @Override

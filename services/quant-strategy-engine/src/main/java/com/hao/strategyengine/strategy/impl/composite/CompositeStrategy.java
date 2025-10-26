@@ -1,4 +1,4 @@
-package com.hao.strategyengine.strategy.impl;
+package com.hao.strategyengine.strategy.impl.composite;
 
 
 

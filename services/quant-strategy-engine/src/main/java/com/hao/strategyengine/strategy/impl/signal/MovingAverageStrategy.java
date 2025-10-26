@@ -1,8 +1,9 @@
-package com.hao.strategyengine.strategy.impl;
+package com.hao.strategyengine.strategy.impl.signal;
 
 import com.hao.strategyengine.common.model.core.StrategyContext;
 import com.hao.strategyengine.common.model.response.StrategyResult;
 import com.hao.strategyengine.strategy.QuantStrategy;
+import enums.strategy.StrategyMetaEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -51,7 +52,7 @@ public class MovingAverageStrategy implements QuantStrategy {
      */
     @Override
     public String getId() {
-        return "MA";
+        return StrategyMetaEnum.SIG_MOVING_AVERAGE.getId();
     }
 
     /**
@@ -68,13 +69,13 @@ public class MovingAverageStrategy implements QuantStrategy {
         double value = Math.random() * 100; // 模拟计算结果
         try {
             Thread.sleep(3000);
-            log.info("Thread={},execute={}", Thread.currentThread().getName(), "MA");
+            log.info("Thread={},execute={}", Thread.currentThread().getName(), StrategyMetaEnum.SIG_MOVING_AVERAGE.getId());
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
         return StrategyResult.builder()
                 .strategyId(getId())
-                .data("MA" + value)
+                .data(StrategyMetaEnum.SIG_MOVING_AVERAGE.getId() + value)
                 .durationMs(System.currentTimeMillis() - start)
                 .build();
     }
