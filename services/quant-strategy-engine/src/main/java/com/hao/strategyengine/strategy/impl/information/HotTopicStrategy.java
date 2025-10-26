@@ -1,6 +1,7 @@
 package com.hao.strategyengine.strategy.impl.information;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.hao.strategyengine.common.model.core.StrategyContext;
 import com.hao.strategyengine.common.model.response.StrategyResult;
 import com.hao.strategyengine.integration.redis.RedisClient;
@@ -67,13 +68,17 @@ public class HotTopicStrategy implements QuantStrategy {
                     .durationMs(System.currentTimeMillis() - start)
                     .build();
         }
-
-        Map<Integer, Set<String>> topicMap = JSON.parseObject(json, Map.class);
+        // 替换原来的 parseObject(json, Map.class)
+        Map<Integer, Set<String>> topicMap = JSON.parseObject(
+                json, new TypeReference<Map<Integer, Set<String>>>() {
+                }
+        );
         List<String> resultStocks = new ArrayList<>();
 
         // Step 2️⃣ 根据输入参数判断查询类型
         if (extra != null) {
             Object topicIdObj = extra.get("topicId");
+            //todo topicName 模糊查询暂不支持
             Object topicNameObj = extra.get("topicName");
 
             // 按ID查询

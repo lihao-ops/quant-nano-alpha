@@ -1,7 +1,7 @@
 package com.hao.strategyengine.integration.feign;
 
 import com.alibaba.fastjson.JSON;
-import com.hao.strategyengine.web.vo.datacollector.StockBasicInfoQueryResultVO;
+import com.hao.strategyengine.common.model.vo.datacollector.StockBasicInfoQueryResultVO;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

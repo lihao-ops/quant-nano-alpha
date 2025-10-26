@@ -1,7 +1,7 @@
 package com.hao.strategyengine;
 
+import com.hao.strategyengine.common.model.vo.datacollector.StockBasicInfoQueryResultVO;
 import com.hao.strategyengine.integration.feign.DataCollectorClient;
-import com.hao.strategyengine.web.vo.datacollector.StockBasicInfoQueryResultVO;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
