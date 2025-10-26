@@ -34,6 +34,11 @@ public class RateLimitHandler implements StrategyHandler {
     private StringRedisTemplate stringRedisTemplate;
 
     // ==================== 配置参数 ====================
+    /**
+     * 全局是否启用限流功能
+     */
+    @Value("${rate-limit.enabled:true}")
+    private boolean rateLimitEnabled;
 
     /**
      * 是否启用分布式限流
@@ -147,6 +152,10 @@ public class RateLimitHandler implements StrategyHandler {
 
     @Override
     public void handle(StrategyContext ctx) throws Exception {
+        if (!rateLimitEnabled) {
+            log.info("🚫 限流功能已关闭，直接放行: userId={}", ctx.getUserId());
+            return;
+        }
         Integer userId = ctx.getUserId();
 //        String strategyType = ctx.getExtra().get("strategyType").toString();
         String strategyType = "test";
