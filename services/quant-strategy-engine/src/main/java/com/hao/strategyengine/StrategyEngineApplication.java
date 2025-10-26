@@ -11,6 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -19,6 +20,7 @@ import java.util.concurrent.Executors;
 @MapperScan("com.hao.strategyengine.integration.db.mapper")
 @EnableFeignClients//开启Feign远程调用功能
 @EnableDiscoveryClient//开启服务发现功能
+@EnableScheduling          // ✅ 开启定时任务功能
 @SpringBootApplication
 public class StrategyEngineApplication {
 
