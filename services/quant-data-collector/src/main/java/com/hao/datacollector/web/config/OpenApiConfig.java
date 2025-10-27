@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 /**
  * Knife4j API 文档配置
  * 量化交易数据收集器服务 API 文档
- * 访问地址：http://localhost:8001/data-collector/doc.html
+ * 访问地址：http://localhost:8801/data-collector/doc.html
  */
 
 @OpenAPIDefinition(
