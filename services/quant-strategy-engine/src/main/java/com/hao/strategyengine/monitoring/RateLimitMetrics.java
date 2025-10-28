@@ -7,7 +7,6 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -16,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 限流监控
- *
+ * <p>
  * 核心改进:
  * 1. 预注册 Counter/Timer,避免重复注册
  * 2. 移除高基数的 user_id tag
@@ -43,7 +42,7 @@ public class RateLimitMetrics {
 
     /**
      * 记录限流拒绝事件
-     *
+     * <p>
      * 改进:
      * - 移除 user_id tag (避免高基数)
      * - 使用缓存避免重复注册
@@ -68,7 +67,7 @@ public class RateLimitMetrics {
 
     /**
      * 记录等待时间
-     *
+     * <p>
      * 改进: 使用缓存避免重复注册
      */
     public void recordWaitTime(String limitType, long waitMillis) {
@@ -85,7 +84,7 @@ public class RateLimitMetrics {
 
     /**
      * 每10秒输出一次监控摘要
-     *
+     * <p>
      * 改进: 安全获取 P99,遍历所有 limitType
      */
 //    @Scheduled(fixedRate = 10000)

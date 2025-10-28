@@ -2,12 +2,12 @@ package com.hao.strategyengine.core.facade;
 
 import com.hao.strategyengine.chain.StrategyChain;
 import com.hao.strategyengine.common.cache.StrategyCacheService;
-import com.hao.strategyengine.common.util.KeyUtils;
-import com.hao.strategyengine.core.dispatcher.StrategyDispatcher;
-import com.hao.strategyengine.integration.kafka.KafkaResultPublisher;
 import com.hao.strategyengine.common.model.core.StrategyContext;
 import com.hao.strategyengine.common.model.response.StrategyResult;
 import com.hao.strategyengine.common.model.response.StrategyResultBundle;
+import com.hao.strategyengine.common.util.KeyUtils;
+import com.hao.strategyengine.core.dispatcher.StrategyDispatcher;
+import com.hao.strategyengine.integration.kafka.KafkaResultPublisher;
 import com.hao.strategyengine.strategy.lock.DistributedLockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,61 +23,73 @@ import java.util.stream.Collectors;
  * ===============================================================
  * 【类名】：StrategyEngineFacade（策略引擎外观层）
  * ===============================================================
- *
+ * <p>
  * 【功能定位】：
- *   ⦿ 本类是整个“策略引擎”的**统一入口（Facade 模式）**
- *   ⦿ 向 Controller 层提供一个简化的接口，内部封装了：
- *       ① 风控责任链（StrategyChain）
- *       ② 并行调度器（StrategyDispatcher）
- *       ③ 分布式锁控制（DistributedLockService）
- *       ④ 结果缓存服务（StrategyCacheService）
- *       ⑤ 结果异步推送（KafkaResultPublisher）
- *
+ * ⦿ 本类是整个“策略引擎”的**统一入口（Facade 模式）**
+ * ⦿ 向 Controller 层提供一个简化的接口，内部封装了：
+ * ① 风控责任链（StrategyChain）
+ * ② 并行调度器（StrategyDispatcher）
+ * ③ 分布式锁控制（DistributedLockService）
+ * ④ 结果缓存服务（StrategyCacheService）
+ * ⑤ 结果异步推送（KafkaResultPublisher）
+ * <p>
  * 【核心思路】：
- *   Controller -> Facade（本类） -> Chain(风控) -> LockService(防重计算)
- *        -> Dispatcher(并行策略计算) -> Bundle(聚合结果) -> Kafka/Redis输出
- *
+ * Controller -> Facade（本类） -> Chain(风控) -> LockService(防重计算)
+ * -> Dispatcher(并行策略计算) -> Bundle(聚合结果) -> Kafka/Redis输出
+ * <p>
  * 【作用优势】：
- *   - 对上层屏蔽复杂的锁、并发、缓存、Kafka 逻辑；
- *   - 对下层提供一个统一的策略执行协调点；
- *   - 确保同一组策略组合在集群中只执行一次（幂等防击穿）。
- *
+ * - 对上层屏蔽复杂的锁、并发、缓存、Kafka 逻辑；
+ * - 对下层提供一个统一的策略执行协调点；
+ * - 确保同一组策略组合在集群中只执行一次（幂等防击穿）。
+ * <p>
  * 【执行流程】：
- *   ┌─────────────────────────────────────┐
- *   │ Step 1：风控责任链前置校验（chain.apply）       │
- *   │ Step 2：生成组合 key（KeyUtils.comboKey）       │
- *   │ Step 3：构建 compute supplier（并行调度策略）   │
- *   │ Step 4：分布式锁控制，执行 compute 或等待结果    │
- *   │ Step 5：结果聚合 → 缓存 → Kafka 异步发布         │
- *   └─────────────────────────────────────┘
- *
+ * ┌─────────────────────────────────────┐
+ * │ Step 1：风控责任链前置校验（chain.apply）       │
+ * │ Step 2：生成组合 key（KeyUtils.comboKey）       │
+ * │ Step 3：构建 compute supplier（并行调度策略）   │
+ * │ Step 4：分布式锁控制，执行 compute 或等待结果    │
+ * │ Step 5：结果聚合 → 缓存 → Kafka 异步发布         │
+ * └─────────────────────────────────────┘
+ * <p>
  * 【对应执行链说明】：
- *   ◉ 属于系统主执行链的「第 3 层」：
- *      Controller(第1层) → Service(第2层) → Facade(第3层)
- *      → Dispatcher(第4层) → Strategy(第5层)
+ * ◉ 属于系统主执行链的「第 3 层」：
+ * Controller(第1层) → Service(第2层) → Facade(第3层)
+ * → Dispatcher(第4层) → Strategy(第5层)
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class StrategyEngineFacade {
 
-    /** 策略分发器：负责根据策略 ID 调度对应的 QuantStrategy 实例 */
+    /**
+     * 策略分发器：负责根据策略 ID 调度对应的 QuantStrategy 实例
+     */
     private final StrategyDispatcher dispatcher;
 
-    /** 风控责任链：策略执行前进行合规性校验 */
+    /**
+     * 风控责任链：策略执行前进行合规性校验
+     */
     private final StrategyChain chain;
 
-    /** 分布式锁：防止多节点重复计算同一策略组合 */
+    /**
+     * 分布式锁：防止多节点重复计算同一策略组合
+     */
     private final DistributedLockService lockService;
 
-    /** 策略结果缓存：可在计算完成后异步写入 Redis */
+    /**
+     * 策略结果缓存：可在计算完成后异步写入 Redis
+     */
     private final StrategyCacheService cacheService;
 
-    /** Kafka 发布器：将计算结果异步广播到消息总线 */
+    /**
+     * Kafka 发布器：将计算结果异步广播到消息总线
+     */
     @Autowired
     private KafkaResultPublisher kafkaPublisher;
 
-    /** 线程池：用于并行执行多策略计算 */
+    /**
+     * 线程池：用于并行执行多策略计算
+     */
     private final ExecutorService pool = new ThreadPoolExecutor(
             8, // corePoolSize
             64, // maximumPoolSize
@@ -92,26 +104,26 @@ public class StrategyEngineFacade {
      * ===============================================================
      * 【方法名】：executeAll
      * ===============================================================
-     *
+     * <p>
      * 【方法说明】：
-     *   执行用户所选的多个策略（可并行），并在分布式环境下
-     *   通过 Redis 锁控制，确保同一组合只执行一次。
-     *
+     * 执行用户所选的多个策略（可并行），并在分布式环境下
+     * 通过 Redis 锁控制，确保同一组合只执行一次。
+     * <p>
      * 【参数说明】：
-     *   @param userId      用户ID（便于统计与审计）
-     *   @param strategyIds 策略ID集合（如 ["MA","MOM","DRAGON_TWO"]）
-     *   @param ctx          策略执行上下文（行情数据、账户参数等）
      *
-     * 【返回值】：
-     *   StrategyResultBundle — 聚合后的策略结果包
-     *
-     * 【执行流程】：
-     *   ① 风控校验
-     *   ② 构建组合Key
-     *   ③ 并行调度策略任务
-     *   ④ 通过分布式锁控制计算与等待
-     *   ⑤ 异步发布结果到 Kafka
-     *
+     * @param userId      用户ID（便于统计与审计）
+     * @param strategyIds 策略ID集合（如 ["MA","MOM","DRAGON_TWO"]）
+     * @param ctx         策略执行上下文（行情数据、账户参数等）
+     *                    <p>
+     *                    【返回值】：
+     *                    StrategyResultBundle — 聚合后的策略结果包
+     *                    <p>
+     *                    【执行流程】：
+     *                    ① 风控校验
+     *                    ② 构建组合Key
+     *                    ③ 并行调度策略任务
+     *                    ④ 通过分布式锁控制计算与等待
+     *                    ⑤ 异步发布结果到 Kafka
      * @throws Exception 可能抛出线程池或锁等待异常
      */
     public StrategyResultBundle executeAll(Integer userId, List<String> strategyIds, StrategyContext ctx) throws Exception {
