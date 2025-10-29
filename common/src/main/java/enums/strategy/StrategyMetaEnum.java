@@ -14,9 +14,13 @@ import lombok.Getter;
 public enum StrategyMetaEnum {
 
     // ===================== 信号型（Signal） =====================
-    SIG_MOMENTUM("SIG_MOM", "动量策略", StrategyType.SIGNAL, "基于价格变化率判断趋势强度的信号策略", 50, 200),
-
     SIG_MOVING_AVERAGE("SIG_MA", "均线策略", StrategyType.SIGNAL, "基于短期与长期均线交叉判断买卖信号", 50, 200),
+    SIG_MEAN_REVERSION("SIG_MEAN", "均值回归策略", StrategyType.SIGNAL, "基于价格偏离均线程度的回归策略", 40, 180),
+    SIG_BREAKOUT("SIG_BREAK", "突破策略", StrategyType.SIGNAL, "基于布林带突破和成交量确认的策略", 45, 160),
+    SIG_MOMENTUM("SIG_MOM", "动量策略", StrategyType.SIGNAL, "基于价格动量延续性的策略", 50, 200),
+    SIG_RSI("SIG_RSI", "RSI策略", StrategyType.SIGNAL, "基于相对强弱指数的超买超卖策略", 35, 150),
+    SIG_MACD("SIG_MACD", "MACD策略", StrategyType.SIGNAL, "基于MACD金叉死叉的趋势策略", 42, 170),
+    SIG_VWAP("SIG_VWAP", "VWAP策略", StrategyType.SIGNAL, "基于成交量加权平均价的机构动向策略", 38, 140),
 
     // ===================== 信息型（Information） =====================
     INFO_HOT_TOPIC("INFO_TOPIC", "热点题材策略", StrategyType.INFORMATION, "根据题材热点筛选关联股票集合", 20, 100),
