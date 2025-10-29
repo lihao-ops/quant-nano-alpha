@@ -25,6 +25,13 @@ import java.util.Set;
  * @Date 2025-08-26 20:30:17
  * @description:龙二战法
  */
+/**
+ * 实现思路：
+ * <p>
+ * 1. 通过 Redis 中预先缓存的涨停股票、题材与股票映射信息构建基础数据。
+ * 2. 遍历每个交易日的涨停股票集合，并与各个题材对应的股票集合求交集以定位热点题材。
+ * 3. 当交集非空时，输出该交易日与题材的关联度信息，为后续龙二标的筛选提供依据。
+ */
 @Slf4j
 @Service
 public class DragonTwoServiceImpl implements DragonTwoService {
@@ -58,6 +65,7 @@ public class DragonTwoServiceImpl implements DragonTwoService {
                 }
         );
         //如果当天涨停股票列表,在某几个题材中占比超过阀值,表示当天这几个题材中有几率选出龙二
+        // 遍历所有交易日，将涨停股票与各题材进行交叉分析
         for (Map.Entry<String, Set<String>> entry : limitUpStockListMap.entrySet()) {
             String tradeDate = entry.getKey();
             Set<String> limitUpStockList = entry.getValue();

@@ -36,6 +36,13 @@ import java.util.stream.Collectors;
  * @Date 2025-06-20 17:10:56
  * @description: 新闻相关实现类
  */
+/**
+ * 实现思路：
+ * <p>
+ * 1. 构造包含认证信息的 POST 请求拉取 Wind 股票新闻数据，并校验响应结构。
+ * 2. 将返回的新闻内容解析成 VO，若无数据则记录异常股票；有数据则批量入库并维护关联关系。
+ * 3. 对查询场景提供分页参数转换，最终通过 Mapper 返回符合条件的新闻列表。
+ */
 @Slf4j
 @Service
 public class NewsServiceImpl implements NewsService {

@@ -40,6 +40,13 @@ import java.util.List;
  * @Date 2025-06-23 14:16:42
  * @description: 龙虎榜实现类
  */
+/**
+ * 实现思路：
+ * <p>
+ * 1. 封装 Wind 龙虎榜相关接口的请求参数与认证信息，通过 HttpUtil 拉取源数据。
+ * 2. 将返回的 JSON 数据解析为 VO 列表，必要时进行极值处理或日期兜底。
+ * 3. 借助 Mapper 层实现批量入库，形成龙虎榜首页、席位榜、活跃榜等多维数据的转储能力。
+ */
 @Slf4j
 @Service
 public class AbnormalServiceImpl implements AbnormalService {

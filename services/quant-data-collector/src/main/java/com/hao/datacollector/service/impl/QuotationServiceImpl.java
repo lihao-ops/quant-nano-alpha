@@ -44,6 +44,13 @@ import java.util.Map;
  * @Date 2025-07-04 17:43:47
  * @description: 行情实现类
  */
+/**
+ * 实现思路：
+ * <p>
+ * 1. 通过配置化 URL 和认证信息调用 Wind 行情接口，获取基础与分时原始数据。
+ * 2. 将原始 JSON/数组结构映射为业务 DTO，并进行必要的格式转换（时间、价格精度等）。
+ * 3. 利用 Mapper 层提供的批量写入能力，将数据持久化，同时暴露查询与统计接口供外部调用。
+ */
 @Slf4j
 @Service
 public class QuotationServiceImpl implements QuotationService {
@@ -92,6 +99,7 @@ public class QuotationServiceImpl implements QuotationService {
                 log.error("quotationData.isEmpty()!windCode={}", windCode);
                 continue;
             }
+            // 将 Wind 返回的原始数值数组映射为结构化 DTO
             QuotationStockBaseDTO quotationStockBaseDTO = new QuotationStockBaseDTO();
             quotationStockBaseDTO.setWindCode(windCode);
             quotationStockBaseDTO.setTradeDate(DateUtil.parseToLocalDate(String.valueOf(quotationData.get(0)), DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT));

@@ -35,6 +35,13 @@ import java.util.List;
  * @author Hao Li
  * @description: F9实现类
  */
+/**
+ * 实现思路：
+ * <p>
+ * 1. 统一封装 F9 不同接口的路径常量，并通过 @PostConstruct 初始化基础 URL。
+ * 2. 使用通用的 HTTP 请求方法携带 Wind Session 发起调用，获取各类型的 JSON 数据。
+ * 3. 依据不同业务场景将响应体转换为对应 DTO，成功时返回数据，失败时记录日志并给出兜底值。
+ */
 @Slf4j
 @Service
 public class SimpleF9ServiceImpl implements SimpleF9Service {

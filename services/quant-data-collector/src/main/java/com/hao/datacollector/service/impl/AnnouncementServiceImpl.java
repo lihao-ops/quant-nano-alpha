@@ -32,6 +32,13 @@ import java.util.stream.Collectors;
  * @Date 2025-06-24 13:52:41
  * @description: 公告数据实现类
  */
+/**
+ * 实现思路：
+ * <p>
+ * 1. 基于配置的 Wind 接口构造 GET 请求并附带分页、时间等查询条件。
+ * 2. 将返回的公告/大事件 JSON 数据转换为 VO 列表，并在入库前做格式标准化。
+ * 3. 通过 Mapper 完成批量插入，实现公告与大事件的数据落地与查询能力。
+ */
 @Slf4j
 @Service
 public class AnnouncementServiceImpl implements AnnouncementService {
