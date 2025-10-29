@@ -23,6 +23,12 @@ import java.util.List;
  * @Date 2025-07-22 19:15:53
  * @description: 个股资料相关实现类
  */
+/**
+ * 实现思路：
+ * <p>
+ * 通过配置化的 Wind 接口地址拼接查询参数，携带认证头部发送 HTTP 请求，
+ * 再将返回的 JSON 字符串直接反序列化为键盘精灵结果列表供调用方使用。
+ */
 @Slf4j
 @Service
 public class StockProfileServiceImpl implements StockProfileService {
@@ -46,6 +52,7 @@ public class StockProfileServiceImpl implements StockProfileService {
         String url = String.format(keywordUrl, keyword, pageNo, pageSize);
         HttpHeaders headers = new HttpHeaders();
         headers.set(DataSourceConstants.WIND_SESSION_NAME, properties.getWindSessionId());
+        // 调用 Wind 接口并获取原始响应字符串
         String response = HttpUtil.sendGetRequest(DataSourceConstants.WIND_PROD_WGQ + url, headers, 10000, 30000).getBody();
         return JSONObject.parseObject(response, new TypeReference<List<SearchKeyBoardVO>>() {
         }, Feature.OrderedField);

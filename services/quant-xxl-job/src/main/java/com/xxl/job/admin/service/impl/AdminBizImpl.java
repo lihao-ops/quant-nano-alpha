@@ -11,7 +11,10 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 /**
- * @author xuxueli 2017-07-27 21:54:20
+ * 实现思路：
+ * <p>
+ * 通过调用核心线程辅助类完成任务回调与执行器注册/注销的转发，
+ * 自身不做业务处理，仅作为 gRPC/HTTP 接口与内部调度组件之间的桥接层。
  */
 @Service
 public class AdminBizImpl implements AdminBiz {
