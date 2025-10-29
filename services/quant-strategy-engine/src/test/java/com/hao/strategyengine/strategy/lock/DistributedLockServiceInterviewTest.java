@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -44,7 +45,8 @@ import static org.mockito.Mockito.when;
  * 以大厂面试官视角，把为什么要这么设计、能解决什么痛点、后续怎么演进，都写在类/方法/核心代码注释中。
  */
 @ExtendWith(MockitoExtension.class)
-class DistributedLockServiceInterviewTest {
+@SpringBootTest
+public class DistributedLockServiceInterviewTest {
 
     @Mock
     private RedissonClient redissonClient;
@@ -72,7 +74,7 @@ class DistributedLockServiceInterviewTest {
      * 3. 断言返回值就是业务方需要的 StrategyResultBundle。
      */
     @Test
-    void shouldComputeOnceWhenLockIsAcquired() {
+    void shouldComputeOnceWhenLockIsAcquired() throws InterruptedException {
         // Step 1️⃣ 模拟分布式锁成功获取
         when(rLock.tryLock(eq(0L), eq(1L), eq(TimeUnit.SECONDS))).thenReturn(true);
 
