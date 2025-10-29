@@ -20,6 +20,7 @@
         <module>quant-strategy-engine</module>
         <module>quant-risk-control</module>
         <module>quant-audit-service</module>
+        <module>quant-stock-list</module>
     </modules>
     <!-- 编译及编码配置 -->
     <properties>

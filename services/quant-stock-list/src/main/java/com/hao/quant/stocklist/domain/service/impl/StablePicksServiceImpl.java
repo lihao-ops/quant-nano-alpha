@@ -299,7 +299,7 @@ public class StablePicksServiceImpl implements StablePicksService {
             return distributed.get().getData();
         }
 
-        return lockManager.executeWithLock(
+        return (T) lockManager.executeWithLock(
                 "lock:" + cacheKey,
                 lockWait,
                 lockLease,
