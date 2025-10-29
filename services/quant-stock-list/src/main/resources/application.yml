@@ -1,0 +1,103 @@
+server:
+  port: 8083
+  servlet:
+    context-path: /quant-stock-list
+
+spring:
+  application:
+    name: quant-stock-list
+  datasource:
+    url: jdbc:mysql://localhost:3306/quant?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    username: quant
+    password: quant123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 6
+      password:
+      lettuce:
+        pool:
+          max-active: 32
+          max-idle: 16
+          min-idle: 4
+          time-between-eviction-runs: 60000
+  redis:
+    host: ${spring.data.redis.host}
+    port: ${spring.data.redis.port}
+    password: ${spring.data.redis.password}
+    database: ${spring.data.redis.database}
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: stable-picks-query
+      enable-auto-commit: false
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.hao.quant.stocklist.domain.event"
+        spring.json.value.default.type: com.hao.quant.stocklist.domain.event.StrategyResultEvent
+        spring.json.use.type.headers: false
+    listener:
+      ack-mode: manual
+  jackson:
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: false
+
+mybatis:
+  mapper-locations: classpath*:mapper/*.xml
+  type-aliases-package: com.hao.quant.stocklist.infrastructure.persistence.po
+  configuration:
+    map-underscore-to-camel-case: true
+
+logging:
+  level:
+    root: INFO
+    com.hao.quant.stocklist: DEBUG
+    org.springframework.kafka: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
+
+resilience4j:
+  ratelimiter:
+    configs:
+      default:
+        limit-for-period: 1000
+        limit-refresh-period: 1s
+        timeout-duration: 50ms
+    instances:
+      stablePicksQuery:
+        base-config: default
+      stablePicksLatest:
+        base-config: default
+      stablePicksDetail:
+        base-config: default
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+stable-picks:
+  cache:
+    redis-ttl: PT10M
+    lock-wait: PT1S
+    lock-lease: PT5S
+  warmup:
+    recent-trade-dates: 5
