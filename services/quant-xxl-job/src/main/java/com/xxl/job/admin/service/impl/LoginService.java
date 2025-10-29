@@ -15,11 +15,16 @@ import org.springframework.util.DigestUtils;
 import java.math.BigInteger;
 
 /**
- * 实现思路：
- * <p>
- * 1. 使用 JSON + Hex 编码生成登录令牌，并保存在浏览器 Cookie 中维护会话。
- * 2. 登录时从数据库校验用户名/密码的 MD5，注销时清除对应 Cookie。
- * 3. 通过 ifLogin 方法解析 Cookie 令牌并二次校验数据库密码，保证会话有效性。
+ * 登录服务提供器，通过 Cookie + 数据库的方式完成鉴权。
+ *
+ * <p>设计思路：
+ * <ol>
+ *     <li>登录时根据数据库校验用户名密码，生成包含用户信息的十六进制 token。</li>
+ *     <li>通过 {@link CookieUtil} 将 token 写入响应，配合“记住我”实现持久化登录。</li>
+ *     <li>后续请求通过解析 cookie 中的 token，二次校验数据库口令，确保凭证未被篡改。</li>
+ *     <li>退出登录时清除 cookie，以此作为会话失效的标志。</li>
+ * </ol>
+ * 核心逻辑在于保持 token 生成与校验的对称性，杜绝明文敏感信息泄露。
  */
 @Service
 public class LoginService {
@@ -33,6 +38,7 @@ public class LoginService {
     // ---------------------- token tool ----------------------
 
     private String makeToken(XxlJobUser xxlJobUser){
+        // 将用户信息序列化后转成16进制串，避免直接暴露明文JSON
         String tokenJson = JacksonUtil.writeValueAsString(xxlJobUser);
         String tokenHex = new BigInteger(tokenJson.getBytes()).toString(16);
         return tokenHex;
@@ -40,6 +46,7 @@ public class LoginService {
     private XxlJobUser parseToken(String tokenHex){
         XxlJobUser xxlJobUser = null;
         if (tokenHex != null) {
+            // 与 makeToken 保持对称解码，还原用户对象供后续校验
             String tokenJson = new String(new BigInteger(tokenHex, 16).toByteArray());      // username_password(md5)
             xxlJobUser = JacksonUtil.readValue(tokenJson, XxlJobUser.class);
         }
@@ -69,6 +76,7 @@ public class LoginService {
         String loginToken = makeToken(xxlJobUser);
 
         // do login
+        // 写入 cookie 作为会话令牌，并根据 ifRemember 控制有效期
         CookieUtil.set(response, LOGIN_IDENTITY_KEY, loginToken, ifRemember);
         return ReturnT.SUCCESS;
     }
@@ -95,11 +103,13 @@ public class LoginService {
         if (cookieToken != null) {
             XxlJobUser cookieUser = null;
             try {
+                // 解析 cookie，若数据损坏会触发异常，需主动登出清理状态
                 cookieUser = parseToken(cookieToken);
             } catch (Exception e) {
                 logout(request, response);
             }
             if (cookieUser != null) {
+                // 再次查询数据库校验密码哈希，避免伪造凭证绕过认证
                 XxlJobUser dbUser = xxlJobUserDao.loadByUserName(cookieUser.getUsername());
                 if (dbUser != null) {
                     if (cookieUser.getPassword().equals(dbUser.getPassword())) {

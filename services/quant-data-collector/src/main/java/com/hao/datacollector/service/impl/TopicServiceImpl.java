@@ -39,6 +39,12 @@ import org.springframework.util.StringUtils;
 import java.util.*;
 
 /**
+ * 题材库同步的具体实现，负责从 KPL 接口拉取热点题材并拆分入库。
+ * <p>
+ * 核心流程包括：逐条请求远端主题 → 反序列化为领域模型 → 拆分成多张表的 DTO →
+ * 调用 Mapper 批量写入，同时通过日志记录加工链路，便于排查。
+ * </p>
+ *
  * @author Hao Li
  * @Date 2025-07-22 10:50:08
  * @description: 题材实现类
@@ -75,10 +81,12 @@ public class TopicServiceImpl implements TopicService {
     @Override
     public Boolean setKplTopicInfoJob(Integer startId, Integer endId) {
         for (int id = startId; id <= endId; id++) {
+            // 逐个遍历题材 ID，通过远程接口抓取原始 JSON
             String kplTopicDataStr = getRequestKplTopicData(id);
             // 解析JSON为对象
             HotTopicKpl hotTopic = null;
             try {
+                // ObjectMapper 用于将原始 JSON 映射成领域对象，便于后续拆分
                 hotTopic = objectMapper.readValue(kplTopicDataStr, HotTopicKpl.class);
             } catch (Exception e) {
                 log.error("setKplTopicInfoJob_convertData_error,id={},result={}", id, kplTopicDataStr);
@@ -90,6 +98,7 @@ public class TopicServiceImpl implements TopicService {
                 continue;
             }
             //转换插入
+            // 将题材实体拆分为多张表的插入 DTO 并写入数据库
             Boolean insertResult = insertKplTopicInsertData(hotTopic);
             log.info("setKplTopicInfoJob_ID={},result={}", id, insertResult);
         }
@@ -109,6 +118,7 @@ public class TopicServiceImpl implements TopicService {
         headers.set("User-Agent", "lhb/5.20.7 (com.kaipanla.www; build:0; iOS 16.2.0) Alamofire/4.9.1");
         // 构造请求体参数
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        // 固定的鉴权、设备信息用于模拟手机客户端请求，确保接口授权通过
         body.add("DeviceID", "26a33d6b656c5a0f8fe859414b5daa0a877e3cb3");
         body.add("ID", String.valueOf(id));
 //        body.add("ID", String.valueOf(20)); // 注意：这里写死了ID为25，没有使用传入参数
@@ -144,6 +154,7 @@ public class TopicServiceImpl implements TopicService {
     private Boolean insertKplTopicInsertData(HotTopicKpl hotTopic) {
         log.info("insertKplTopicInsertData_start_processing_topic_data,topicId={}", hotTopic.getId());
         //先转换
+        // 统一把外部字段复制到信息表 DTO，降低手工映射出错概率
         InsertTopicInfoDTO insertTopicInfoDTO = new InsertTopicInfoDTO();
         BeanUtils.copyProperties(hotTopic, insertTopicInfoDTO);
         insertTopicInfoDTO.setTopicId(Integer.valueOf(hotTopic.getId()));
@@ -169,6 +180,7 @@ public class TopicServiceImpl implements TopicService {
         for (TopicTable category : categoryList) {
             InsertTopicCategoryDTO insertCategoryLevel1 = new InsertTopicCategoryDTO();
             CategoryLevel level1 = category.getLevel1();
+            // 复制一级分类，并设置层级、Wind 相关字段
             BeanUtils.copyProperties(level1, insertCategoryLevel1);
             insertCategoryLevel1.setTopicId(Integer.valueOf(hotTopic.getId()));
             //一级类别数据parentId = 0
@@ -186,6 +198,7 @@ public class TopicServiceImpl implements TopicService {
             if (level1Stocks != null) {
                 for (StockDetail level1Stock : level1Stocks) {
                     InsertStockCategoryMappingDTO stockMappingDTO = new InsertStockCategoryMappingDTO();
+                    // 股票字段先复制，再追加 Wind 映射信息
                     BeanUtils.copyProperties(level1Stock, stockMappingDTO);
                     stockMappingDTO.setWindCode(getWindCodeMapping(level1Stock.getStockId()));
                     String windName = getWindName(stockMappingDTO.getWindCode());
@@ -204,6 +217,7 @@ public class TopicServiceImpl implements TopicService {
             if (level2List != null) {
                 for (CategoryLevel level2 : level2List) {
                     InsertTopicCategoryDTO insertCategoryLevel2 = new InsertTopicCategoryDTO();
+                    // 二级分类沿用 BeanUtils，额外挂上父节点信息
                     BeanUtils.copyProperties(level2, insertCategoryLevel2);
                     //时间戳转换
                     if (StringUtils.hasLength(level2.getFirstShelveTime())) {
@@ -222,6 +236,7 @@ public class TopicServiceImpl implements TopicService {
                     List<StockDetail> level2Stocks = level2.getStocks();
                     for (StockDetail level2Stock : level2Stocks) {
                         InsertStockCategoryMappingDTO stockMappingDTO = new InsertStockCategoryMappingDTO();
+                        // 复制股票信息并补齐 Wind 映射，用于后续行情关联
                         BeanUtils.copyProperties(level2Stock, stockMappingDTO);
                         stockMappingDTO.setWindCode(getWindCodeMapping(level2Stock.getStockId()));
                         //存在匹配不到windCode的股票，特殊处理
@@ -243,6 +258,7 @@ public class TopicServiceImpl implements TopicService {
         log.info("insertKplTopicInsertData_data_processing_completed,topicId={},_total_categories={},total_stock_mappings={}", hotTopic.getId(), insertCategoryList.size(), insertStockCategoryMappingList.size());
         List<InsertTopicInfoDTO> insertTopicInfoList = new ArrayList();
         insertTopicInfoList.add(insertTopicInfoDTO);
+        // 最终调用统一的批量写入方法，确保三张表的操作在同一处维护
         return insertTopicInfo(insertTopicInfoList, insertCategoryList, insertStockCategoryMappingList);
     }
 
@@ -258,12 +274,15 @@ public class TopicServiceImpl implements TopicService {
     (List<InsertTopicInfoDTO> insertTopicInfoList, List<InsertTopicCategoryDTO> insertCategoryList, List<InsertStockCategoryMappingDTO> insertStockCategoryMappingList) {
         int insertTopicNum = 0, insertCategoryNum = 0, insertStockNum = 0;
         if (!insertTopicInfoList.isEmpty()) {
+            // 题材基础信息，按批量写入减少数据库往返
             insertTopicNum = topicMapper.insertTopicInfoList(insertTopicInfoList);
         }
         if (!insertCategoryList.isEmpty()) {
+            // 分类数据量较大，同样批量写入
             insertCategoryNum = topicMapper.insertCategoryList(insertCategoryList);
         }
         if (!insertStockCategoryMappingList.isEmpty()) {
+            // 股票映射写入后即可被上层服务复用
             insertStockNum = topicMapper.insertStockCategoryMappingList(insertStockCategoryMappingList);
         }
         log.info("insertTopicInfo_insertTopicNum={},insertCategoryNum={},insertStockNum={}", insertTopicNum, insertCategoryNum, insertStockNum);
@@ -282,7 +301,7 @@ public class TopicServiceImpl implements TopicService {
         if (StringUtils.hasLength(windCode)) {
             return windCode;
         }
-        //匹配不到则调用键盘精灵接口获取,实在获取不到则返回原始不带后缀股票代码
+        // 匹配不到则调用键盘精灵接口兜底，确保尽量返回携带交易所后缀的代码
         List<SearchKeyBoardVO> searchKeyBoard = stockProfileService.getSearchKeyBoard(stockId, 1, 10);
         if (searchKeyBoard != null && searchKeyBoard.size() > 0) {
             return searchKeyBoard.get(0).getWindCode();
@@ -301,7 +320,7 @@ public class TopicServiceImpl implements TopicService {
         if (StringUtils.hasLength(windName)) {
             return windName;
         }
-        //匹配不到则调用键盘精灵接口获取,实在获取不到则返回原始不带后缀股票代码
+        // 匹配不到名称同样调用键盘精灵兜底，保证页面展示友好
         List<SearchKeyBoardVO> searchKeyBoard = stockProfileService.getSearchKeyBoard(windCode, 1, 10);
         if (searchKeyBoard != null && searchKeyBoard.size() > 0) {
             return searchKeyBoard.get(0).getName();
@@ -322,6 +341,7 @@ public class TopicServiceImpl implements TopicService {
         PageNumDTO pageParam = PageRuleUtil.getPageParam(queryDTO.getPageNo(), queryDTO.getPageSize(), 1);
         queryDTO.setPageNo(pageParam.getPageNo());
         queryDTO.setPageSize(pageParam.getPageSize());
+        // Mapper 层负责根据分页和筛选条件拉取题材信息
         return topicMapper.getKplTopicInfoList(queryDTO);
     }
 
@@ -337,6 +357,7 @@ public class TopicServiceImpl implements TopicService {
         PageNumDTO pageParam = PageRuleUtil.getPageParam(queryDTO.getPageNo(), queryDTO.getPageSize(), 1);
         queryDTO.setPageNo(pageParam.getPageNo());
         queryDTO.setPageSize(pageParam.getPageSize());
+        // 直接调用 Mapper，根据前端过滤条件返回分类及股票映射
         return topicMapper.getKplCategoryAndStockList(queryDTO);
     }
 
@@ -351,13 +372,16 @@ public class TopicServiceImpl implements TopicService {
         List<Integer> kplAllTopicIdList = new LinkedList<>();
         //topicId = null则查询所有
         if (query == null || query.getTopicId() == null) {
+            // 未指定 ID 时一次性拉取所有题材编号
             kplAllTopicIdList = topicMapper.getKplAllTopicIdList();
         } else {
             kplAllTopicIdList.add(query.getTopicId());
         }
+        // Mapper 返回扁平化结果，后续聚合为 topicId -> 股票列表
         List<TopicStockDTO> kplTopicAndStockList = topicMapper.getKplTopicAndStockList(kplAllTopicIdList);
         Map<Integer, List<TopicStockDTO>> resultMap = new HashMap<>();
         for (TopicStockDTO dto : kplTopicAndStockList) {
+            // computeIfAbsent 确保每个题材只初始化一次列表
             resultMap.computeIfAbsent(dto.getTopicId(), k -> new ArrayList<>()).add(dto);
         }
         return resultMap;

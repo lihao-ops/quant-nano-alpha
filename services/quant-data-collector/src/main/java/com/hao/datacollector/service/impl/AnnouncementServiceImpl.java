@@ -22,6 +22,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * 公告与大事数据采集实现，负责基于 Wind API 拉取并落库对应信息。
+ * <p>
+ * 统一流程：组装查询参数 → 通过 {@link HttpUtil} 请求 → 校验状态 →
+ * 将 JSON 解析为 VO 并在必要时格式化日期后写入数据库。
+ * </p>
+ *
  * @author hli
  * @Date 2025-06-24 13:52:41
  * @description: 公告数据实现类
@@ -71,6 +77,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         org.springframework.http.HttpHeaders headers = new HttpHeaders();
         headers.set(DataSourceConstants.WIND_POINT_SESSION_NAME, properties.getWindSessionId());
         MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
+        // 查询参数透传给 Wind 接口，保持分页能力
         queryParams.add("startDate", startDate);
         queryParams.add("endDate", endDate);
         queryParams.add("pageNo", String.valueOf(pageNo));
@@ -79,6 +86,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         if (!SUCCESS_FLAG.equals(response.getStatusCode().toString())) {
             throw new RuntimeException("getBigEventData_error,result=" + response.getStatusCode());
         }
+        // 成功返回后直接反序列化为公告列表
         List<AnnouncementVO> announcementList = JSON.parseObject(response.getBody(), new TypeReference<List<AnnouncementVO>>() {
         });
         return announcementList;
@@ -105,6 +113,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         announcementVOList.stream()
                 .peek(announcement -> announcement.setDate(getFormattedDate(announcement.getDate())))
                 .collect(Collectors.toList());
+        // Mapper 负责批量 upsert，入库后返回成功标记
         int insertResult = announcementMapper.insertAnnouncementSourceData(announcementVOList, windCode);
         return insertResult > 0;
     }
@@ -146,6 +155,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         if (!SUCCESS_FLAG.equals(response.getStatusCode().toString())) {
             throw new RuntimeException("getBigEventData_error,result=" + response.getStatusCode());
         }
+        // 直接将 JSON 数组映射为大事 VO 列表
         List<BigEventVO> eventVOList = JSON.parseObject(response.getBody(), new TypeReference<List<BigEventVO>>() {
         });
         return eventVOList;
@@ -168,6 +178,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
             log.error("transferEvent_eventSourceList.isEmpty()!windCode={}", windCode);
             return false;
         }
+        // 调用 Mapper 批量写入事件数据
         int insertResult = announcementMapper.insertEventSource(eventSourceList, windCode);
         return insertResult > 0;
     }

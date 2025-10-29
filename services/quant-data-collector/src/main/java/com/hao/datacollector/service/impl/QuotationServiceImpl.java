@@ -33,6 +33,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * 行情数据同步实现，涵盖基础行情与分时走势的抓取、解析与落库。
+ * <p>
+ * 统一策略：拼接 Wind 接口地址 → 通过 {@link HttpUtil} 发起请求 →
+ * 转换原始 JSON/数组结构为内部 DTO → 使用 Mapper 批量写入数据库。
+ * </p>
+ *
  * @author hli
  * @program: datacollector
  * @Date 2025-07-04 17:43:47
@@ -80,6 +86,7 @@ public class QuotationServiceImpl implements QuotationService {
         headers.add(DataSourceConstants.WIND_POINT_SESSION_NAME, properties.getWindSessionId());
         String url = DataSourceConstants.WIND_PROD_WGQ + String.format(QuotationBaseUrl, windCode, startDate, endDate);
         ResponseEntity<String> response = HttpUtil.sendGetRequest(url, headers, 30000, 30000);
+        // Wind 返回二维数组，每行是一日行情数据
         List<List<Long>> quotationList = JSON.parseObject(response.getBody(), new TypeReference<List<List<Long>>>() {
         });
         List<QuotationStockBaseDTO> quotationStockBaseList = new ArrayList<>();
@@ -116,6 +123,7 @@ public class QuotationServiceImpl implements QuotationService {
             log.error("transferQuotationBaseByStock_list=null!,windCode={}", windCode);
             return false;
         }
+        // 批量写入日线基础信息
         int insertResult = quotationMapper.insertQuotationStockBaseList(quotationStockBaseList);
         return insertResult > 0;
     }
@@ -135,6 +143,7 @@ public class QuotationServiceImpl implements QuotationService {
             log.error("quotationHistoryTrendList.isEmpty()!tradeDate={},windCodes={},dateType={}", tradeDate, windCodes, dateType);
             return false;
         }
+        // Mapper 批量写入分时数据，避免重复网络请求
         int insertResult = quotationMapper.insertQuotationHistoryTrendList(quotationHistoryTrendList);
         return insertResult > 0;
     }
@@ -154,6 +163,7 @@ public class QuotationServiceImpl implements QuotationService {
             log.error("quotationHistoryIndexTrendList.isEmpty()!tradeDate={},windCodes={},dateType={}", tradeDate, windCodes, dateType);
             return false;
         }
+        // 指标分时数据同样集中落库
         int insertResult = quotationMapper.insertQuotationIndexHistoryTrendList(quotationHistoryIndexTrendList);
         return insertResult > 0;
     }
@@ -191,6 +201,7 @@ public class QuotationServiceImpl implements QuotationService {
                 }
             }
         }
+        // Wind 接口返回按股票->日期分组的嵌套结构，这里展开为 Map
         Map<String, Map<String, Object>> rawData = JSON.parseObject(response.getBody(), new TypeReference<Map<String, Map<String, Object>>>() {
         });
         List<HistoryTrendDTO> allHistoryTrendList = new ArrayList<>();

@@ -47,6 +47,12 @@ import java.util.stream.Collectors;
 import static com.hao.datacollector.common.utils.ExcelReaderUtil.readHeaders;
 
 /**
+ * 基础数据模块的执行入口，负责从 Excel、Wind 等来源同步股票基础与行情数据。
+ * <p>
+ * 典型步骤为：准备数据源 → 转换为内部 DTO → 调用 Mapper 批量写库，
+ * 同时利用日志追踪执行进度，并通过工具类统一做分页、去重等共性处理。
+ * </p>
+ *
  * @author hli
  * @program: datacollector
  * @Date 2025-06-02 17:06:23
@@ -92,6 +98,7 @@ public class BaseDataServiceImpl implements BaseDataService {
         // 读取Excel文件的数据并转换为列表
         List<Map<String, String>> dataList = ExcelReaderUtil.readExcel(file);
         // 转 DTO
+        // 基础信息与财务指标拆成两份 DTO，方便落入不同数据表
         List<StockBasicInfoInsertDTO> basicInfoList = ExcelToDtoConverter.convertToBasicInfoDTO(dataList);
         List<StockFinancialMetricsInsertDTO> metricsList = ExcelToDtoConverter.convertToFinancialMetricsDTO(dataList);
         // 批量插入数据到数据库
@@ -125,6 +132,7 @@ public class BaseDataServiceImpl implements BaseDataService {
         allWindCode.removeAll(abnormalStockList);
         int emptyStatus = 0;
         // 如果中断遍历时,先将已转化的DTOList插入数据库,后查询插入数据库的所有代码,从AllCode中剔除,就是还需要获取的剩余数据。继续获取
+        // 主循环依次同步每支股票的行情数据，遇到异常则记录并跳过
         for (int i = 0; i < allWindCode.size(); i++) {
             // 获取单个股票的市场数据
             List<StockDailyMetricsDTO> stockDailyMetricsList = getInsertStockMarketData(allWindCode.get(i), startTime, endTime);
@@ -140,6 +148,7 @@ public class BaseDataServiceImpl implements BaseDataService {
                 continue;
             }
             //日期去重
+            // 使用 distinctByKey 按交易日去重后批量写库，避免重复数据
             Boolean insertStockMarketData = baseDataMapper.batchInsertStockMarketData(stockDailyMetricsList.stream().filter(distinctByKey(StockDailyMetricsDTO::getTradeDate)).collect(Collectors.toList()));
             log.info("batchInsertStockMarketData_code={}!stockDailyMetricsList.size={},insertStockMarketData={}", allWindCode.get(i), stockDailyMetricsList.size(), insertStockMarketData);
         }
@@ -149,6 +158,7 @@ public class BaseDataServiceImpl implements BaseDataService {
     // 辅助去重方法
     public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
         Set<Object> seen = ConcurrentHashMap.newKeySet();
+        // 通过 ConcurrentHashMap 保证流式去重在多线程场景下也安全
         return t -> seen.add(keyExtractor.apply(t));
     }
 
@@ -161,6 +171,7 @@ public class BaseDataServiceImpl implements BaseDataService {
 //        //获取版本
 //        WindData version = W.getVersion();
 //        log.info("BaseDataServiceImpl_login_version={}", version);
+        // 当前环境暂未接入 Wind SDK，保留占位逻辑以便后续补充
     }
 
     public List<StockDailyMetricsDTO> getInsertStockMarketData(String windCode, String startTime, String endTime) {
@@ -204,6 +215,7 @@ public class BaseDataServiceImpl implements BaseDataService {
 //            throw new RuntimeException("getInsertStockMarketData_error,wsd.ErrorId=" + wsd.getErrorId());
 //        }
 //        return convert(wsd.getData().toString().replace("[", "").replace("]", ""));
+        // Wind SDK 集成前，该方法作为占位返回空
         return null;
     }
 

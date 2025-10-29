@@ -29,6 +29,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
+ * 涨停数据的采集与转档实现，负责从 Wind 接口抓取涨停详情并拆分落库。
+ * <p>
+ * 核心步骤：校验交易日 → 调用远端接口获取 JSON → 解析为响应对象 →
+ * 拆分成多表 DTO 并批量写入，同时提供查询接口为前端使用。
+ * </p>
+ *
  * @author hli
  * @program: datacollector
  * @Date 2025-06-12 19:34:31
@@ -78,7 +84,7 @@ public class LimitUpServiceImpl implements LimitUpService {
             String url = String.format(limitUpBaseUrl, tradeTime);
             org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
             headers.set(DataSourceConstants.WIND_SESSION_NAME, properties.getWindSessionId());
-            // 调用远端接口获取原始 JSON 数据
+            // 调用 Wind 接口获取涨停原始 JSON 字符串
             String response = HttpUtil.sendGetRequest(DataSourceConstants.WIND_PROD_WGQ + url, headers, 10000, 30000).getBody();
             if (!StringUtils.hasLength(response)) {
                 log.error("LimitUpServiceImpl_getLimitUpData: HTTP response body is empty for tradeTime: {}", tradeTime);
@@ -86,6 +92,7 @@ public class LimitUpServiceImpl implements LimitUpService {
             }
             // 配置忽略未知字段，避免反序列化错误。解析JSON响应为ApiResponse对象
             objectMapper.configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            // 通过泛型类型工厂将响应结构映射为 ApiResponse<ResultObjectVO>
             ApiResponse<ResultObjectVO> result = objectMapper.readValue(
                     response,
                     objectMapper.getTypeFactory().constructParametricType(
@@ -147,6 +154,7 @@ public class LimitUpServiceImpl implements LimitUpService {
                     relationInsertList.add(relationInsertDTO);
                 }
                 LimitUpStockInfoInsertDTO stockInfoInsertDTO = new LimitUpStockInfoInsertDTO();
+                // 股票自身的成交、资金等指标汇总到主表 DTO
                 BeanUtils.copyProperties(stockDetail, stockInfoInsertDTO);
                 stockInfoInsertDTO.setTradeDate(localTradeTime);
                 stockInfoInsertDTO.setWindName(stockDetail.getName());
@@ -175,17 +183,19 @@ public class LimitUpServiceImpl implements LimitUpService {
                         .stream()
                         .collect(Collectors.toList());
                 for (BaseTopicInsertDTO topicInsertDTO : distinctList) {
+                    // BaseTopic 逐条 upsert，避免重复主键导致批量失败
                     Boolean insertBaseTopicResult = limitUpMapper.insertBaseTopic(topicInsertDTO);
                     log.info("LimitUpServiceImpl_transferLimitUpDataToDatabase_insertBaseTopicResult={}", insertBaseTopicResult);
                 }
                 log.info("插入BaseTopic={}条", baseTopicInsertList.size());
             }
             if (!relationInsertList.isEmpty()) {
-                // 批量插入股票与题材的关联关系，保持事务整体性
+                // 股票与题材的关联采用批量插入，维持性能
                 limitUpMapper.batchInsertStockTopicRelation(relationInsertList);
                 log.info("插入relationInsertList={}条", relationInsertList.size());
             }
             if (!limitUpStockInfoList.isEmpty()) {
+                // 主表信息一次性写入，供后续查询接口使用
                 limitUpMapper.batchInsertLimitUpStockInfo(limitUpStockInfoList);
                 log.info("插入limitUpStockInfoList={} 条", limitUpStockInfoList.size());
             }
@@ -212,6 +222,7 @@ public class LimitUpServiceImpl implements LimitUpService {
             int offset = PageUtil.calculateOffset(queryParam.getPageNo(), queryParam.getPageSize());
             queryParam.setPageNo(offset);
         }
+        // Mapper 负责根据筛选条件返回指定页的数据
         List<LimitUpStockQueryResultVO> result = limitUpMapper.queryLimitUpStockList(queryParam);
         log.info("LimitUpServiceImpl_queryLimitUpStockList_success=result_count={}", result.size());
         return result;
@@ -227,6 +238,7 @@ public class LimitUpServiceImpl implements LimitUpService {
     @Override
     public Map<String, Set<String>> getLimitUpTradeDateMap(String tradeDateStart, String tradeDateEnd) {
         List<LimitUpStockTradeDTO> stockByTradeDateList = limitUpMapper.getLimitCodeByTradeDate(tradeDateStart, tradeDateEnd);
+        // 以交易日为 key 聚合涨停股票代码，TreeMap 保证按日期顺序输出
         return stockByTradeDateList.stream()
                 .collect(Collectors.groupingBy(
                         vo -> DateUtil.formatLocalDate(vo.getTradeDate(), DateTimeFormatConstants.COMPACT_DATE_FORMAT),

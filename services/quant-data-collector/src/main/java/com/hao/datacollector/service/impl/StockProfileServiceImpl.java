@@ -18,6 +18,12 @@ import java.util.List;
 
 
 /**
+ * 个股资料查询实现，负责代理调用 Wind 键盘精灵接口并反序列化为业务 VO。
+ * <p>
+ * 通过组合配置化 URL 与统一的 {@link HttpUtil} 客户端来发起请求，
+ * 然后使用 Fastjson 将 JSON 数组转换成前端可直接消费的结构。
+ * </p>
+ *
  * @author hli
  * @program: datacollector
  * @Date 2025-07-22 19:15:53
@@ -52,8 +58,9 @@ public class StockProfileServiceImpl implements StockProfileService {
         String url = String.format(keywordUrl, keyword, pageNo, pageSize);
         HttpHeaders headers = new HttpHeaders();
         headers.set(DataSourceConstants.WIND_SESSION_NAME, properties.getWindSessionId());
-        // 调用 Wind 接口并获取原始响应字符串
+        // 将配置中的相对地址与生产域名拼接，保持环境切换灵活
         String response = HttpUtil.sendGetRequest(DataSourceConstants.WIND_PROD_WGQ + url, headers, 10000, 30000).getBody();
+        // Wind 返回 JSON 数组，直接映射为搜索结果列表
         return JSONObject.parseObject(response, new TypeReference<List<SearchKeyBoardVO>>() {
         }, Feature.OrderedField);
     }
