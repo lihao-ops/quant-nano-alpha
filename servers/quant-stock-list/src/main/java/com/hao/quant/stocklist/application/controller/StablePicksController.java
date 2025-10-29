@@ -25,6 +25,9 @@ import java.util.List;
 
 /**
  * API 接口层。
+ * <p>
+ * 对外暴露查询接口,并通过限流注解保护服务稳定性。
+ * </p>
  */
 @Slf4j
 @Validated
@@ -36,6 +39,9 @@ public class StablePicksController {
 
     private final StablePicksService stablePicksService;
 
+    /**
+     * 查询指定交易日的分页列表。
+     */
     @GetMapping("/daily")
     @Operation(summary = "查询每日精选", description = "根据交易日期和策略ID查询股票列表")
     @RateLimiter(name = "stablePicksQuery", fallbackMethod = "rateLimitFallback")
@@ -61,6 +67,9 @@ public class StablePicksController {
         return Result.success(result);
     }
 
+    /**
+     * 查询最新交易日的股票列表。
+     */
     @GetMapping("/latest")
     @Operation(summary = "查询最新精选", description = "获取最近一个交易日的股票列表")
     @RateLimiter(name = "stablePicksLatest", fallbackMethod = "rateLimitListFallback")
@@ -71,6 +80,9 @@ public class StablePicksController {
         return Result.success(stablePicksService.queryLatestPicks(strategyId, limit));
     }
 
+    /**
+     * 查询单支股票详情。
+     */
     @GetMapping("/detail/{stockCode}")
     @Operation(summary = "查询股票详情", description = "查询指定股票在某日的策略详情")
     @RateLimiter(name = "stablePicksDetail", fallbackMethod = "rateLimitDetailFallback")
@@ -81,6 +93,9 @@ public class StablePicksController {
         return Result.success(stablePicksService.queryStockDetail(stockCode, tradeDate));
     }
 
+    /**
+     * 手动刷新缓存。
+     */
     @PostMapping("/cache/refresh")
     @Operation(summary = "刷新缓存", description = "手动触发指定日期的缓存刷新")
     public Result<Void> refreshCache(
@@ -91,6 +106,9 @@ public class StablePicksController {
         return Result.success();
     }
 
+    /**
+     * 预热缓存。
+     */
     @PostMapping("/cache/warmup")
     @Operation(summary = "预热缓存", description = "交易日开盘前预热当日数据")
     public Result<Void> warmupCache(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate tradeDate) {
@@ -99,16 +117,25 @@ public class StablePicksController {
         return Result.success();
     }
 
+    /**
+     * 每日精选接口限流降级兜底。
+     */
     public Result<PageResult<StablePicksVO>> rateLimitFallback(LocalDate tradeDate, String strategyId, String industry, Integer pageNum, Integer pageSize, Throwable ex) {
         log.warn("每日精选限流降级: {}", ex.getMessage());
         return Result.failure(429, "请求过于频繁,请稍后再试");
     }
 
+    /**
+     * 最新列表接口限流降级兜底。
+     */
     public Result<List<StablePicksVO>> rateLimitListFallback(String strategyId, Integer limit, Throwable ex) {
         log.warn("最新精选限流降级: {}", ex.getMessage());
         return Result.failure(429, "请求过于频繁,请稍后再试");
     }
 
+    /**
+     * 股票详情接口限流降级兜底。
+     */
     public Result<StablePicksVO> rateLimitDetailFallback(String stockCode, LocalDate tradeDate, Throwable ex) {
         log.warn("股票详情限流降级: {}", ex.getMessage());
         return Result.failure(429, "请求过于频繁,请稍后再试");

@@ -9,6 +9,9 @@ import java.util.Map;
 
 /**
  * MyBatis 数据持久化对象。
+ * <p>
+ * 映射数据库中的每日策略选股表,供 Mapper 使用。
+ * </p>
  */
 @Data
 public class StrategyDailyPickPO {

@@ -12,6 +12,9 @@ import java.util.List;
 
 /**
  * 分页结果通用对象。
+ * <p>
+ * 封装分页元数据与记录列表,便于统一响应格式。
+ * </p>
  */
 @Getter
 @Builder
@@ -27,6 +30,9 @@ public class PageResult<T> implements Serializable {
     private int pageSize;
     private List<T> records;
 
+    /**
+     * 构建空分页结果。
+     */
     public static <T> PageResult<T> empty(int pageNum, int pageSize) {
         return PageResult.<T>builder()
                 .total(0)

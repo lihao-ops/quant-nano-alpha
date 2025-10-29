@@ -10,6 +10,9 @@ import java.time.LocalDateTime;
 
 /**
  * 策略计算完成事件。
+ * <p>
+ * 通过 Kafka 广播策略结果生成的通知,用于驱动查询端刷新缓存。
+ * </p>
  */
 @Value
 @Builder

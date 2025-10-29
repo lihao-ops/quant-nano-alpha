@@ -29,25 +29,44 @@ public class StrategyResultWriter {
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final StablePicksBloomFilter bloomFilter;
 
+    /**
+     * 批量写入策略结果并广播更新事件。
+     *
+     * @param picks 待保存的策略结果集合
+     */
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED)
     public void batchSave(List<StrategyDailyPickPO> picks) {
         if (picks == null || picks.isEmpty()) {
             log.warn("批量保存策略结果数据为空");
             return;
         }
+        // 通过 Mapper 批量写入数据库
         int inserted = stablePicksMapper.batchInsert(picks);
         log.info("批量保存策略结果成功,共{}条", inserted);
+        // 将所有涉及的交易日回写布隆过滤器,降低查询时穿透风险
         picks.stream().map(StrategyDailyPickPO::getTradeDate).distinct().forEach(bloomFilter::addTradeDate);
         publishEvent(picks.getFirst().getStrategyId(), picks);
     }
 
+    /**
+     * 写入单条策略结果。
+     *
+     * @param pick 单条数据
+     */
     @Transactional(rollbackFor = Exception.class)
     public void saveOne(StrategyDailyPickPO pick) {
+        // 单条写入采用普通 insert
         stablePicksMapper.insert(pick);
         bloomFilter.addTradeDate(pick.getTradeDate());
         publishEvent(pick.getStrategyId(), List.of(pick));
     }
 
+    /**
+     * 发布策略结果计算完成事件,用于通知查询侧刷新缓存。
+     *
+     * @param strategyId 策略标识
+     * @param picks      刚写入的记录集合
+     */
     private void publishEvent(String strategyId, List<StrategyDailyPickPO> picks) {
         LocalDate tradeDate = picks.getFirst().getTradeDate();
         StrategyResultEvent event = StrategyResultEvent.builder()
@@ -59,6 +78,7 @@ public class StrategyResultWriter {
                 .eventTime(LocalDateTime.now())
                 .source("STABLE-PICKS-WRITER")
                 .build();
+        // Kafka 异步推送事件,由查询侧监听刷新缓存
         kafkaTemplate.send("strategy.result.completed", event);
         log.info("发布策略结果事件: {}", event);
     }

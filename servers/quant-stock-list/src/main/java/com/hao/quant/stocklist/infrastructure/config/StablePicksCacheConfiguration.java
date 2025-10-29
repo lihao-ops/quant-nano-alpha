@@ -28,6 +28,9 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 缓存、Redis、事务等通用配置。
+ * <p>
+ * 提供 Caffeine、RedisTemplate、ObjectMapper、调度器等基础 Bean 定义。
+ * </p>
  */
 @Slf4j
 @Configuration
@@ -35,6 +38,9 @@ import java.util.concurrent.TimeUnit;
 @EnableTransactionManagement
 public class StablePicksCacheConfiguration {
 
+    /**
+     * 构建 Caffeine 本地缓存。
+     */
     @Bean
     public Cache<String, CacheWrapper<?>> caffeineCache() {
         return Caffeine.newBuilder()
@@ -46,6 +52,9 @@ public class StablePicksCacheConfiguration {
                 .build();
     }
 
+    /**
+     * 配置 RedisTemplate,使用 Jackson 序列化缓存对象。
+     */
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory, ObjectMapper objectMapper) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
@@ -60,6 +69,9 @@ public class StablePicksCacheConfiguration {
         return template;
     }
 
+    /**
+     * 配置数据库事务管理器。
+     */
     @Bean
     public PlatformTransactionManager transactionManager(DataSource dataSource) {
         DataSourceTransactionManager manager = new DataSourceTransactionManager(dataSource);
@@ -67,6 +79,9 @@ public class StablePicksCacheConfiguration {
         return manager;
     }
 
+    /**
+     * 构建共享的 ObjectMapper,用于 Redis 序列化。
+     */
     @Bean
     public ObjectMapper objectMapper() {
         ObjectMapper mapper = new ObjectMapper();
@@ -78,6 +93,9 @@ public class StablePicksCacheConfiguration {
         return mapper;
     }
 
+    /**
+     * 专用的任务调度线程池,用于缓存刷新等任务。
+     */
     @Bean
     public TaskScheduler stablePicksScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();

@@ -12,6 +12,9 @@ import java.util.List;
 
 /**
  * 预热任务,在开盘前预加载热点缓存。
+ * <p>
+ * 结合领域服务的 warmup 能力,定时加载最近交易日的数据到缓存,减少首波请求延迟。
+ * </p>
  */
 @Slf4j
 @Component
@@ -21,6 +24,9 @@ public class StablePicksWarmupTask {
     private final StablePicksRepository repository;
     private final StablePicksService stablePicksService;
 
+    /**
+     * 在工作日早上 8 点执行缓存预热。
+     */
     @Scheduled(cron = "0 0 8 * * MON-FRI")
     public void warmupToday() {
         List<LocalDate> tradeDates = repository.listRecentTradeDates(1);
@@ -29,6 +35,7 @@ public class StablePicksWarmupTask {
         }
         LocalDate latest = tradeDates.getFirst();
         log.info("执行晨间预热任务,tradeDate={}", latest);
+        // 调用领域服务预热缓存
         stablePicksService.warmupCache(latest);
     }
 }
