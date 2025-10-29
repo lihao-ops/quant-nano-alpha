@@ -25,6 +25,12 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
+ * 股票新闻采集与查询实现，负责从 Wind 新闻接口取数并维护本地库。
+ * <p>
+ * 具体流程：组装请求参数 → 调用统一的 {@link HttpUtil} 发送请求 →
+ * 校验返回结构并解析 → 将新闻正文与股票关系分别写入数据库，同时提供分页查询能力。
+ * </p>
+ *
  * @author hli
  * @program: datacollector
  * @Date 2025-06-20 17:10:56
@@ -66,6 +72,7 @@ public class NewsServiceImpl implements NewsService {
             log.error("NewsServiceImpl_transferNewsStockData_error=windCode={}", windCode);
             throw new RuntimeException("数据异常");
         }
+        // Wind 返回的数组中，下标 3 为具体数据，先取出再解析
         JSONArray newsArray = JSON.parseArray(jsonArray.getJSONObject(3).getString("value")).getJSONObject(0).getJSONArray("news");
         List<NewsInfoVO> newInfoVOList = JSON.parseArray(newsArray.toJSONString(), NewsInfoVO.class);
         if (newInfoVOList.isEmpty()) {
@@ -73,6 +80,7 @@ public class NewsServiceImpl implements NewsService {
             log.error("transferNewsStockData_error,windCode={},insertAbnormalResult={}", windCode, insertAbnormalResult);
             return false;
         }
+        // 新闻正文与股票关系分两张表存储
         int newsInfoResultCount = newsMapper.insertNewsInfo(newInfoVOList);
         List<String> newsIdList = newInfoVOList.stream()
                 .map(NewsInfoVO::getId)
@@ -97,6 +105,7 @@ public class NewsServiceImpl implements NewsService {
             int offset = PageUtil.calculateOffset(queryParam.getPageNo(), queryParam.getPageSize());
             queryParam.setPageNo(offset);
         }
+        // Mapper 根据分页条件查询基础新闻列表
         List<NewsQueryResultVO> result = newsMapper.queryNewsBaseData(queryParam);
         log.info("NewsServiceImpl_queryNewsBaseData_success=result_count={}", result.size());
         return result;

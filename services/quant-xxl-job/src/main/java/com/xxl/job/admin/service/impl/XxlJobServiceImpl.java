@@ -27,6 +27,12 @@ import java.text.MessageFormat;
 import java.util.*;
 
 /**
+ * XXL-JOB 调度中心的核心实现，围绕任务的增删改查与触发进行封装。
+ * <p>
+ * 主要流程包括：校验请求参数 → 组装调度配置 → 调用 DAO 持久化 →
+ * 结合 {@link JobScheduleHelper}、{@link JobTriggerPoolHelper} 驱动执行节点。
+ * </p>
+ *
  * core job action for xxl-job
  * @author xuxueli 2016-5-28 15:30:33
  */

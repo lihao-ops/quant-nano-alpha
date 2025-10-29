@@ -14,6 +14,12 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * “龙二战法”策略实现，围绕 Redis 中的涨停与题材映射数据做交叉分析。
+ * <p>
+ * 通过读取预先计算的涨停股票集合与题材-股票映射，
+ * 逐日判断特定题材内涨停占比是否超过阈值，从而输出可能的龙二候选。
+ * </p>
+ *
  * @author hli
  * @program: quant-nano-alpha
  * @Date 2025-08-26 20:30:17
@@ -64,6 +70,7 @@ public class DragonTwoServiceImpl implements DragonTwoService {
                 //判断该题材中涨停股票数占比是否超过阀值
                 // && intersection.size() / topicStockList.size() > HOT_TOPIC_FLAG_NUM
                 if (!intersection.isEmpty()) {
+                    // 当前实现仅记录候选题材，后续可在此处增加通知或入库逻辑
                     log.info("tradeDate:{},topicId:{},intersection.size={},topicStockList.size={},intersection:{}", tradeDate, topicId, intersection.size(), topicStockList.size(), intersection);
                 }
             }

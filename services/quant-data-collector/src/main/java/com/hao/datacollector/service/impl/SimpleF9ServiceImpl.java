@@ -26,6 +26,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * F9 多接口数据采集实现，封装 Wind F9 的各类子接口并提供落库入口。
+ * <p>
+ * 统一通过 {@link #getF9Request(String, String, String, String)} 发送请求，
+ * 随后按接口类型解析 JSON 并转换成内部 DTO 以供调用方使用或入库。
+ * </p>
+ *
  * @author Hao Li
  * @description: F9实现类
  */
@@ -64,8 +70,10 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
 
     private static ResponseEntity<String> getF9Request(String lan, String windCode, String path, String sessionId) {
         String url = DataSourceConstants.WIND_PROD_WGQ + String.format(f9BaseUlr, path, lan, windCode);
+        // 统一拼装 Wind 域名与接口路径，便于集中维护
         HttpHeaders headers = new HttpHeaders();
         headers.set(DataSourceConstants.WIND_SESSION_NAME, sessionId);
+        // 所有 F9 请求复用相同的超时配置，确保调用体验一致
         return HttpUtil.sendGet(url, headers, TIME_OUT_NUM, TIME_OUT_NUM);
     }
 
@@ -81,6 +89,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
         ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_COMPANY_PROFILE, properties.getWindSessionId());
         ResultVO<CompanyProfileDTO> resultVO = null;
         try {
+            // F9 返回统一的 ResultVO 包装，这里按泛型解析
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<CompanyProfileDTO>>() {
             });
         } catch (Exception e) {
@@ -105,6 +114,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
         ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_INFORMATION, properties.getWindSessionId());
         ResultVO<List<InformationOceanDTO>> resultVO = null;
         try {
+            // JSON 解析失败时打日志即可，返回空集合保证调用方健壮
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<List<InformationOceanDTO>>>() {
             });
         } catch (Exception e) {
@@ -129,6 +139,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
         ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_KEY_STATISTICS, properties.getWindSessionId());
         ResultVO<KeyStatisticsDTO> resultVO = null;
         try {
+            // 关键统计结构也使用通用 ResultVO 模板
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<KeyStatisticsDTO>>() {
             });
         } catch (Exception e) {
@@ -153,6 +164,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
         ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_COMPANY_INFO, properties.getWindSessionId());
         ResultVO<CompanyInfo> resultVO = null;
         try {
+            // 解析公司基础信息
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<CompanyInfo>>() {
             });
         } catch (Exception e) {
@@ -201,6 +213,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
         ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_GREAT_EVENT, properties.getWindSessionId());
         ResultVO<List<GreatEventDTO>> resultVO = null;
         try {
+            // 大事列表也使用统一结构，解析失败时记录错误
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<List<GreatEventDTO>>>() {
             });
         } catch (Exception e) {
@@ -225,6 +238,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
         ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_PROFIT_FORECAST, properties.getWindSessionId());
         ResultVO<ProfitForecastDTO> resultVO = null;
         try {
+            // 盈利预测只返回单对象
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<ProfitForecastDTO>>() {
             });
         } catch (Exception e) {
@@ -249,6 +263,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
         ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_MARKET_PERFORMANCE, properties.getWindSessionId());
         ResultVO<MarketPerformanceDTO> resultVO = null;
         try {
+            // 市场表现字段较多，仍通过泛型自动绑定
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<MarketPerformanceDTO>>() {
             });
         } catch (Exception e) {
@@ -274,6 +289,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
         ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_PE_BAND, properties.getWindSessionId());
         ResultVO<List<List<Object>>> resultVO = null;
         try {
+            // PE Band 接口返回二维数组，需要手动转换为对象列表
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<List<List<Object>>>>() {
             });
         } catch (Exception e) {
@@ -314,6 +330,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
         ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_SECURITY_MARGIN, properties.getWindSessionId());
         ResultVO<List<ValuationIndexDTO>> resultVO = null;
         try {
+            // 估值指标同样保持统一的解析方式
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<List<ValuationIndexDTO>>>() {
             });
         } catch (Exception e) {
@@ -338,6 +355,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
         ResponseEntity<String> responseEntity = getF9Request(lan, windCode, GET_FINANCIAL_SUMMARY, properties.getWindSessionId());
         ResultVO<List<QuickViewGrowthDTO>> resultVO = null;
         try {
+            // 成长能力指标用于监控企业成长性
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<List<QuickViewGrowthDTO>>>() {
             });
         } catch (Exception e) {
@@ -363,6 +381,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
             return false;
         }
         InsertCompanyProfileDTO insertCompanyProfileDTO = new InsertCompanyProfileDTO();
+        // 通过 BeanUtils 将接口字段快速映射到表结构
         BeanUtils.copyProperties(companyProfileSource, insertCompanyProfileDTO);
         insertCompanyProfileDTO.setLan(f9Param.getLan());
         insertCompanyProfileDTO.setWindCode(f9Param.getWindCode());
@@ -372,6 +391,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
         }
         List<InsertCompanyProfileDTO> insertList = new ArrayList<>();
         insertList.add(insertCompanyProfileDTO);
+        // Mapper 采用批量接口，尽管当前仅一条也保持统一入口
         int count = simpleF9Mapper.batchInsertCompanyProfileDataJob(insertList);
         log.info("insertCompanyProfileDataJob.count={}", count);
         return count >= 0;
