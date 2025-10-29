@@ -52,6 +52,13 @@ import static com.hao.datacollector.common.utils.ExcelReaderUtil.readHeaders;
  * @Date 2025-06-02 17:06:23
  * @description: 基础数据处理实现类
  */
+/**
+ * 实现思路：
+ * <p>
+ * 1. 利用 Excel 转 DTO、数据库 Mapper 以及远程数据接口，实现基础数据批量入库能力。
+ * 2. 批量插入时先做数据清洗和去重（剔除已入库及异常代码），再按代码循环调用外部服务获取行情数据。
+ * 3. 对获取的数据使用函数式去重策略并交由 Mapper 批量入库，同时在关键节点记录日志以便追踪。
+ */
 @Slf4j
 @Service
 public class BaseDataServiceImpl implements BaseDataService {
@@ -109,11 +116,11 @@ public class BaseDataServiceImpl implements BaseDataService {
         loginW();
         // 获取所有A股的代码
         List<String> allWindCode = baseDataMapper.getAllAStockCode();
-        //清理已经插入过的代码,无需重复插入。
+        // 清理已经插入过的代码, 确保本次任务只补齐缺失数据
         String endDate = DateUtil.stringTimeToAdjust(endTime, DateTimeFormatConstants.DEFAULT_DATE_FORMAT, 1);
         List<String> overInsertMarketCode = baseDataMapper.getInsertMarketCode(startTime, endDate);
         allWindCode.removeAll(overInsertMarketCode);
-        //清理异常的股票列表
+        // 清理异常的股票列表，避免反复重试异常标的
         List<String> abnormalStockList = baseDataMapper.getAbnormalStockList();
         allWindCode.removeAll(abnormalStockList);
         int emptyStatus = 0;

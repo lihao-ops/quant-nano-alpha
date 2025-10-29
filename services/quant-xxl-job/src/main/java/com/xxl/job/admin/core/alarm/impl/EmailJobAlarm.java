@@ -21,7 +21,10 @@ import java.util.Set;
 /**
  * job alarm by email
  *
- * @author xuxueli 2020-01-19
+ * 实现思路：
+ * 1. 依据任务配置的告警邮箱列表循环发送邮件，支持多收件人。
+ * 2. 通过模板渲染告警内容，包含任务组、任务描述、触发/处理信息等关键字段。
+ * 3. 使用 Spring Mail 发送 HTML 邮件，异常时记录日志并返回失败标识。
  */
 @Component
 public class EmailJobAlarm implements JobAlarm {

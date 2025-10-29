@@ -43,6 +43,13 @@ import java.util.*;
  * @Date 2025-07-22 10:50:08
  * @description: 题材实现类
  */
+/**
+ * 实现思路：
+ * <p>
+ * 1. 通过 HTTP 表单请求拉取外部 KPL 题材原始数据并转换为 Java 对象。
+ * 2. 将题材、类别、股票映射等层次化数据拆解成多种 DTO，分别入库并与 Wind 代码做关联。
+ * 3. 提供查询与转换能力（如分页、关键字匹配），支撑题材信息同步和对外服务。
+ */
 @Slf4j
 @Service
 public class TopicServiceImpl implements TopicService {

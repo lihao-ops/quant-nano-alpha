@@ -34,6 +34,13 @@ import java.util.stream.Collectors;
  * @Date 2025-06-12 19:34:31
  * @description: 涨停相关接口实现类
  */
+/**
+ * 实现思路：
+ * <p>
+ * 1. 对接 Wind 接口获取指定日期的涨停数据，并进行格式化和有效性校验。
+ * 2. 将原始数据拆分成基础题材、关联关系、个股三类 DTO，完成去重后批量写入数据库。
+ * 3. 通过 Mapper 封装的查询/统计能力，提供列表检索、分页以及多维度分析结果。
+ */
 @Slf4j
 @Service
 public class LimitUpServiceImpl implements LimitUpService {
@@ -71,6 +78,7 @@ public class LimitUpServiceImpl implements LimitUpService {
             String url = String.format(limitUpBaseUrl, tradeTime);
             org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
             headers.set(DataSourceConstants.WIND_SESSION_NAME, properties.getWindSessionId());
+            // 调用远端接口获取原始 JSON 数据
             String response = HttpUtil.sendGetRequest(DataSourceConstants.WIND_PROD_WGQ + url, headers, 10000, 30000).getBody();
             if (!StringUtils.hasLength(response)) {
                 log.error("LimitUpServiceImpl_getLimitUpData: HTTP response body is empty for tradeTime: {}", tradeTime);
@@ -173,6 +181,7 @@ public class LimitUpServiceImpl implements LimitUpService {
                 log.info("插入BaseTopic={}条", baseTopicInsertList.size());
             }
             if (!relationInsertList.isEmpty()) {
+                // 批量插入股票与题材的关联关系，保持事务整体性
                 limitUpMapper.batchInsertStockTopicRelation(relationInsertList);
                 log.info("插入relationInsertList={}条", relationInsertList.size());
             }

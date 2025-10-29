@@ -27,8 +27,11 @@ import java.text.MessageFormat;
 import java.util.*;
 
 /**
- * core job action for xxl-job
- * @author xuxueli 2016-5-28 15:30:33
+ * 实现思路：
+ * <p>
+ * 1. 对调度中心的核心增删改查、触发、统计等操作进行权限与参数校验。
+ * 2. 使用 DAO 层读写调度任务、执行日志、报表等数据表，并维护关联字段。
+ * 3. 结合调度线程池与触发器，完成任务执行、终止、调度模式转换等一系列流程控制。
  */
 @Service
 public class XxlJobServiceImpl implements XxlJobService {

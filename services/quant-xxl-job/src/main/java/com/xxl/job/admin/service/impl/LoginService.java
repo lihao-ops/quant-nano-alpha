@@ -15,7 +15,11 @@ import org.springframework.util.DigestUtils;
 import java.math.BigInteger;
 
 /**
- * @author xuxueli 2019-05-04 22:13:264
+ * 实现思路：
+ * <p>
+ * 1. 使用 JSON + Hex 编码生成登录令牌，并保存在浏览器 Cookie 中维护会话。
+ * 2. 登录时从数据库校验用户名/密码的 MD5，注销时清除对应 Cookie。
+ * 3. 通过 ifLogin 方法解析 Cookie 令牌并二次校验数据库密码，保证会话有效性。
  */
 @Service
 public class LoginService {
