@@ -16,7 +16,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableCaching
 @EnableScheduling
 @SpringBootApplication
-public class QuantStockListApplication {
+public class StockListApplication {
 
     /**
      * 启动 SpringBoot 应用。
@@ -24,6 +24,6 @@ public class QuantStockListApplication {
      * @param args 命令行参数
      */
     public static void main(String[] args) {
-        SpringApplication.run(QuantStockListApplication.class, args);
+        SpringApplication.run(StockListApplication.class, args);
     }
 }
