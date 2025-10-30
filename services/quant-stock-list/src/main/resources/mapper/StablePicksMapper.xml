@@ -15,7 +15,9 @@
         <result property="ranking" column="ranking"/>
         <result property="marketCap" column="market_cap"/>
         <result property="peRatio" column="pe_ratio"/>
-        <result property="extraData" column="extra_data" jdbcType="OTHER"/>
+        <result property="extraData" column="extra_data"
+                typeHandler="com.hao.quant.stocklist.infrastructure.persistence.typehandler.JsonMapTypeHandler"
+                jdbcType="OTHER"/>
         <result property="version" column="version"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
@@ -79,7 +81,8 @@
         VALUES
         <foreach collection="records" item="item" separator=",">
             (#{item.tradeDate}, #{item.strategyId}, #{item.stockCode}, #{item.stockName}, #{item.industry},
-             #{item.score}, #{item.ranking}, #{item.marketCap}, #{item.peRatio}, #{item.extraData},
+             #{item.score}, #{item.ranking}, #{item.marketCap}, #{item.peRatio},
+             #{item.extraData, typeHandler=com.hao.quant.stocklist.infrastructure.persistence.typehandler.JsonMapTypeHandler, jdbcType=OTHER},
              #{item.version}, NOW(), NOW())
         </foreach>
         ON DUPLICATE KEY UPDATE
@@ -98,7 +101,9 @@
         INSERT INTO strategy_daily_picks (trade_date, strategy_id, stock_code, stock_name, industry, score, ranking,
                                           market_cap, pe_ratio, extra_data, version, create_time, update_time)
         VALUES (#{tradeDate}, #{strategyId}, #{stockCode}, #{stockName}, #{industry}, #{score}, #{ranking},
-                #{marketCap}, #{peRatio}, #{extraData}, #{version}, NOW(), NOW())
+                #{marketCap}, #{peRatio},
+                #{extraData, typeHandler=com.hao.quant.stocklist.infrastructure.persistence.typehandler.JsonMapTypeHandler, jdbcType=OTHER},
+                #{version}, NOW(), NOW())
         ON DUPLICATE KEY UPDATE
             stock_name = VALUES(stock_name),
             industry = VALUES(industry),
