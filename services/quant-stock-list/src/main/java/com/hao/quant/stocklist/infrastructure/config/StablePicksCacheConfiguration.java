@@ -43,10 +43,10 @@ public class StablePicksCacheConfiguration {
      */
     @Bean
     public Cache<String, CacheWrapper<?>> caffeineCache() {
+        // refreshAfterWrite 需要 LoadingCache 支持,当前缓存走手动加载流程,仅使用过期策略即可
         return Caffeine.newBuilder()
                 .maximumSize(1000)
                 .expireAfterWrite(Duration.ofMinutes(5))
-                .refreshAfterWrite(Duration.ofMinutes(3))
                 .recordStats()
                 .removalListener((key, value, cause) -> log.debug("Caffeine淘汰: key={}, cause={}", key, cause))
                 .build();
