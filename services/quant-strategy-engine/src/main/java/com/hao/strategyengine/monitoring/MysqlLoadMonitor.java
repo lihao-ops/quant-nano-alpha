@@ -15,23 +15,24 @@ import java.sql.ResultSet;
  * 🧩 MySQL负载监控器 (MySQL Load Monitor)
  * ==========================================================
  * 【设计目的 / Purpose】
- *   该组件用于周期性监控 MySQL 数据库的连接与线程运行状态，
- *   以便及时发现连接耗尽、线程阻塞、过载等问题。
- *   输出日志采用中英双语，便于团队阅读与跨语言协作。
- *
+ * 该组件用于周期性监控 MySQL 数据库的连接与线程运行状态，
+ * 以便及时发现连接耗尽、线程阻塞、过载等问题。
+ * 输出日志采用中英双语，便于团队阅读与跨语言协作。
+ * <p>
  * 【主要指标 / Key Metrics】
- *   - Threads_connected : 当前数据库活跃连接数 (Active connections)
- *   - Threads_running   : 当前正在执行SQL的线程数 (Running SQL threads)
- *   - max_connections   : 数据库允许的最大连接数 (Configured connection limit)
- *
+ * - Threads_connected : 当前数据库活跃连接数 (Active connections)
+ * - Threads_running   : 当前正在执行SQL的线程数 (Running SQL threads)
+ * - max_connections   : 数据库允许的最大连接数 (Configured connection limit)
+ * <p>
  * 【判定规则 / Health Rules】
- *   ✅ Threads_connected / max_connections < 0.7       → 稳定 / Stable
- *   ⚠️ Threads_running / CPU核心数 在 [2, 3] 之间      → 高负载 / High Load
- *   ❌ Threads_running > CPU核心数 × 3                → 过载 / Overloaded
- *
+ * ✅ Threads_connected / max_connections < 0.7       → 稳定 / Stable
+ * ⚠️ Threads_running / CPU核心数 在 [2, 3] 之间      → 高负载 / High Load
+ * ❌ Threads_running > CPU核心数 × 3                → 过载 / Overloaded
+ * <p>
  * 【执行频率 / Frequency】
- *   默认每 30 秒执行一次，可根据需求调整。
+ * 默认每 30 秒执行一次，可根据需求调整。
  */
+
 /**
  * ==========================================================
  * ⚙️ MySQL连接数设置原则 (How to Determine max_connections)
@@ -117,22 +118,26 @@ public class MysqlLoadMonitor {
 
             // 1️⃣ 获取核心指标
             long threadsConnected = queryMetricValue(conn, "Threads_connected"); // 当前活跃连接数
-            long threadsRunning   = queryMetricValue(conn, "Threads_running");   // 正在执行SQL的线程数
-            long maxConnections   = queryMetricValue(conn, "max_connections");   // 数据库最大连接数
+            long threadsRunning = queryMetricValue(conn, "Threads_running");   // 正在执行SQL的线程数
+            long maxConnections = queryMetricValue(conn, "max_connections");   // 数据库最大连接数
             int cpuCores = Runtime.getRuntime().availableProcessors();            // 当前服务所在机器的CPU核心数
 
             // 2️⃣ 计算连接使用率与线程压力比
             double connectionUsage = (double) threadsConnected / maxConnections;
-            double threadPressure  = (double) threadsRunning / cpuCores;
+            double threadPressure = (double) threadsRunning / cpuCores;
+            // 计算后格式化为两位小数
+            String connectionUsageStr = String.format("%.2f", connectionUsage * 100);
+            String threadPressureStr = String.format("%.2f", threadPressure);
 
-            // 3️⃣ 打印监控日志（中英文）
+            // 打印监控日志（中英文）
             log.info("【MySQL实时监控 | Real-Time MySQL Monitor】");
             log.info("当前连接数 (Threads_connected): {}", threadsConnected);
             log.info("当前运行线程数 (Threads_running): {}", threadsRunning);
             log.info("最大连接数 (max_connections): {}", maxConnections);
             log.info("CPU核心数 (CPU Cores): {}", cpuCores);
-            log.info("连接使用率 (Connection Usage): {:.2f}%", connectionUsage * 100);
-            log.info("线程压力比 (Thread Pressure): {:.2f}", threadPressure);
+            log.info("连接使用率 (Connection Usage): {}%", connectionUsageStr);
+            log.info("线程压力比 (Thread Pressure): {}", threadPressureStr);
+
 
             // 4️⃣ 健康度判定逻辑（Health Status Evaluation）
             if (connectionUsage < 0.7 && threadPressure < 2) {
