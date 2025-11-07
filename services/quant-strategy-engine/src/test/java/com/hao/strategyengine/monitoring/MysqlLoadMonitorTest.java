@@ -1,5 +1,6 @@
 package com.hao.strategyengine.monitoring;
 
+import com.hao.strategyengine.monitoring.mysql.MysqlLoadMonitor;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,12 +15,12 @@ import org.springframework.boot.test.context.SpringBootTest;
  * ✅ 检查核心指标：Threads_connected / Threads_running / max_connections
  * ✅ 验证连接使用率、线程压力与健康区间判断逻辑
  * ✅ 输出带中英文提示的日志，便于团队协作与调优
- *
+ * <p>
  * 【执行说明 / Instructions】
  * - 建议在 dev 或 test 环境执行，不影响生产数据库。
  * - application.yml 中需配置正确的数据源。
  * - 若未连接真实 MySQL，会提示但不失败。
- *
+ * <p>
  * 【最佳实践】
  * 在压测、巡检前执行此测试，快速了解数据库连接健康度。
  * ==========================================================
@@ -30,7 +31,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 public class MysqlLoadMonitorTest {
 
     @Autowired
-    private com.hao.strategyengine.monitoring.MysqlLoadMonitor monitor;
+    private MysqlLoadMonitor monitor;
 
     /**
      * 【1️⃣ 基础执行验证】
@@ -119,7 +120,7 @@ public class MysqlLoadMonitorTest {
     @Order(4)
     void testMonitorHealth() {
         log.info("🧩 开始监控器健康状态验证 / Start Monitor Health Check");
-        com.hao.strategyengine.monitoring.MysqlLoadMonitor.MonitorHealthStatus health = monitor.getMonitorHealth();
+        MysqlLoadMonitor.MonitorHealthStatus health = monitor.getMonitorHealth();
 
         log.info("健康状态报告 / Health Report: {}", health);
         Assertions.assertNotNull(health, "健康状态不应为空 / Health status should not be null");
@@ -143,7 +144,7 @@ public class MysqlLoadMonitorTest {
     void testResetStatistics() {
         log.info("🧹 测试监控统计重置 / Test Monitor Statistics Reset");
         monitor.resetMonitorStatistics();
-        com.hao.strategyengine.monitoring.MysqlLoadMonitor.MonitorHealthStatus health = monitor.getMonitorHealth();
+        MysqlLoadMonitor.MonitorHealthStatus health = monitor.getMonitorHealth();
         Assertions.assertEquals(0, health.getSuccessCount(), "重置后成功次数应为0");
         Assertions.assertEquals(0, health.getFailureCount(), "重置后失败次数应为0");
         log.info("✅ 重置测试通过 / Statistics reset verified");
