@@ -1,5 +1,18 @@
 package com.xxl.job.admin.service.impl;
 
+/**
+ * 类说明 / Class Description:
+ * 中文：登录服务，基于Cookie与数据库完成鉴权、会话保持与登出处理。
+ * English: Login service implementing authentication, session persistence and logout via Cookie and database.
+ *
+ * 使用场景 / Use Cases:
+ * 中文：管理端用户登录与鉴权；支持“记住我”提升使用体验。
+ * English: Admin user login and authentication; supports "remember me" to improve UX.
+ *
+ * 设计目的 / Design Purpose:
+ * 中文：通过对称的token生成与解析避免明文暴露，结合二次校验防止伪造凭证。
+ * English: Avoid plaintext exposure via symmetric token generation/parsing and prevent forged credentials via secondary validation.
+ */
 import com.xxl.job.admin.core.model.XxlJobUser;
 import com.xxl.job.admin.core.util.CookieUtil;
 import com.xxl.job.admin.core.util.I18nUtil;
@@ -37,12 +50,40 @@ public class LoginService {
 
     // ---------------------- token tool ----------------------
 
+    /**
+     * 方法说明 / Method Description:
+     * 中文：将用户对象序列化并转为16进制token，避免明文暴露。
+     * English: Serialize user object and convert to hex token to avoid plaintext exposure.
+     *
+     * 参数 / Parameters:
+     * @param xxlJobUser 中文：用户对象 / English: user object
+     *
+     * 返回值 / Return:
+     * 中文：十六进制token字符串 / English: hexadecimal token string
+     *
+     * 异常 / Exceptions:
+     * 中文：无 / English: none
+     */
     private String makeToken(XxlJobUser xxlJobUser){
         // 将用户信息序列化后转成16进制串，避免直接暴露明文JSON
         String tokenJson = JacksonUtil.writeValueAsString(xxlJobUser);
         String tokenHex = new BigInteger(tokenJson.getBytes()).toString(16);
         return tokenHex;
     }
+    /**
+     * 方法说明 / Method Description:
+     * 中文：解析16进制token为用户对象，供后续校验使用。
+     * English: Parse hexadecimal token into user object for subsequent validation.
+     *
+     * 参数 / Parameters:
+     * @param tokenHex 中文：十六进制token / English: hex token
+     *
+     * 返回值 / Return:
+     * 中文：用户对象（解析失败返回null） / English: user object (null on failure)
+     *
+     * 异常 / Exceptions:
+     * 中文：可能抛出解析异常，由调用方处理 / English: may throw parsing exceptions handled by caller
+     */
     private XxlJobUser parseToken(String tokenHex){
         XxlJobUser xxlJobUser = null;
         if (tokenHex != null) {
@@ -56,6 +97,24 @@ public class LoginService {
 
     // ---------------------- login tool, with cookie and db ----------------------
 
+    /**
+     * 方法说明 / Method Description:
+     * 中文：执行登录流程，校验用户名密码正确后下发会话token至Cookie。
+     * English: Perform login; validate username/password then issue session token into Cookie.
+     *
+     * 参数 / Parameters:
+     * @param request 中文：HTTP请求 / English: HTTP request
+     * @param response 中文：HTTP响应 / English: HTTP response
+     * @param username 中文：用户名 / English: username
+     * @param password 中文：密码明文 / English: password plaintext
+     * @param ifRemember 中文：是否记住我 / English: remember-me flag
+     *
+     * 返回值 / Return:
+     * 中文：ReturnT<String>（登录结果） / English: ReturnT<String> login result
+     *
+     * 异常 / Exceptions:
+     * 中文：参数为空或认证失败返回错误码与提示 / English: empty params or auth failure returns error code and message
+     */
     public ReturnT<String> login(HttpServletRequest request, HttpServletResponse response, String username, String password, boolean ifRemember){
 
         // param
@@ -87,6 +146,21 @@ public class LoginService {
      * @param request
      * @param response
      */
+    /**
+     * 方法说明 / Method Description:
+     * 中文：退出登录，清除Cookie中的会话token。
+     * English: Logout by removing session token from Cookie.
+     *
+     * 参数 / Parameters:
+     * @param request 中文：HTTP请求 / English: HTTP request
+     * @param response 中文：HTTP响应 / English: HTTP response
+     *
+     * 返回值 / Return:
+     * 中文：ReturnT<String>（操作结果） / English: ReturnT<String> operation result
+     *
+     * 异常 / Exceptions:
+     * 中文：无 / English: none
+     */
     public ReturnT<String> logout(HttpServletRequest request, HttpServletResponse response){
         CookieUtil.remove(request, response, LOGIN_IDENTITY_KEY);
         return ReturnT.SUCCESS;
@@ -97,6 +171,21 @@ public class LoginService {
      *
      * @param request
      * @return
+     */
+    /**
+     * 方法说明 / Method Description:
+     * 中文：判断当前请求是否已登录，解析Cookie并二次校验数据库口令哈希。
+     * English: Determine whether current request is logged in; parse Cookie and validate DB password hash.
+     *
+     * 参数 / Parameters:
+     * @param request 中文：HTTP请求 / English: HTTP request
+     * @param response 中文：HTTP响应 / English: HTTP response
+     *
+     * 返回值 / Return:
+     * 中文：已登录返回用户对象；否则返回null / English: user object if logged in; otherwise null
+     *
+     * 异常 / Exceptions:
+     * 中文：解析异常将触发登出以清理状态 / English: parsing exceptions trigger logout to cleanup state
      */
     public XxlJobUser ifLogin(HttpServletRequest request, HttpServletResponse response){
         String cookieToken = CookieUtil.getValue(request, LOGIN_IDENTITY_KEY);

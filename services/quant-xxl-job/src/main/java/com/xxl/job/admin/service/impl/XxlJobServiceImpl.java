@@ -52,13 +52,39 @@ public class XxlJobServiceImpl implements XxlJobService {
 	private XxlJobLogReportDao xxlJobLogReportDao;
 	
 	@Override
+	/**
+	 * 方法说明 / Method Description:
+	 * 中文：分页查询任务列表并返回数据与总数，支持多条件过滤。
+	 * English: Query paginated job list with counts, supporting multi-criteria filters.
+	 *
+	 * 参数 / Parameters:
+	 * @param start 中文：起始偏移 / English: start offset
+	 * @param length 中文：每页长度 / English: page length
+	 * @param jobGroup 中文：任务分组ID / English: job group ID
+	 * @param triggerStatus 中文：触发状态过滤 / English: trigger status filter
+	 * @param jobDesc 中文：任务描述关键词 / English: job description keyword
+	 * @param executorHandler 中文：执行器处理器名称 / English: executor handler name
+	 * @param author 中文：负责人名称 / English: author name
+	 *
+	 * 返回值 / Return:
+	 * 中文：包含总数与当前页数据的 Map / English: Map with total and page data
+	 *
+	 * 异常 / Exceptions:
+	 * 中文：数据访问异常由 DAO 层抛出 / English: data access exceptions may be thrown by DAO
+	 */
 	public Map<String, Object> pageList(int start, int length, int jobGroup, int triggerStatus, String jobDesc, String executorHandler, String author) {
 
 		// page list
+		// 中文：通过DAO按条件分页查询任务列表
+		// English: Use DAO to query job list with filters and pagination
 		List<XxlJobInfo> list = xxlJobInfoDao.pageList(start, length, jobGroup, triggerStatus, jobDesc, executorHandler, author);
+		// 中文：计算过滤后的总记录数以支持前端分页展示
+		// English: Compute filtered total record count for frontend pagination
 		int list_count = xxlJobInfoDao.pageListCount(start, length, jobGroup, triggerStatus, jobDesc, executorHandler, author);
 		
 		// package result
+		// 中文：封装列表与统计为统一响应结构
+		// English: Package list and stats into a unified response map
 		Map<String, Object> maps = new HashMap<String, Object>();
 	    maps.put("recordsTotal", list_count);		// 总记录数
 	    maps.put("recordsFiltered", list_count);	// 过滤后的总记录数
@@ -67,9 +93,26 @@ public class XxlJobServiceImpl implements XxlJobService {
 	}
 
 	@Override
+	/**
+	 * 方法说明 / Method Description:
+	 * 中文：新增调度任务，执行分组、描述、负责人与触发配置等综合校验后持久化。
+	 * English: Add a scheduled job after validating group, description, owner and trigger configurations, then persist.
+	 *
+	 * 参数 / Parameters:
+	 * @param jobInfo 中文：任务信息实体 / English: job info entity
+	 * @param loginUser 中文：当前登录用户，用于权限校验 / English: current login user for permission validation
+	 *
+	 * 返回值 / Return:
+	 * 中文：ReturnT<String>（成功返回ID，失败返回错误信息） / English: ReturnT<String> (ID on success, error message on failure)
+	 *
+	 * 异常 / Exceptions:
+	 * 中文：参数异常、调度配置异常与数据持久化异常 / English: parameter errors, scheduling config errors, and persistence errors
+	 */
 	public ReturnT<String> add(XxlJobInfo jobInfo, XxlJobUser loginUser) {
 
 		// valid base
+		// 中文：加载任务分组以进行存在性校验
+		// English: Load job group to validate existence
 		XxlJobGroup group = xxlJobGroupDao.load(jobInfo.getJobGroup());
 		if (group == null) {
 			return new ReturnT<String>(ReturnT.FAIL_CODE, (I18nUtil.getString("system_please_choose")+I18nUtil.getString("jobinfo_field_jobgroup")) );
@@ -82,6 +125,8 @@ public class XxlJobServiceImpl implements XxlJobService {
 		}
 
 		// valid trigger
+		// 中文：匹配调度类型，保障类型合法
+		// English: Match schedule type to ensure legality
 		ScheduleTypeEnum scheduleTypeEnum = ScheduleTypeEnum.match(jobInfo.getScheduleType(), null);
 		if (scheduleTypeEnum == null) {
 			return new ReturnT<String>(ReturnT.FAIL_CODE, (I18nUtil.getString("schedule_type")+I18nUtil.getString("system_unvalid")) );
@@ -95,6 +140,8 @@ public class XxlJobServiceImpl implements XxlJobService {
 				return new ReturnT<String>(ReturnT.FAIL_CODE, (I18nUtil.getString("schedule_type")) );
 			}
 			try {
+				// 中文：解析固定频率秒数
+				// English: Parse fixed rate seconds
 				int fixSecond = Integer.valueOf(jobInfo.getScheduleConf());
 				if (fixSecond < 1) {
 					return new ReturnT<String>(ReturnT.FAIL_CODE, (I18nUtil.getString("schedule_type")+I18nUtil.getString("system_unvalid")) );
@@ -105,6 +152,8 @@ public class XxlJobServiceImpl implements XxlJobService {
 		}
 
 		// valid job
+		// 中文：校验GLUE类型合法性
+		// English: Validate GLUE type legality
 		if (GlueTypeEnum.match(jobInfo.getGlueType()) == null) {
 			return new ReturnT<String>(ReturnT.FAIL_CODE, (I18nUtil.getString("jobinfo_field_gluetype")+I18nUtil.getString("system_unvalid")) );
 		}
@@ -158,6 +207,8 @@ public class XxlJobServiceImpl implements XxlJobService {
 		}
 
 		// add in db
+		// 中文：设置创建与更新时间戳
+		// English: Set create and update timestamps
 		jobInfo.setAddTime(new Date());
 		jobInfo.setUpdateTime(new Date());
 		jobInfo.setGlueUpdatetime(new Date());
@@ -169,6 +220,20 @@ public class XxlJobServiceImpl implements XxlJobService {
 		return new ReturnT<String>(String.valueOf(jobInfo.getId()));
 	}
 
+	/**
+	 * 方法说明 / Method Description:
+	 * 中文：判断字符串是否为整数数字形式。
+	 * English: Determine whether the given string is a valid integer number.
+	 *
+	 * 参数 / Parameters:
+	 * @param str 中文：待判断字符串 / English: string to validate
+	 *
+	 * 返回值 / Return:
+	 * 中文：true表示是整数；false表示不是 / English: true if integer; false otherwise
+	 *
+	 * 异常 / Exceptions:
+	 * 中文：无；内部捕获NumberFormatException / English: none; NumberFormatException caught internally
+	 */
 	private boolean isNumeric(String str){
 		try {
 			int result = Integer.valueOf(str);
@@ -383,9 +448,13 @@ public class XxlJobServiceImpl implements XxlJobService {
 	@Override
 	public ReturnT<String> trigger(XxlJobUser loginUser, int jobId, String executorParam, String addressList) {
 		// permission
+		// 中文：校验当前用户存在性与权限
+		// English: Validate current user existence and permission
 		if (loginUser == null) {
 			return new ReturnT<String>(ReturnT.FAIL.getCode(), I18nUtil.getString("system_permission_limit"));
 		}
+		// 中文：加载目标任务并校验存在性
+		// English: Load target job and validate existence
 		XxlJobInfo xxlJobInfo = xxlJobInfoDao.loadById(jobId);
 		if (xxlJobInfo == null) {
 			return new ReturnT<String>(ReturnT.FAIL.getCode(), I18nUtil.getString("jobinfo_glue_jobid_unvalid"));
@@ -395,6 +464,8 @@ public class XxlJobServiceImpl implements XxlJobService {
 		}
 
 		// force cover job param
+		// 中文：空参数兼容处理，避免Null传递
+		// English: Null-safe handling for executor parameters
 		if (executorParam == null) {
 			executorParam = "";
 		}
@@ -403,6 +474,21 @@ public class XxlJobServiceImpl implements XxlJobService {
 		return ReturnT.SUCCESS;
 	}
 
+	/**
+	 * 方法说明 / Method Description:
+	 * 中文：校验用户是否具备目标任务分组的操作权限。
+	 * English: Check whether user has operation permission on the target job group.
+	 *
+	 * 参数 / Parameters:
+	 * @param loginUser 中文：当前用户 / English: current user
+	 * @param jobGroup 中文：任务分组ID / English: job group ID
+	 *
+	 * 返回值 / Return:
+	 * 中文：true表示有权限；false表示无权限 / English: true if permitted; false otherwise
+	 *
+	 * 异常 / Exceptions:
+	 * 中文：无 / English: none
+	 */
 	private boolean hasPermission(XxlJobUser loginUser, int jobGroup){
 		if (loginUser.getRole() == 1) {
 			return true;

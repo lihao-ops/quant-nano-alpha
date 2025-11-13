@@ -46,6 +46,8 @@ public class JobInfoController {
 	public String index(HttpServletRequest request, Model model, @RequestParam(value = "jobGroup", required = false, defaultValue = "-1") int jobGroup) {
 
 		// 枚举-字典
+		// 中文：加载路由/Glue/阻塞策略/调度类型等枚举供前端渲染
+		// English: Load enums for routing/glue/block strategy/schedule type for frontend rendering
 		model.addAttribute("ExecutorRouteStrategyEnum", ExecutorRouteStrategyEnum.values());	    // 路由策略-列表
 		model.addAttribute("GlueTypeEnum", GlueTypeEnum.values());								// Glue类型-字典
 		model.addAttribute("ExecutorBlockStrategyEnum", ExecutorBlockStrategyEnum.values());	    // 阻塞处理策略-字典
@@ -82,6 +84,21 @@ public class JobInfoController {
 	
 	@RequestMapping("/add")
 	@ResponseBody
+	/**
+	 * 方法说明 / Method Description:
+	 * 中文：新增任务接口，先校验分组权限再委托服务层持久化。
+	 * English: API to add job; validate group permission then delegate to service layer.
+	 *
+	 * 参数 / Parameters:
+	 * @param request 中文：HTTP请求 / English: HTTP request
+	 * @param jobInfo 中文：任务信息 / English: job info
+	 *
+	 * 返回值 / Return:
+	 * 中文：ReturnT<String>（结果与提示） / English: ReturnT<String> result and message
+	 *
+	 * 异常 / Exceptions:
+	 * 中文：权限不足或参数非法时失败 / English: failure on insufficient permission or invalid params
+	 */
 	public ReturnT<String> add(HttpServletRequest request, XxlJobInfo jobInfo) {
 		// valid permission
 		PermissionInterceptor.validJobGroupPermission(request, jobInfo.getJobGroup());
@@ -93,6 +110,21 @@ public class JobInfoController {
 	
 	@RequestMapping("/update")
 	@ResponseBody
+	/**
+	 * 方法说明 / Method Description:
+	 * 中文：更新任务接口，校验权限后委托服务层执行变更。
+	 * English: API to update job; validate permission then delegate to service layer.
+	 *
+	 * 参数 / Parameters:
+	 * @param request 中文：HTTP请求 / English: HTTP request
+	 * @param jobInfo 中文：任务信息 / English: job info
+	 *
+	 * 返回值 / Return:
+	 * 中文：ReturnT<String>（操作结果） / English: ReturnT<String> operation result
+	 *
+	 * 异常 / Exceptions:
+	 * 中文：权限不足或参数非法时失败 / English: failure on insufficient permission or invalid params
+	 */
 	public ReturnT<String> update(HttpServletRequest request, XxlJobInfo jobInfo) {
 		// valid permission
 		PermissionInterceptor.validJobGroupPermission(request, jobInfo.getJobGroup());
@@ -104,24 +136,83 @@ public class JobInfoController {
 	
 	@RequestMapping("/remove")
 	@ResponseBody
+	/**
+	 * 方法说明 / Method Description:
+	 * 中文：删除任务接口。
+	 * English: API to remove job.
+	 *
+	 * 参数 / Parameters:
+	 * @param id 中文：任务ID / English: job ID
+	 *
+	 * 返回值 / Return:
+	 * 中文：ReturnT<String>（操作结果） / English: ReturnT<String> operation result
+	 *
+	 * 异常 / Exceptions:
+	 * 中文：数据访问异常由服务层抛出 / English: data access exceptions propagated from service layer
+	 */
 	public ReturnT<String> remove(@RequestParam("id") int id) {
 		return xxlJobService.remove(id);
 	}
 	
 	@RequestMapping("/stop")
 	@ResponseBody
+	/**
+	 * 方法说明 / Method Description:
+	 * 中文：停止任务接口。
+	 * English: API to stop job.
+	 *
+	 * 参数 / Parameters:
+	 * @param id 中文：任务ID / English: job ID
+	 *
+	 * 返回值 / Return:
+	 * 中文：ReturnT<String>（操作结果） / English: ReturnT<String> operation result
+	 *
+	 * 异常 / Exceptions:
+	 * 中文：数据访问异常由服务层抛出 / English: data access exceptions propagated from service layer
+	 */
 	public ReturnT<String> pause(@RequestParam("id") int id) {
 		return xxlJobService.stop(id);
 	}
 	
 	@RequestMapping("/start")
 	@ResponseBody
+	/**
+	 * 方法说明 / Method Description:
+	 * 中文：启动任务接口。
+	 * English: API to start job.
+	 *
+	 * 参数 / Parameters:
+	 * @param id 中文：任务ID / English: job ID
+	 *
+	 * 返回值 / Return:
+	 * 中文：ReturnT<String>（操作结果） / English: ReturnT<String> operation result
+	 *
+	 * 异常 / Exceptions:
+	 * 中文：配置非法或数据访问异常由服务层抛出 / English: invalid config or data access exceptions from service layer
+	 */
 	public ReturnT<String> start(@RequestParam("id") int id) {
 		return xxlJobService.start(id);
 	}
 	
 	@RequestMapping("/trigger")
 	@ResponseBody
+	/**
+	 * 方法说明 / Method Description:
+	 * 中文：手工触发任务接口，支持传入执行参数与地址列表。
+	 * English: API to manually trigger job with executor params and address list.
+	 *
+	 * 参数 / Parameters:
+	 * @param request 中文：HTTP请求 / English: HTTP request
+	 * @param id 中文：任务ID / English: job ID
+	 * @param executorParam 中文：执行参数 / English: executor parameter
+	 * @param addressList 中文：执行器地址列表 / English: executor address list
+	 *
+	 * 返回值 / Return:
+	 * 中文：ReturnT<String>（触发结果） / English: ReturnT<String> trigger result
+	 *
+	 * 异常 / Exceptions:
+	 * 中文：权限不足、任务不存在或路由异常 / English: insufficient permissions, job not found or routing errors
+	 */
 	public ReturnT<String> triggerJob(HttpServletRequest request,
 									  @RequestParam("id") int id,
 									  @RequestParam("executorParam") String executorParam,
@@ -135,6 +226,21 @@ public class JobInfoController {
 
 	@RequestMapping("/nextTriggerTime")
 	@ResponseBody
+	/**
+	 * 方法说明 / Method Description:
+	 * 中文：计算未来五次触发时间的预览接口。
+	 * English: Preview API to compute next five trigger times.
+	 *
+	 * 参数 / Parameters:
+	 * @param scheduleType 中文：调度类型 / English: schedule type
+	 * @param scheduleConf 中文：调度配置 / English: schedule configuration
+	 *
+	 * 返回值 / Return:
+	 * 中文：ReturnT<List<String>>（未来触发时间字符串列表） / English: ReturnT<List<String>> of next trigger times as strings
+	 *
+	 * 异常 / Exceptions:
+	 * 中文：配置非法或计算异常时返回失败 / English: failure on invalid config or computing errors
+	 */
 	public ReturnT<List<String>> nextTriggerTime(@RequestParam("scheduleType") String scheduleType,
 												 @RequestParam("scheduleConf") String scheduleConf) {
 
