@@ -1,5 +1,18 @@
 package com.hao.strategyengine.monitoring;
 
+/**
+ * 测试目的 / Test Purpose:
+ * 中文：验证 MySQL 负载监控组件的关键功能与健康评估逻辑，确保指标采集、区间分析与统计重置行为符合预期。
+ * English: Validate key functions of the MySQL load monitoring component, ensuring metric collection, range analysis, and statistics reset behave as expected.
+ *
+ * 预期结果 / Expected Result:
+ * 中文：所有测试应成功执行；在无真实数据库时以跳过处理，日志输出包含中英双语提示；区间分析返回非空建议文本；统计重置后计数归零。
+ * English: All tests execute successfully; when no real DB is available tests are skipped with bilingual logs; range analysis returns non-null advice text; counters reset to zero.
+ *
+ * 执行方式 / How to Execute:
+ * 中文：在 dev/test 环境运行单元测试；确保 application.yml 配置正确；可通过 IDE 或命令行执行。
+ * English: Run unit tests in dev/test environment; ensure application.yml is configured correctly; run via IDE or CLI.
+ */
 import com.hao.strategyengine.monitoring.mysql.MysqlLoadMonitor;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
@@ -40,9 +53,27 @@ public class MysqlLoadMonitorTest {
      */
     @Test
     @Order(1)
+    /**
+     * 方法说明 / Method Description:
+     * 中文：验证监控核心方法可正常执行且不抛异常。
+     * English: Verify monitor core method executes without throwing exceptions.
+     *
+     * 参数 / Parameters:
+     * @param 无 中文说明：无入参 / English: none
+     *
+     * 返回值 / Return:
+     * 中文：无返回值，通过日志与断言判断用例是否通过 / English: void; pass judged via logs and assertions
+     *
+     * 异常 / Exceptions:
+     * 中文：捕获所有异常并断言失败，以便快速定位问题 / English: Catch any exception and assert failure for quick troubleshooting
+     */
     void testMonitorExecution() {
+        // 中文：启动监控执行并观察是否出现异常
+        // English: Start monitor execution and observe for exceptions
         log.info("🚀 启动 MySQL 监控执行测试 / Start MySQL Monitor Execution Test");
         try {
+            // 中文：调用监控入口以触发指标采集
+            // English: Invoke monitor entry to collect metrics
             monitor.monitor();
             log.info("✅ 监控任务执行成功，无异常抛出 / Monitor executed successfully without exceptions.");
         } catch (Exception e) {
@@ -58,7 +89,23 @@ public class MysqlLoadMonitorTest {
      */
     @Test
     @Order(2)
+    /**
+     * 方法说明 / Method Description:
+     * 中文：校验关键指标合理性，包括连接数、运行线程与最大连接。
+     * English: Validate reasonableness of key metrics: connections, running threads, and max connections.
+     *
+     * 参数 / Parameters:
+     * @param 无 中文说明：无入参 / English: none
+     *
+     * 返回值 / Return:
+     * 中文：无返回值，通过断言与日志进行验证 / English: void; validation via assertions and logs
+     *
+     * 异常 / Exceptions:
+     * 中文：如无真实数据库则跳过测试并记录双语日志 / English: Skip when no real DB, with bilingual logs
+     */
     void testMetricsValidation() {
+        // 中文：采集指标并进行范围与关系校验
+        // English: Collect metrics and validate ranges and relationships
         log.info("🔍 开始 MySQL 指标校验 / Start MySQL Metrics Validation");
         try {
             long threadsConnected = monitor.queryMetricValue("Threads_connected");
@@ -99,7 +146,23 @@ public class MysqlLoadMonitorTest {
      */
     @Test
     @Order(3)
+    /**
+     * 方法说明 / Method Description:
+     * 中文：调用区间分析方法，确认返回建议文本与异常处理正常。
+     * English: Call range analysis method and confirm advice text returned and exception handled correctly.
+     *
+     * 参数 / Parameters:
+     * @param 无 中文说明：无入参 / English: none
+     *
+     * 返回值 / Return:
+     * 中文：无返回值，通过非空断言判定分析结果有效 / English: void; non-null assertion indicates valid analysis
+     *
+     * 异常 / Exceptions:
+     * 中文：捕获异常并断言失败，便于定位问题 / English: Catch exceptions and assert failure for troubleshooting
+     */
     void testAnalyzeConnectionRange() {
+        // 中文：执行连接区间分析以输出优化建议
+        // English: Execute connection range analysis to output optimization advice
         log.info("📊 开始 MySQL 连接区间分析测试 / Start MySQL Connection Range Analysis Test");
         try {
             String result = monitor.analyzeOptimalConnectionRange();
@@ -118,7 +181,23 @@ public class MysqlLoadMonitorTest {
      */
     @Test
     @Order(4)
+    /**
+     * 方法说明 / Method Description:
+     * 中文：校验健康状态输出是否合理，包括健康等级与核心设备信息。
+     * English: Validate health status output including health level and core device info.
+     *
+     * 参数 / Parameters:
+     * @param 无 中文说明：无入参 / English: none
+     *
+     * 返回值 / Return:
+     * 中文：无返回值，通过断言验证健康对象与关键字段 / English: void; assertions validate health object and key fields
+     *
+     * 异常 / Exceptions:
+     * 中文：无特殊异常，按分支记录状态日志 / English: No special exceptions; log status by branch
+     */
     void testMonitorHealth() {
+        // 中文：获取健康状态对象并检查指标合理性
+        // English: Fetch health status object and check metric reasonableness
         log.info("🧩 开始监控器健康状态验证 / Start Monitor Health Check");
         MysqlLoadMonitor.MonitorHealthStatus health = monitor.getMonitorHealth();
 
@@ -141,7 +220,23 @@ public class MysqlLoadMonitorTest {
      */
     @Test
     @Order(5)
+    /**
+     * 方法说明 / Method Description:
+     * 中文：验证统计重置功能，确保计数清零并无副作用。
+     * English: Validate statistics reset function, ensuring zero counters and no side effects.
+     *
+     * 参数 / Parameters:
+     * @param 无 中文说明：无入参 / English: none
+     *
+     * 返回值 / Return:
+     * 中文：无返回值，通过断言验证重置结果 / English: void; assertions verify reset outcome
+     *
+     * 异常 / Exceptions:
+     * 中文：无特殊异常，失败时给出明确断言信息 / English: No special exceptions; failures provide clear assertion messages
+     */
     void testResetStatistics() {
+        // 中文：执行重置并验证计数器归零
+        // English: Execute reset and verify counters zeroed
         log.info("🧹 测试监控统计重置 / Test Monitor Statistics Reset");
         monitor.resetMonitorStatistics();
         MysqlLoadMonitor.MonitorHealthStatus health = monitor.getMonitorHealth();

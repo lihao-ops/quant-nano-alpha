@@ -1,5 +1,18 @@
 package com.hao.strategyengine.chain;
 
+/**
+ * 类说明 / Class Description:
+ * 中文：策略前置责任链，按顺序执行多个处理器节点（风控/校验/限流等）以保障策略执行安全与合规。
+ * English: Pre-execution strategy responsibility chain; executes multiple handler nodes (risk/validation/rate-limit) in order to ensure safe and compliant strategy execution.
+ *
+ * 使用场景 / Use Cases:
+ * 中文：在策略实际计算前统一进行前置检查与拦截。
+ * English: Perform unified pre-checks and interceptions before actual strategy computation.
+ *
+ * 设计目的 / Design Purpose:
+ * 中文：通过责任链模式解耦各类前置逻辑，保证可插拔、可扩展与顺序可控。
+ * English: Decouple pre-logic via chain-of-responsibility, ensuring pluggability, extensibility, and ordered control.
+ */
 import com.hao.strategyengine.core.StrategyHandler;
 import com.hao.strategyengine.common.model.core.StrategyContext;
 import lombok.RequiredArgsConstructor;
@@ -95,9 +108,25 @@ public class StrategyChain {
      * 【调用位置】：
      *   StrategyEngineFacade.executeAll() → Step 1 调用。
      */
+    /**
+     * 方法说明 / Method Description:
+     * 中文：执行责任链中的所有前置处理器，如遇异常则中断策略执行。
+     * English: Execute all pre-handlers in the chain; interrupt strategy execution on exception.
+     *
+     * 参数 / Parameters:
+     * @param ctx 中文：策略上下文 / English: strategy context
+     *
+     * 返回值 / Return:
+     * 中文：无返回值；通过异常控制流程中断 / English: void; flow interruption via exception
+     *
+     * 异常 / Exceptions:
+     * 中文：处理器抛出异常表示校验未通过 / English: handler exceptions indicate validation failure
+     */
     public void apply(StrategyContext ctx) throws Exception {
         // Step 1️⃣ 依次执行所有前置 Handler
         for (StrategyHandler handler : handlers) {
+            // 中文：执行单一处理器的前置校验或风控逻辑
+            // English: Execute pre-check or risk control logic of a single handler
             handler.handle(ctx);
 
         }

@@ -1,5 +1,18 @@
 package com.hao.strategyengine.core.facade;
 
+/**
+ * 类说明 / Class Description:
+ * 中文：策略引擎外观层，统一封装风控链、分布式锁、并行调度、结果缓存与消息发布，对上层提供简化一致的执行入口。
+ * English: Facade for the strategy engine; encapsulates risk chain, distributed lock, parallel dispatch, result caching, and message publishing; exposes a unified execution entry to upper layers.
+ *
+ * 使用场景 / Use Cases:
+ * 中文：为控制器或服务层提供“多策略组合一次执行”的统一接口，适用于实时策略计算与回测聚合。
+ * English: Provides a unified "execute multiple strategies as a combo" interface for controllers/services; suitable for real-time runs and backtest aggregation.
+ *
+ * 设计目的 / Design Purpose:
+ * 中文：屏蔽复杂并发与基础设施细节，通过外观模式提升可维护性与可复用性，确保幂等与高吞吐。
+ * English: Hide concurrency and infrastructure complexity via facade pattern to improve maintainability and reusability, ensuring idempotency and high throughput.
+ */
 import com.hao.strategyengine.chain.StrategyChain;
 import com.hao.strategyengine.common.cache.StrategyCacheService;
 import com.hao.strategyengine.common.model.core.StrategyContext;
@@ -126,7 +139,25 @@ public class StrategyEngineFacade {
      *                    ⑤ 异步发布结果到 Kafka
      * @throws Exception 可能抛出线程池或锁等待异常
      */
+    /**
+     * 方法说明 / Method Description:
+     * 中文：并行执行用户选择的多个策略，使用分布式锁保障组合级幂等，聚合结果并进行异步缓存与消息发布。
+     * English: Execute multiple user-selected strategies in parallel, enforce combo-level idempotency via distributed lock, aggregate results, then asynchronously cache and publish.
+     *
+     * 参数 / Parameters:
+     * @param userId 中文说明：用户标识，用于审计与限流决策 / English: User identifier for auditing and rate-limit decisions
+     * @param strategyIds 中文说明：策略ID集合（如 MA、MOM 等） / English: Set of strategy IDs (e.g., MA, MOM)
+     * @param ctx 中文说明：策略执行上下文（行情、账户与扩展参数） / English: Strategy execution context (market data, account and extras)
+     *
+     * 返回值 / Return:
+     * 中文：StrategyResultBundle（组合策略的聚合结果包） / English: StrategyResultBundle (aggregated results of combo strategies)
+     *
+     * 异常 / Exceptions:
+     * 中文：可能抛出线程池拒绝、锁等待超时、运行时计算异常；调用方需捕获并按业务容错处理 / English: May throw thread pool rejection, lock wait timeout, runtime compute errors; caller should handle gracefully per business policy.
+     */
     public StrategyResultBundle executeAll(Integer userId, List<String> strategyIds, StrategyContext ctx) throws Exception {
+        // 中文：前置风险/合规校验，阻断不合法或超限的执行请求
+        // English: Pre-run risk and compliance checks to block illegal or exceeded execution requests
         // Step 1️⃣ 前置责任链风控校验 —— 防止违规策略执行
         try {
             chain.apply(ctx);
@@ -136,27 +167,39 @@ public class StrategyEngineFacade {
         }
 
 
+        // 中文：根据策略ID集合生成组合键，用于锁控制与结果标识
+        // English: Generate a combo key from strategy ID set for lock control and result identification
         // Step 2️⃣ 生成组合Key（如 "MA_MOM_DRAGON_TWO"）
         String comboKey = KeyUtils.comboKey(strategyIds);
 
+        // 中文：以Supplier封装计算体，实现惰性执行与锁保护分离
+        // English: Wrap compute body as Supplier to enable lazy execution and separate from lock protection
         // Step 3️⃣ 构建计算逻辑 Supplier —— 包含并行执行多个策略的逻辑
         //当执行到这行时：
         //✅ compute 只是被“定义”出来（函数体还没执行）这里的 compute 是一个 惰性执行（lazy execution） 的计算逻辑。
         //❌ 真正的策略计算逻辑（CompletableFuture那段）此时还没跑。
         Supplier<StrategyResultBundle> compute = () -> {
+            // 中文：（1）为每个策略创建并行任务，利用线程池提升吞吐
+            // English: (1) Create parallel tasks for each strategy to increase throughput using thread pool
             // （1）异步并行执行每个策略
             List<CompletableFuture<StrategyResult>> futures = strategyIds.stream()
                     .map(id -> CompletableFuture.supplyAsync(() -> dispatcher.dispatch(id, ctx), pool))
                     .collect(Collectors.toList());
 
+            // 中文：（2）等待所有策略完成，确保结果一致性与完整性
+            // English: (2) Await completion of all strategies to ensure result consistency and completeness
             // （2）阻塞等待全部策略执行完成并收集结果
             List<StrategyResult> results = futures.stream()
                     .map(CompletableFuture::join)
                     .collect(Collectors.toList());
 
+            // 中文：（3）聚合结果为统一的结果包，便于下游消费
+            // English: (3) Aggregate results into a unified bundle for downstream consumption
             // （3）封装为聚合结果包
             StrategyResultBundle bundle = new StrategyResultBundle(comboKey, results);
 
+            // 中文：（4）异步缓存与发布，缩短关键路径并提升整体吞吐
+            // English: (4) Cache and publish asynchronously to shorten critical path and improve throughput
             // （4）异步缓存与消息发布
             cacheService.save(bundle);
             kafkaPublisher.publish("quant-strategy-result", bundle);
@@ -170,6 +213,8 @@ public class StrategyEngineFacade {
          *
          * 面试加分点：你可以说：“锁保护核心计算，异步发布和缓存操作不占锁，最大化吞吐量”，这样既安全又高效
          */
+        // 中文：通过分布式锁保护计算体，保证同一组合在集群内只执行一次；其他节点等待结果
+        // English: Protect compute body with distributed lock to ensure single execution per combo across cluster; other nodes wait for the result
         // Step 4️⃣ 分布式锁控制 —— 仅允许一个节点执行计算，其余节点等待结果
         return lockService.acquireOrWait(comboKey, compute);
     }
