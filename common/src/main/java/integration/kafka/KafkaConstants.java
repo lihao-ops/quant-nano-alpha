@@ -24,10 +24,10 @@ public final class KafkaConstants {
     public static final String TOPIC_LOG_QUANT_DATA_COLLECTOR = "log-quant-data-collector";
     public static final String TOPIC_LOG_QUANT_STRATEGY_ENGINE = "log-quant-strategy-engine";
     public static final String TOPIC_LOG_QUANT_RISK_CONTROL = "log-quant-risk-control";
-    public static final String TOPIC_LOG_QUANT_AUDIT_SERVICE = "log-quant-audit-service";
+    public static final String TOPIC_LOG_QUANT_DATA_ARCHIVE = "log-quant-data-archive";
 
     // 消费组（示例：审计服务）
-    public static final String GROUP_AUDIT_SERVICE = "audit-service-group";
+    public static final String GROUP_DATA_ARCHIVE = "data-archive-group";
     // 可按需扩展：public static final String GROUP_STRATEGY_ENGINE = "strategy-engine-group";
 
     // Bean 名称
@@ -100,10 +100,10 @@ public final class KafkaConstants {
                 "quant-risk-control 服务运行日志与风控事件",
                 KafkaTopics.Category.BOTH
         ));
-        m.put(TOPIC_LOG_QUANT_AUDIT_SERVICE, new TopicMeta(
-                TOPIC_LOG_QUANT_AUDIT_SERVICE,
-                "审计服务日志",
-                "quant-audit-service 服务运行日志与审计事件",
+        m.put(TOPIC_LOG_QUANT_DATA_ARCHIVE, new TopicMeta(
+                TOPIC_LOG_QUANT_DATA_ARCHIVE,
+                "数据归档服务日志",
+                "quant-data-archive 服务运行日志与归档事件",
                 KafkaTopics.Category.BOTH
         ));
         TOPIC_META_REGISTRY = Collections.unmodifiableMap(m);

@@ -18,7 +18,7 @@ public enum KafkaTopics {
     LOG_QUANT_DATA_COLLECTOR("log-quant-data-collector", "数据采集服务日志", "quant-data-collector 服务运行日志与采集任务记录", Category.BOTH),
     LOG_QUANT_STRATEGY_ENGINE("log-quant-strategy-engine", "策略引擎服务日志", "quant-strategy-engine 服务运行日志与策略执行记录", Category.BOTH),
     LOG_QUANT_RISK_CONTROL("log-quant-risk-control", "风控服务日志", "quant-risk-control 服务运行日志与风控事件", Category.BOTH),
-    LOG_QUANT_AUDIT_SERVICE("log-quant-audit-service", "审计服务日志", "quant-audit-service 服务运行日志与审计事件", Category.BOTH);
+    LOG_QUANT_DATA_ARCHIVE("log-quant-data-archive", "数据归档服务日志", "quant-data-archive 服务运行日志与归档事件", Category.BOTH);
 
     /** 实际 Kafka 主题编码（物理名称） */
     private final String code;
