@@ -1,0 +1,26 @@
+${AnsiColor.BRIGHT_CYAN}
+                   (\__/)
+                   (•ㅅ•)つ  🗄️   <— 归档中…
+                   /づ づ
+
+${AnsiColor.BRIGHT_BLUE}
+      ╔════════════════════════════════════╗
+      ║       Quant Data Archive Service   ║
+      ╚════════════════════════════════════╝
+
+${AnsiColor.BRIGHT_GREEN}
+          ✓ 服务启动成功
+          ✓ Kafka 消费已就绪
+          ✓ 数据归档管线已开启
+
+${AnsiColor.BRIGHT_YELLOW}
+  项目名称   : ${spring.application.name}
+  运行端口   : ${server.port}
+  注册中心   : ${spring.cloud.nacos.server-addr}
+  配置分组   : ${spring.cloud.nacos.config.group}
+  服务分组   : ${spring.cloud.nacos.discovery.group}
+  Kafka组    : ${spring.kafka.consumer.group-id}
+  保留天数   : ${archive.retention-days}
+  当前环境   : ${spring.profiles.active}
+
+${AnsiColor.DEFAULT}
