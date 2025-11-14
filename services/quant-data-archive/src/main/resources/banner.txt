@@ -1,17 +1,20 @@
-${AnsiColor.BRIGHT_CYAN}
-                   (\__/)
-                   (•ㅅ•)つ  🗄️   <— 归档中…
-                   /づ づ
+${AnsiColor.BRIGHT_MAGENTA}
+                     ／＞　 フ
+                    |  _  _ |
+                  ／`  ㅅ•  )  🗄️   正在归档数据…
+                 (  つ  ⊂  |
+                 ｜  (___)  |
+                  ＼二二二ノ
 
-${AnsiColor.BRIGHT_BLUE}
-      ╔════════════════════════════════════╗
-      ║       Quant Data Archive Service   ║
-      ╚════════════════════════════════════╝
+${AnsiColor.BRIGHT_CYAN}
+         ╔══════════════════════════════════════╗
+         ║         Quant Data Archive Service   ║
+         ╚══════════════════════════════════════╝
 
 ${AnsiColor.BRIGHT_GREEN}
-          ✓ 服务启动成功
-          ✓ Kafka 消费已就绪
-          ✓ 数据归档管线已开启
+      ✓ 服务启动成功
+      ✓ Kafka 消费监听器已就绪
+      ✓ 数据归档与转储管线正常运行
 
 ${AnsiColor.BRIGHT_YELLOW}
   项目名称   : ${spring.application.name}
