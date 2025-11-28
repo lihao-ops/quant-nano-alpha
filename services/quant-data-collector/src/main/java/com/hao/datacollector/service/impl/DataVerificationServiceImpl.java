@@ -4,8 +4,10 @@ import com.hao.datacollector.dal.dao.DataVerificationMapper;
 import com.hao.datacollector.dto.param.verification.VerificationQueryParam;
 import com.hao.datacollector.dto.table.verification.QuotationVerificationDTO;
 import com.hao.datacollector.service.DataVerificationService;
+import org.springframework.context.annotation.Lazy; // ✅ 必须用这个包
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
@@ -29,7 +31,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DataVerificationServiceImpl implements DataVerificationService {
 
+    // 1. 正常的构造器注入 (Lombok处理)
     private final DataVerificationMapper dataVerificationMapper;
+
+    // 🔥 核心修改 A：注入自己
+    // 必须用 org.springframework.context.annotation.Lazy
+    @Autowired
+    @Lazy
+    private DataVerificationService self;
 
     // 批次大小，控制内存占用
     private static final int BATCH_SIZE = 2000;
@@ -45,8 +54,10 @@ public class DataVerificationServiceImpl implements DataVerificationService {
                 // 遍历该年的 12 个月
                 for (int month = 1; month <= 12; month++) {
                     String yearMonth = String.format("%d%02d", year, month);
-                    // 提交异步任务到 IO 线程池
-                    futures.add(verifyMonthTableAsync(yearMonth, param.getTargetTableName()));
+                    // 🔥 核心修改 B：必须用 self. 调用！！！
+                    // 原代码: futures.add(verifyMonthTableAsync(...)); -> 这是 this. 调用，串行！
+                    // 新代码:
+                    futures.add(self.verifyMonthTableAsync(yearMonth, param.getTargetTableName()));
                 }
             } catch (NumberFormatException e) {
                 log.error("年份格式错误: {}", yearStr);
@@ -59,7 +70,9 @@ public class DataVerificationServiceImpl implements DataVerificationService {
     /**
      * 异步校验单个月份表
      * 关键点：使用 @Async("ioTaskExecutor") 复用配置好的 IO 线程池
+     * ⚠️ 注意：此方法必须在接口中定义，否则 self.verifyMonthTableAsync 会编译报错
      */
+    @Override // 建议加上 @Override 强约束
     @Async("ioTaskExecutor")
     public CompletableFuture<String> verifyMonthTableAsync(String yearMonth, String targetTable) {
         // 构造源表名，例如: tb_quotation_history_trend_202101
