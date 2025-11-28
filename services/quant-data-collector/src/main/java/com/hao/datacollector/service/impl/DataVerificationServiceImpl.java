@@ -1,0 +1,182 @@
+package com.hao.datacollector.service.impl;
+
+import com.hao.datacollector.dal.dao.DataVerificationMapper;
+import com.hao.datacollector.dto.param.verification.VerificationQueryParam;
+import com.hao.datacollector.dto.table.verification.QuotationVerificationDTO;
+import com.hao.datacollector.service.DataVerificationService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
+
+import java.math.BigDecimal;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+
+/**
+ * @author hli
+ * @date 2025-06-05
+ * @description 数据一致性校验服务实现类 (IO密集型优化版)
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class DataVerificationServiceImpl implements DataVerificationService {
+
+    private final DataVerificationMapper dataVerificationMapper;
+
+    // 批次大小，控制内存占用
+    private static final int BATCH_SIZE = 2000;
+
+    @Override
+    public void startVerification(VerificationQueryParam param) {
+        log.info("========== 开始全量数据一致性校验, 目标表: {} ==========", param.getTargetTableName());
+        List<CompletableFuture<String>> futures = new ArrayList<>();
+
+        // 遍历输入的年份列表
+        for (String yearStr : param.getYears()) {
+            try {
+                int year = Integer.parseInt(yearStr);
+                // 遍历该年的 12 个月
+                for (int month = 1; month <= 12; month++) {
+                    String yearMonth = String.format("%d%02d", year, month);
+                    // 提交异步任务到 IO 线程池
+                    futures.add(verifyMonthTableAsync(yearMonth, param.getTargetTableName()));
+                }
+            } catch (NumberFormatException e) {
+                log.error("年份格式错误: {}", yearStr);
+            }
+        }
+
+        // 异步等待所有结果 (可选)
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                .thenAccept(v -> log.info("========== 所有校验任务提交完成 =========="));
+    }
+
+    /**
+     * 异步校验单个月份表
+     * 关键点：使用 @Async("ioTaskExecutor") 复用配置好的 IO 线程池
+     */
+    @Async("ioTaskExecutor")
+    public CompletableFuture<String> verifyMonthTableAsync(String yearMonth, String targetTable) {
+        // 构造源表名，例如: tb_quotation_history_trend_202101
+        String sourceTable = "tb_quotation_history_trend_" + yearMonth;
+
+        StopWatch stopWatch = new StopWatch(sourceTable);
+        stopWatch.start();
+        log.info("[{}] 校验启动...", sourceTable);
+
+        try {
+            // 1. 计算时间范围，用于目标表的分区剪枝
+            YearMonth ym = YearMonth.parse(yearMonth, DateTimeFormatter.ofPattern("yyyyMM"));
+            String startDate = ym.atDay(1).toString() + " 00:00:00";
+            String endDate = ym.plusMonths(1).atDay(1).toString() + " 00:00:00";
+
+            // 2. 阶段一：总量快速比对
+            // Mybatis 动态 SQL 执行
+            Long sourceCount = dataVerificationMapper.countTable(sourceTable);
+            Long targetCount = dataVerificationMapper.countTargetByRange(targetTable, startDate, endDate);
+
+            if (!sourceCount.equals(targetCount)) {
+                String msg = String.format("[%s] 总量不一致! Src:%d, Tgt:%d, Diff:%d", sourceTable, sourceCount, targetCount, sourceCount - targetCount);
+                log.error(msg);
+                return CompletableFuture.completedFuture(msg);
+            }
+
+            // 3. 阶段二：逐行比对 (Keyset Paging)
+            long processed = 0;
+            long errors = 0;
+            String lastCode = "";
+            String lastDate = "1970-01-01 00:00:00";
+
+            while (true) {
+                // 3.1 查源表 (Keyset)
+                List<QuotationVerificationDTO> srcBatch = dataVerificationMapper.fetchSourceBatch(sourceTable, lastCode, lastDate, BATCH_SIZE);
+
+                if (srcBatch.isEmpty()) break;
+
+                // 更新游标
+                QuotationVerificationDTO lastRec = srcBatch.get(srcBatch.size() - 1);
+                lastCode = lastRec.getWindCode();
+                lastDate = lastRec.getTradeDate().toString();
+
+                // 3.2 查目标表 (范围匹配)
+                List<QuotationVerificationDTO> tgtBatch = dataVerificationMapper.fetchTargetBatchInScope(
+                        targetTable, startDate, endDate,
+                        srcBatch.get(0).getWindCode(), srcBatch.get(0).getTradeDate().toString(),
+                        lastCode, lastDate);
+
+                // 3.3 内存比对
+                errors += compareBatches(sourceTable, srcBatch, tgtBatch);
+                processed += srcBatch.size();
+
+                if (processed % 100000 == 0) {
+                    log.info("[{}] 进度: {}/{} 行, 错误: {}", sourceTable, processed, sourceCount, errors);
+                }
+            }
+
+            stopWatch.stop();
+            String res = String.format("[%s] 完成. 耗时:%.1fs, 总数:%d, 错误:%d",
+                    sourceTable, stopWatch.getTotalTimeSeconds(), sourceCount, errors);
+
+            if (errors > 0) log.error(res);
+            else log.info(res);
+
+            return CompletableFuture.completedFuture(res);
+
+        } catch (Exception e) {
+            log.error("[{}] 校验异常", sourceTable, e);
+            return CompletableFuture.completedFuture("异常: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 内存比对逻辑
+     */
+    private long compareBatches(String table, List<QuotationVerificationDTO> srcs, List<QuotationVerificationDTO> tgts) {
+        long errCount = 0;
+        // List 转 Map 提速
+        Map<String, QuotationVerificationDTO> tgtMap = tgts.stream().collect(Collectors.toMap(
+                k -> k.getWindCode() + "_" + k.getTradeDate().toString(),
+                v -> v,
+                (v1, v2) -> v1 // 覆盖策略
+        ));
+
+        for (QuotationVerificationDTO s : srcs) {
+            String key = s.getWindCode() + "_" + s.getTradeDate().toString();
+            QuotationVerificationDTO t = tgtMap.get(key);
+
+            if (t == null) {
+                log.error("[{}] 缺失: Key={}", table, key);
+                errCount++;
+                continue;
+            }
+
+            // 字段级比对 (忽略精度差异)
+            if (!isSame(s, t)) {
+                log.error("[{}] 差异: Key={}, Src={}, Tgt={}", table, key, s, t);
+                errCount++;
+            }
+        }
+        return errCount;
+    }
+
+    private boolean isSame(QuotationVerificationDTO s, QuotationVerificationDTO t) {
+        if (!cmpDec(s.getLatestPrice(), t.getLatestPrice())) return false;
+        if (!cmpDec(s.getTotalVolume(), t.getTotalVolume())) return false;
+        if (!cmpDec(s.getAveragePrice(), t.getAveragePrice())) return false;
+        return s.getStatus().equals(t.getStatus());
+    }
+
+    private boolean cmpDec(BigDecimal a, BigDecimal b) {
+        if (a == null && b == null) return true;
+        if (a == null || b == null) return false;
+        return a.compareTo(b) == 0;
+    }
+}

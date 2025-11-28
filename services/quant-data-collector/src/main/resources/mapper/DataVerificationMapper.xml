@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hao.datacollector.dal.dao.DataVerificationMapper">
+
+    <resultMap id="QuotationVerificationMap" type="com.hao.datacollector.dto.table.verification.QuotationVerificationDTO">
+        <result column="wind_code" property="windCode"/>
+        <result column="trade_date" property="tradeDate"/>
+        <result column="latest_price" property="latestPrice"/>
+        <result column="total_volume" property="totalVolume"/>
+        <result column="average_price" property="averagePrice"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+    <select id="countTable" resultType="java.lang.Long">
+        SELECT count(*) FROM ${tableName}
+    </select>
+
+    <select id="countTargetByRange" resultType="java.lang.Long">
+        SELECT count(*)
+        FROM ${tableName}
+        WHERE trade_date >= #{startDate}
+          AND trade_date &lt; #{endDate}
+    </select>
+
+    <select id="fetchSourceBatch" resultMap="QuotationVerificationMap">
+        SELECT wind_code, trade_date, latest_price, total_volume, average_price, status
+        FROM ${tableName}
+        WHERE (wind_code > #{lastCode} OR (wind_code = #{lastCode} AND trade_date > #{lastDate}))
+        ORDER BY wind_code ASC, trade_date ASC
+            LIMIT #{batchSize}
+    </select>
+
+    <select id="fetchTargetBatchInScope" resultMap="QuotationVerificationMap">
+        SELECT wind_code, trade_date, latest_price, total_volume, average_price, status
+        FROM ${tableName}
+        WHERE trade_date >= #{startDate} AND trade_date &lt; #{endDate}
+          AND (wind_code > #{firstCode} OR (wind_code = #{firstCode} AND trade_date >= #{firstDate}))
+          AND (wind_code &lt; #{lastCode} OR (wind_code = #{lastCode} AND trade_date &lt;= #{lastDate}))
+        ORDER BY wind_code ASC, trade_date ASC
+    </select>
+
+</mapper>

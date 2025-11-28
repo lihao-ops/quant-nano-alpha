@@ -40,7 +40,8 @@ public class MyBatisSlowSqlInterceptor implements Interceptor {
     private static final Logger logger = LoggerFactory.getLogger(MyBatisSlowSqlInterceptor.class);
 
     /** 慢 SQL 阈值，单位毫秒，默认 3000ms */
-    private long slowSqlThresholdMs = 3000;
+    //todo 核心测验，暂不打印慢sql日志
+    private long slowSqlThresholdMs = 30000000;
 
     /**
      * 拦截 SQL 执行
@@ -59,7 +60,7 @@ public class MyBatisSlowSqlInterceptor implements Interceptor {
         StatementHandler statementHandler = (StatementHandler) invocation.getTarget();
         String sql = statementHandler.getBoundSql().getSql().replaceAll("\\s+", " ");
         // 打印所有 SQL 执行时间
-        logger.info("[SQL EXEC] 耗时={}ms, SQL: {}", cost, sql);
+//        logger.info("[SQL EXEC] 耗时={}ms, SQL: {}", cost, sql);
         // 超过阈值的慢 SQL
         if (cost >= slowSqlThresholdMs) {
             logger.warn("[SLOW SQL] 耗时={}ms, 超过阈值={}ms, SQL: {}", cost, slowSqlThresholdMs, sql);
