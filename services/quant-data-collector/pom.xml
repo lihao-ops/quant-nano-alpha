@@ -39,6 +39,7 @@
         <spring-kafka.version>4.0.0</spring-kafka.version>
         <knife4j.version>4.5.0</knife4j.version>
         <gemini.version>1.0.0</gemini.version>
+        <openai.api.version>4.0.0</openai.api.version>
     </properties>
     <dependencies>
 
@@ -179,11 +180,17 @@
         </dependency>
 
         <!-- ======================== AI工具类 ======================== -->
-<!--        <dependency>-->
-<!--            <groupId>com.google.genai</groupId>-->
-<!--            <artifactId>google-genai</artifactId>-->
-<!--            <version>${gemini.version}</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>com.google.genai</groupId>
+            <artifactId>google-genai</artifactId>
+            <version>${gemini.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.openai</groupId>
+            <artifactId>openai-java</artifactId>
+            <version>${openai.api.version}</version>
+        </dependency>
 
         <!-- ======================== 测试依赖 ======================== -->
         <dependency>
