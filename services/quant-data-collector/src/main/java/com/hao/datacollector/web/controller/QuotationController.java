@@ -79,7 +79,10 @@ public class QuotationController {
             @Parameter(description = "结束日期，格式yyyy-MM-dd", required = true)
             @RequestParam String endDate,
             @Parameter(description = "股票列表", required = true)
-            @RequestParam List<String> stockList) {
-        return quotationService.getHistoryTrendDataByStockList(startDate, endDate, stockList);
+            @RequestParam List<String> stockList,
+            @Parameter(description = "版本号:多表查询:1.0(默认),改良冷热表查询:2.0", required = false)
+            @RequestHeader(required = false, defaultValue = "1.0") String version
+    ) {
+        return quotationService.getHistoryTrendDataByStockList(startDate, endDate, stockList, version);
     }
 }
