@@ -51,7 +51,7 @@
 
 
     <insert id="insertQuotationHistoryTrendList" parameterType="java.util.List">
-        INSERT IGNORE INTO tb_quotation_history_trend_202511 (
+        INSERT IGNORE INTO tb_quotation_history_hot (
         wind_code,
         trade_date,
         latest_price,
@@ -76,18 +76,18 @@
         WHERE trade_date >= '2025-11-01'; -- 给定一个近期的时间下限
     </select>
 
+    <select id="getCompletedWindCodes" resultType="string">
+        SELECT DISTINCT wind_code
+        FROM tb_quotation_history_hot
+        WHERE trade_date >= STR_TO_DATE(#{maxEndDate}, '%Y%m%d')
+          AND trade_date <![CDATA[<]]> DATE_ADD(STR_TO_DATE(#{maxEndDate}, '%Y%m%d'), INTERVAL 1 DAY)
+    </select>
+
     <select id="getMaxHistoryIndexTrendEndDate" resultType="string">
         SELECT DATE_FORMAT(MAX(trade_date), '%Y%m%d')
         FROM tb_quotation_index_history_trend
         WHERE trade_date >= STR_TO_DATE(CONCAT(#{year}, '0101'), '%Y%m%d')
           AND trade_date <![CDATA[<]]> STR_TO_DATE(CONCAT(#{year} + 1, '0101'), '%Y%m%d');
-    </select>
-
-    <select id="getCompletedWindCodes" resultType="string">
-        SELECT DISTINCT wind_code
-        FROM tb_quotation_history_trend_202511
-        WHERE trade_date >= STR_TO_DATE(#{maxEndDate}, '%Y%m%d')
-          AND trade_date <![CDATA[<]]> DATE_ADD(STR_TO_DATE(#{maxEndDate}, '%Y%m%d'), INTERVAL 1 DAY)
     </select>
 
     <select id="getCompletedIndexCodes" resultType="string">

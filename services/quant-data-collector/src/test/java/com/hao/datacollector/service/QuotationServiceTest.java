@@ -40,6 +40,7 @@ class QuotationServiceTest {
         }
     }
 
+    //todo 修改全部选取,转档hot表，待实际测验
     @Test
     void transferQuotationHistoryTrend() {
         List<String> allWindCodeList = new ArrayList<>(StockCache.allWindCode);
@@ -68,10 +69,6 @@ class QuotationServiceTest {
     private void transferOneDay(List<String> yearTradeDateList, List<String> windCodes, int batchSize) {
         int totalSize = windCodes.size();
         for (String tradeDate : yearTradeDateList) {
-            if (tradeDate.contains("202512")) {
-                log.error("out!,tradeDate={}", tradeDate);
-                throw new RuntimeException("202512!!!!");
-            }
             for (int i = 0; i < totalSize; i += batchSize) {
                 List<String> subList = windCodes.subList(i, Math.min(i + batchSize, totalSize));
                 String windCodeStr = String.join(",", subList);
