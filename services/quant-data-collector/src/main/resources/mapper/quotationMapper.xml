@@ -72,9 +72,8 @@
 
     <select id="getMaxHistoryTrendEndDate" resultType="string">
         SELECT DATE_FORMAT(MAX(trade_date), '%Y%m%d')
-        FROM tb_quotation_history_trend_202511
-        WHERE trade_date >= STR_TO_DATE(CONCAT(#{year}, '0101'), '%Y%m%d')
-          AND trade_date <![CDATA[<]]> STR_TO_DATE(CONCAT(#{year} + 1, '0101'), '%Y%m%d');
+        FROM tb_quotation_history_hot
+        WHERE trade_date >= '2025-11-01'; -- 给定一个近期的时间下限
     </select>
 
     <select id="getMaxHistoryIndexTrendEndDate" resultType="string">
