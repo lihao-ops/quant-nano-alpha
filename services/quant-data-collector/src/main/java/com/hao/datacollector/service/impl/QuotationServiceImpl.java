@@ -3,6 +3,7 @@ package com.hao.datacollector.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.hao.datacollector.common.enums.quotation.TableRangeEnum;
 import com.hao.datacollector.common.utils.HttpUtil;
 import com.hao.datacollector.dal.dao.QuotationMapper;
 import com.hao.datacollector.dto.quotation.HistoryTrendDTO;
@@ -44,6 +45,7 @@ import java.util.Map;
  * @Date 2025-07-04 17:43:47
  * @description: 行情实现类
  */
+
 /**
  * 实现思路：
  * <p>
@@ -77,6 +79,7 @@ public class QuotationServiceImpl implements QuotationService {
      */
     private static final String oldVersion = "1.0";
     private static final String newVersion = "2.0";
+
     /**
      * 获取基础行情数据
      *
@@ -546,6 +549,7 @@ public class QuotationServiceImpl implements QuotationService {
      */
     @Override
     public List<HistoryTrendDTO> getHistoryTrendDataByDate(String startDate, String endDate) {
+
         if (!StringUtils.hasLength(endDate)) {
             endDate = DateUtil.getCurrentDateTimeByStr(DateTimeFormatConstants.COMPACT_DATE_FORMAT);
         }
@@ -562,13 +566,13 @@ public class QuotationServiceImpl implements QuotationService {
      * @return 历史分时数据
      */
     @Override
-    public List<HistoryTrendDTO> getHistoryTrendDataByStockList(String startDate, String endDate, List<String> stockList,String version) {
+    public List<HistoryTrendDTO> getHistoryTrendDataByStockList(String startDate, String endDate, List<String> stockList, String version) {
         DateTimeFormatter pattern = DateTimeFormatter.ofPattern(DateTimeFormatConstants.COMPACT_DATE_FORMAT);
         LocalDate start = LocalDate.parse(startDate, pattern);
         LocalDate end = LocalDate.parse(endDate, pattern);
         List<HistoryTrendDTO> result = new ArrayList<>();
         //多表查询
-        if(oldVersion.equals(version)){
+        if (oldVersion.equals(version)) {
             // 遍历所有跨越的月份
             LocalDate current = LocalDate.of(start.getYear(), start.getMonth(), 1);
             LocalDate endMonth = LocalDate.of(end.getYear(), end.getMonth(), 1);
@@ -581,7 +585,7 @@ public class QuotationServiceImpl implements QuotationService {
                 String queryStart = (current.equals(start.withDayOfMonth(1)) ? start : monthStart).format(pattern);
                 //处理精度问题
                 String queryEnd = (current.equals(endMonth) ? end : monthEnd).format(pattern);
-                queryEnd = DateUtil.stringTimeToAdjust(queryEnd, DateTimeFormatConstants.COMPACT_DATE_FORMAT, 1);
+//                queryEnd = DateUtil.stringTimeToAdjust(queryEnd, DateTimeFormatConstants.COMPACT_DATE_FORMAT, 1);
                 // 调试日志
                 log.info("Query table={}, range {} ~ {}, stockList={}", tableName, queryStart, queryEnd, stockList);
                 List<HistoryTrendDTO> part = quotationMapper.selectByWindCodeListAndDate(
@@ -592,14 +596,23 @@ public class QuotationServiceImpl implements QuotationService {
             }
         }
         //判断当前传入startDate和endDate所属年份
-        //跨越冷热双表则使用多线程查询结果后合并
-        else {
+        //跨越冷热双表则使用多线程查询结果后合并(暂未使用多线程)
+        /**todo 待优化
+         * ✔ 未来做“区间裁剪器”
+         * ✔ 加入排序保证结果稳定
+         * ✔ 大量数据时使用 CompletableFuture 并行查询
+         * ✔ mapper SQL 确保范围条件严格走索引
+         */
+        else if (newVersion.equals(version)) {
             //tb_quotation_history_warm [2020, 2023]
             //tb_quotation_history_hot [2024, 2025]
-            List<HistoryTrendDTO> part = quotationMapper.selectByWindCodeListAndDate(
-                    tableName, startDate, endDate, stockList
-            );
-            result.addAll(part);
+            List<String> tableNames = TableRangeEnum.resolveTables(startDate, endDate, DateTimeFormatConstants.COMPACT_DATE_FORMAT);
+            for (String tableName : tableNames) {
+                List<HistoryTrendDTO> part = quotationMapper.selectByWindCodeListAndDate(
+                        tableName, startDate, endDate, stockList
+                );
+                result.addAll(part);
+            }
         }
         return result;
     }
