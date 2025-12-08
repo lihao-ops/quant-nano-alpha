@@ -17,6 +17,9 @@ public class VerificationQueryParam {
     @Schema(description = "待校验的年份列表", example = "[\"2020\", \"2021\"]", required = true)
     private List<String> years;
 
+    @Schema(description = "源标准数据表名", example = "tb_quotation_history_warm", required = true)
+    private String sourceTableName;
+
     @Schema(description = "目标验证表名", example = "tb_quotation_history_warm", required = true)
     private String targetTableName;
 }

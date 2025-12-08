@@ -4,10 +4,10 @@ import com.hao.datacollector.dal.dao.DataVerificationMapper;
 import com.hao.datacollector.dto.param.verification.VerificationQueryParam;
 import com.hao.datacollector.dto.table.verification.QuotationVerificationDTO;
 import com.hao.datacollector.service.DataVerificationService;
-import org.springframework.context.annotation.Lazy; // ✅ 必须用这个包
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
@@ -57,7 +57,7 @@ public class DataVerificationServiceImpl implements DataVerificationService {
                     // 🔥 核心修改 B：必须用 self. 调用！！！
                     // 原代码: futures.add(verifyMonthTableAsync(...)); -> 这是 this. 调用，串行！
                     // 新代码:
-                    futures.add(self.verifyMonthTableAsync(yearMonth, param.getTargetTableName()));
+                    futures.add(self.verifyMonthTableAsync(yearMonth, param.getSourceTableName(), param.getTargetTableName()));
                 }
             } catch (NumberFormatException e) {
                 log.error("年份格式错误: {}", yearStr);
@@ -74,9 +74,14 @@ public class DataVerificationServiceImpl implements DataVerificationService {
      */
     @Override // 建议加上 @Override 强约束
     @Async("ioTaskExecutor")
-    public CompletableFuture<String> verifyMonthTableAsync(String yearMonth, String targetTable) {
-        // 构造源表名，例如: tb_quotation_history_trend_202101
-        String sourceTable = "tb_quotation_history_trend_" + yearMonth;
+    public CompletableFuture<String> verifyMonthTableAsync(String yearMonth, String sourceTableName, String targetTable) {
+        // 旧代码（物理分表）
+        // String sourceTable = "tb_quotation_history_trend_" + yearMonth;
+        // 🔥 新代码（分区表指定分区查询）
+        // 假设你的分区命名规则是 pYYYYMM (例如 p202101)
+        String partitionName = "p" + yearMonth;
+        // 构造出来的字符串类似： a_share_quant.tb_quotation_history_warm PARTITION (p202101)
+        String sourceTable = String.format("%s PARTITION (%s)", sourceTableName, partitionName);
         StopWatch stopWatch = new StopWatch(sourceTable);
         stopWatch.start();
         log.info("[{}] 校验启动...", sourceTable);

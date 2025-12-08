@@ -18,5 +18,5 @@ public interface DataVerificationService {
     void startVerification(VerificationQueryParam param);
 
     // 🔥 必须增加这个方法定义，否则 self.verifyMonthTableAsync 会报错
-    CompletableFuture<String> verifyMonthTableAsync(String yearMonth, String targetTable);
+    CompletableFuture<String> verifyMonthTableAsync(String yearMonth, String getSourceTableName, String targetTable);
 }
