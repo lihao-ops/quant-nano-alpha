@@ -25,6 +25,8 @@ spring:
     sentinel:
       transport:
         dashboard: localhost:7003
+        # 【新增这行】强制指定本机 IP，解决 Dashboard 连不上微服务的问题
+        client-ip: 127.0.0.1
       #默认懒加载机制,也就是说有第一次的流量访问之后才会,这里显示指定直接连接就显示在控制台
       eager: true
   config:
