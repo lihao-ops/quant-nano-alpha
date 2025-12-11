@@ -67,7 +67,8 @@ public interface LimitUpMapper {
      */
     List<LimitUpStockTradeDTO> getLimitCodeByTradeDate(@Param("tradeDateStart") String tradeDateStart, @Param("tradeDateEnd") String tradeDateEnd);
 
-    /**获取转档涨停数据最大日期
+    /**
+     * 获取转档涨停数据最大日期
      *
      * @return 最大日期 yyyyMMdd
      */
