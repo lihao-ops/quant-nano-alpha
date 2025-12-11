@@ -97,6 +97,10 @@
         </foreach>
     </insert>
 
+    <select id="getTransferLimitUpDataMaxDate" resultType="string">
+        SELECT DATE_FORMAT(MAX(`trade_date`), '%Y%m%d')
+        FROM tb_limit_up_stock_info;
+    </select>
 
     <!-- 根据交易日删除每日涨停股票明细数据 -->
     <delete id="deleteLimitUpStockInfoByTradeDate">

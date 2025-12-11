@@ -248,4 +248,13 @@ public class LimitUpServiceImpl implements LimitUpService {
                         Collectors.mapping(LimitUpStockTradeDTO::getWindCode, Collectors.toSet())
                 ));
     }
+
+    /**获取转档涨停数据最大日期
+     *
+     * @return 最大日期 yyyyMMdd
+     */
+    @Override
+    public String getTransferLimitUpDataMaxDate() {
+        return limitUpMapper.getTransferLimitUpDataMaxDate();
+    }
 }

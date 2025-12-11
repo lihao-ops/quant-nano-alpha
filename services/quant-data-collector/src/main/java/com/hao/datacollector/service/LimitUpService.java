@@ -49,4 +49,11 @@ public interface LimitUpService {
      * @return 交易日涨停股票代码列表
      */
     Map<String, Set<String>> getLimitUpTradeDateMap(String tradeDateStart, String tradeDateEnd);
+
+    /**
+     * 获取转档涨停数据最大日期
+     *
+     * @return 最大日期 yyyyMMdd
+     */
+    String getTransferLimitUpDataMaxDate();
 }

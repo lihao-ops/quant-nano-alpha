@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-
+import java.util.stream.Collectors;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,6 +31,12 @@ class LimitUpServiceTest {
     void transferLimitUpDataToDatabase() {
 
         List<String> yearTradeDateList = DateUtil.formatLocalDateList(DateCache.CurrentYearTradeDateList, DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT);
+        //剔除已经转档过的日期
+        String maxDate = limitUpService.getTransferLimitUpDataMaxDate();
+        yearTradeDateList = yearTradeDateList.stream()
+                // 逻辑：保留(filter) 大于或等于 maxDate 的元素
+                .filter(date -> date.compareTo(maxDate) >= 0)
+                .collect(Collectors.toList());
         yearTradeDateList.forEach(date -> {
             Boolean success = limitUpService.transferLimitUpDataToDatabase(date);
             if (!success) {
