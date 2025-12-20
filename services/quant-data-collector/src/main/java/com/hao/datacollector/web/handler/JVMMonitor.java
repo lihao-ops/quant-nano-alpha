@@ -54,7 +54,7 @@ public class JVMMonitor {
         long heapMax = heap.getMax();
         double heapRate = (double) heapUsed / heapMax;
         if (heapRate >= HEAP_THRESHOLD) {
-            logger.error("[JVM MONITOR]堆内存使用高={}/{}MB({})%",
+            logger.error("[JVM_MONITOR]堆内存使用高={}/{}MB({})%",
                     heapUsed / 1024 / 1024,
                     heapMax / 1024 / 1024,
                     String.format("%.2f", heapRate * 100));
@@ -66,7 +66,7 @@ public class JVMMonitor {
         long nonHeapMax = nonHeap.getMax();
         double nonHeapRate = (double) nonHeapUsed / nonHeapMax;
         if (nonHeapRate >= NON_HEAP_THRESHOLD) {
-            logger.warn("[JVM MONITOR]非堆内存使用高:{}/{} MB({})%",
+            logger.warn("[JVM_MONITOR]非堆内存使用高:{}/{}_MB({})%",
                     nonHeapUsed / 1024 / 1024,
                     nonHeapMax / 1024 / 1024,
                     String.format("%.2f", nonHeapRate * 100));
@@ -77,7 +77,7 @@ public class JVMMonitor {
         int threadPeak = threadMXBean.getPeakThreadCount();
         double threadRate = (double) threadCount / threadPeak;
 //        if (threadRate >= THREAD_STACK_THRESHOLD) {
-//            logger.error("[JVM MONITOR]_线程数量接近峰值:{}/{}({})%",
+//            logger.error("[JVM_MONITOR]_线程数量接近峰值:{}/{}({})%",
 //                    threadCount,
 //                    threadPeak,
 //                    String.format("%.2f", threadRate * 100));

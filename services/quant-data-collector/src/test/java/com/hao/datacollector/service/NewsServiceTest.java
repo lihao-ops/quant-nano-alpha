@@ -37,7 +37,7 @@ class NewsServiceTest {
         jobStockList.removeAll(abnormalStockList);
         for (String windCode : jobStockList) {
             Boolean transferNewsStockResult = newsService.transferNewsStockData(windCode);
-            log.info("NewsServiceTest_transferNewsStockData_windCode={},transferNewsStockResult={}", windCode, transferNewsStockResult);
+            log.info("日志记录|Log_message,NewsServiceTest_transferNewsStockData_windCode={},transferNewsStockResult={}", windCode, transferNewsStockResult);
         }
     }
 }

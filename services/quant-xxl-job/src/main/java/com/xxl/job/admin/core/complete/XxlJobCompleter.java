@@ -58,7 +58,7 @@ public class XxlJobCompleter {
                     if (childJobId > 0) {
                         // valid
                         if (childJobId == xxlJobLog.getJobId()) {
-                            logger.debug(">>>>>>>>>>> xxl-job, XxlJobCompleter-finishJob ignore childJobId,  childJobId {} is self.", childJobId);
+                            logger.debug("日志记录|Log_message,>>>>>>>>>>>_xxl-job,_XxlJobCompleter-finishJob_ignore_childJobId,_childJobId_{}_is_self.", childJobId);
                             continue;
                         }
 

@@ -34,7 +34,7 @@ public class DataVerificationServiceImpl implements DataVerificationService {
     // 1. 正常的构造器注入 (Lombok处理)
     private final DataVerificationMapper dataVerificationMapper;
 
-    // 🔥 核心修改 A：注入自己
+    //  核心修改 A：注入自己
     // 必须用 org.springframework.context.annotation.Lazy
     @Autowired
     @Lazy
@@ -45,7 +45,7 @@ public class DataVerificationServiceImpl implements DataVerificationService {
 
     @Override
     public void startVerification(VerificationQueryParam param) {
-        log.info("========== 开始全量数据一致性校验, 目标表: {} ==========", param.getTargetTableName());
+        log.info("==========_开始全量数据一致性校验,_目标表:_{}_==========|Log_message", param.getTargetTableName());
         List<CompletableFuture<String>> futures = new ArrayList<>();
         // 遍历输入的年份列表
         for (String yearStr : param.getYears()) {
@@ -54,37 +54,37 @@ public class DataVerificationServiceImpl implements DataVerificationService {
                 // 遍历该年的 12 个月
                 for (int month = 1; month <= 12; month++) {
                     String yearMonth = String.format("%d%02d", year, month);
-                    // 🔥 核心修改 B：必须用 self. 调用！！！
+                    //  核心修改 B：必须用 self. 调用！！！
                     // 原代码: futures.add(verifyMonthTableAsync(...)); -> 这是 this. 调用，串行！
                     // 新代码:
                     futures.add(self.verifyMonthTableAsync(yearMonth, param.getSourceTableName(), param.getTargetTableName()));
                 }
             } catch (NumberFormatException e) {
-                log.error("年份格式错误: {}", yearStr);
+                log.error("日志记录|Log_message,year_format_error,yearStr={}", yearStr, e);
             }
         }
         // 异步等待所有结果 (可选)
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenAccept(v -> log.info("========== 所有校验任务提交完成 =========="));
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenAccept(v -> log.info("==========_所有校验任务提交完成_==========|Log_message"));
     }
 
     /**
      * 异步校验单个月份表
      * 关键点：使用 @Async("ioTaskExecutor") 复用配置好的 IO 线程池
-     * ⚠️ 注意：此方法必须在接口中定义，否则 self.verifyMonthTableAsync 会编译报错
+     *  注意：此方法必须在接口中定义，否则 self.verifyMonthTableAsync 会编译报错
      */
     @Override // 建议加上 @Override 强约束
     @Async("ioTaskExecutor")
     public CompletableFuture<String> verifyMonthTableAsync(String yearMonth, String sourceTableName, String targetTable) {
         // 旧代码（物理分表）
         // String sourceTable = "tb_quotation_history_trend_" + yearMonth;
-        // 🔥 新代码（分区表指定分区查询）
+        //  新代码（分区表指定分区查询）
         // 假设你的分区命名规则是 pYYYYMM (例如 p202101)
         String partitionName = "p" + yearMonth;
         // 构造出来的字符串类似： a_share_quant.tb_quotation_history_warm PARTITION (p202101)
         String sourceTable = String.format("%s PARTITION (%s)", sourceTableName, partitionName);
         StopWatch stopWatch = new StopWatch(sourceTable);
         stopWatch.start();
-        log.info("[{}] 校验启动...", sourceTable);
+        log.info("[{}]_校验启动...|Log_message", sourceTable);
         try {
             // 1. 计算时间范围，用于目标表的分区剪枝
             YearMonth ym = YearMonth.parse(yearMonth, DateTimeFormatter.ofPattern("yyyyMM"));
@@ -96,7 +96,8 @@ public class DataVerificationServiceImpl implements DataVerificationService {
             Long targetCount = dataVerificationMapper.countTargetByRange(targetTable, startDate, endDate);
             if (!sourceCount.equals(targetCount)) {
                 String msg = String.format("[%s] 总量不一致! Src:%d, Tgt:%d, Diff:%d", sourceTable, sourceCount, targetCount, sourceCount - targetCount);
-                log.error(msg);
+                log.warn("日志记录|Log_message,table_count_mismatch,table={},srcCount={},tgtCount={},diff={}",
+                        sourceTable, sourceCount, targetCount, sourceCount - targetCount);
                 return CompletableFuture.completedFuture(msg);
             }
             // 3. 阶段二：逐行比对 (Keyset Paging)
@@ -121,16 +122,21 @@ public class DataVerificationServiceImpl implements DataVerificationService {
                 errors += compareBatches(sourceTable, srcBatch, tgtBatch);
                 processed += srcBatch.size();
                 if (processed % 100000 == 0) {
-                    log.info("[{}] 进度: {}/{} 行, 错误: {}", sourceTable, processed, sourceCount, errors);
+                    log.info("[{}]_进度:_{}/{}_行,_错误:_{}|Log_message", sourceTable, processed, sourceCount, errors);
                 }
             }
             stopWatch.stop();
             String res = String.format("[%s] 完成. 耗时:%.1fs, 总数:%d, 错误:%d", sourceTable, stopWatch.getTotalTimeSeconds(), sourceCount, errors);
-            if (errors > 0) log.error(res);
-            else log.info(res);
+            if (errors > 0) {
+                log.warn("日志记录|Log_message,table_verify_completed_with_errors,table={},elapsedSeconds={},total={},errors={}",
+                        sourceTable, String.format("%.1f", stopWatch.getTotalTimeSeconds()), sourceCount, errors);
+            } else {
+                log.info("日志记录|Log_message,table_verify_completed,table={},elapsedSeconds={},total={},errors={}",
+                        sourceTable, String.format("%.1f", stopWatch.getTotalTimeSeconds()), sourceCount, errors);
+            }
             return CompletableFuture.completedFuture(res);
         } catch (Exception e) {
-            log.error("[{}] 校验异常", sourceTable, e);
+            log.error("[{}]_校验异常|Log_message", sourceTable, e);
             return CompletableFuture.completedFuture("异常: " + e.getMessage());
         }
     }
@@ -150,13 +156,13 @@ public class DataVerificationServiceImpl implements DataVerificationService {
             String key = s.getWindCode() + "_" + s.getTradeDate().toString();
             QuotationVerificationDTO t = tgtMap.get(key);
             if (t == null) {
-                log.error("[{}] 缺失: Key={}", table, key);
+                log.warn("[{}]_缺失:_Key={}", table, key);
                 errCount++;
                 continue;
             }
             // 字段级比对 (忽略精度差异)
             if (!isSame(s, t)) {
-                log.error("[{}] 差异: Key={}, Src={}, Tgt={}", table, key, s, t);
+                log.warn("[{}]_差异:_Key={},_Src={},_Tgt={}", table, key, s, t);
                 errCount++;
             }
         }

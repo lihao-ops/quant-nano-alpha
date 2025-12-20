@@ -38,7 +38,7 @@ public class JMMTest {
 
     @Test
     void testVisibility() throws InterruptedException {
-        log.info("=== 测试可见性 ===");
+        log.info("===_测试可见性_===|Log_message");
 
         testVolatileVisibility();
         testPlainVisibility();
@@ -55,14 +55,14 @@ public class JMMTest {
      * 通过观察读线程能及时读到 true，证明了 volatile 提供了跨线程的可见性。
      */
     void testVolatileVisibility() throws InterruptedException {
-        log.info("--- 测试 volatile 变量的可见性 ---");
+        log.info("---_测试_volatile_变量的可见性_---");
 
         CountDownLatch latch = new CountDownLatch(2);
 
         // 写线程
         Thread writer = new Thread(() -> {
             volatileFlag = true;
-            log.info("[写] 设置 volatileFlag = true");
+            log.info("[写]_设置_volatileFlag_=_true");
             latch.countDown();
         }, "Writer-Volatile");
 
@@ -72,7 +72,7 @@ public class JMMTest {
             while (!volatileFlag) {
                 // busy-wait
             }
-            log.info("[读] 观察到 volatileFlag = true");
+            log.info("[读]_观察到_volatileFlag_=_true");
             latch.countDown();
         }, "Reader-Volatile");
 
@@ -81,7 +81,7 @@ public class JMMTest {
         latch.await(1, TimeUnit.SECONDS);
 
         assertTrue(volatileFlag, "volatileFlag 应被观察到为 true");
-        log.info("[结论] volatile 变量的写入对其他线程可见");
+        log.info("[结论]_volatile_变量的写入对其他线程可见");
     }
 
     /**
@@ -94,14 +94,14 @@ public class JMMTest {
      * 通过读线程读取的值可能为 true 或 false，说明普通变量存在可见性问题。
      */
     void testPlainVisibility() throws InterruptedException {
-        log.info("--- 测试普通变量的可见性 ---");
+        log.info("---_测试普通变量的可见性_---|Log_message");
 
         CountDownLatch latch = new CountDownLatch(2);
 
         // 写线程
         Thread writer = new Thread(() -> {
             plainFlag = true;
-            log.info("[写] 设置 plainFlag = true");
+            log.info("[写]_设置_plainFlag_=_true");
             latch.countDown();
         }, "Writer-Plain");
 
@@ -113,7 +113,7 @@ public class JMMTest {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
-            log.info("[读] 读取 plainFlag = {}", plainFlag);
+            log.info("[读]_读取_plainFlag_=_{}", plainFlag);
             latch.countDown();
         }, "Reader-Plain");
 
@@ -122,7 +122,7 @@ public class JMMTest {
         latch.await(1, TimeUnit.SECONDS);
 
         // plainFlag 的可见性是不确定的,可能为 true 也可能为 false
-        log.info("[结论] 普通变量的写入对其他线程的可见性是不确定的,存在可见性问题");
+        log.info("[结论]_普通变量的写入对其他线程的可见性是不确定的,存在可见性问题|Log_message");
     }
 
     /**
@@ -137,7 +137,7 @@ public class JMMTest {
      * 读线程一定能看到写线程的最新值，证明 synchronized 块可以保证跨线程可见性。
      */
     void testSynchronizedVisibility() throws InterruptedException {
-        log.info("--- 测试 synchronized 块的可见性 ---");
+        log.info("---_测试_synchronized_块的可见性_---");
 
         CountDownLatch latch = new CountDownLatch(2);
 
@@ -145,7 +145,7 @@ public class JMMTest {
         Thread writer = new Thread(() -> {
             synchronized (lock) {
                 syncFlag = true;
-                log.info("[写] 在 synchronized 块内设置 syncFlag = true");
+                log.info("[写]_在_synchronized_块内设置_syncFlag_=_true");
             }
             latch.countDown();
         }, "Writer-Sync");
@@ -153,7 +153,7 @@ public class JMMTest {
         // 读线程
         Thread reader = new Thread(() -> {
             synchronized (lock) {
-                log.info("[读] 在 synchronized 块内读取 syncFlag = {}", syncFlag);
+                log.info("[读]_在_synchronized_块内读取_syncFlag_=_{}", syncFlag);
             }
             latch.countDown();
         }, "Reader-Sync");
@@ -163,19 +163,19 @@ public class JMMTest {
         latch.await(1, TimeUnit.SECONDS);
 
         assertTrue(syncFlag, "syncFlag 应被观察到为 true");
-        log.info("[结论] synchronized 块内的写入对其他线程是可见的");
+        log.info("[结论]_synchronized_块内的写入对其他线程是可见的");
     }
 
     @Test
     void testAtomicity() throws InterruptedException {
-        log.info("=== 测试原子性 ===");
+        log.info("===_测试原子性_===|Log_message");
 
         testNonAtomicIncrement();
         testAtomicIncrement();
     }
 
     void testNonAtomicIncrement() throws InterruptedException {
-        log.info("--- 测试非原子性 ++ 操作 ---");
+        log.info("---_测试非原子性_++_操作_---|Log_message");
 
         int threadCount = 32;
         int incrementsPerThread = 1000;
@@ -197,14 +197,14 @@ public class JMMTest {
         pool.shutdown();
 
         int expected = threadCount * incrementsPerThread;
-        log.info("[非原子性] 期望计数 = {}，实际 nonAtomicCounter = {}", expected, nonAtomicCounter);
+        log.info("[非原子性]_期望计数_=_{}，实际_nonAtomicCounter_=_{}", expected, nonAtomicCounter);
 
         assertTrue(nonAtomicCounter != expected, "nonAtomicCounter 应与期望值不同,证明 ++ 操作不是原子的");
-        log.info("[结论] 非原子 ++ 操作存在数据丢失,导致最终结果与期望不符");
+        log.info("[结论]_非原子_++_操作存在数据丢失,导致最终结果与期望不符|Log_message");
     }
 
     void testAtomicIncrement() throws InterruptedException {
-        log.info("--- 测试 AtomicInteger 的原子性 ---");
+        log.info("---_测试_AtomicInteger_的原子性_---");
 
         int threadCount = 32;
         int incrementsPerThread = 1000;
@@ -227,15 +227,15 @@ public class JMMTest {
 
         int expected = threadCount * incrementsPerThread;
         int actual = atomicCounter.get();
-        log.info("[原子性] 期望计数 = {}，实际 atomicCounter = {}", expected, actual);
+        log.info("[原子性]_期望计数_=_{}，实际_atomicCounter_=_{}", expected, actual);
 
         assertEquals(expected, actual, "atomicCounter 应等于期望值");
-        log.info("[结论] AtomicInteger 提供了原子性,多线程并发下不会出现数据丢失");
+        log.info("[结论]_AtomicInteger_提供了原子性,多线程并发下不会出现数据丢失");
     }
 
     @Test
     void testReordering() throws InterruptedException {
-        log.info("=== 测试指令重排序 ===");
+        log.info("===_测试指令重排序_===|Log_message");
 
         final int loops = 100000;
         AtomicInteger reorderCount = new AtomicInteger(0);
@@ -276,9 +276,9 @@ public class JMMTest {
         pool.shutdownNow();
 
         int found = reorderCount.get();
-        log.info("[重排序统计] 在 {} 次尝试中，共观察到 r1==0 && r2==0 的次数 = {}", loops, found);
+        log.info("[重排序统计]_在_{}_次尝试中，共观察到_r1==0_&&_r2==0_的次数_=_{}", loops, found);
 
         assertTrue(found > 0, "应观察到由重排序导致的异常结果");
-        log.info("[结论] 观察到可能由重排序或可见性导致的异常结果。使用 volatile/synchronized 可作为内存屏障避免此类现象。");
+        log.info("[结论]_观察到可能由重排序或可见性导致的异常结果。使用_volatile/synchronized_可作为内存屏障避免此类现象。");
     }
 }

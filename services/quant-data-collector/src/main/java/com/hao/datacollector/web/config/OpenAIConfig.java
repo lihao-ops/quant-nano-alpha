@@ -28,7 +28,7 @@ public class OpenAIConfig {
 
         Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
 
-        log.info("🔧 Initializing OpenAI Client (Proxy: {}:{})", proxyHost, proxyPort);
+        log.info("日志记录|Log_message,_Initializing_OpenAI_Client_(Proxy:_{}:{})", proxyHost, proxyPort);
 
         return OpenAIOkHttpClient.builder()
                 .proxy(proxy)

@@ -8,6 +8,8 @@ import com.hao.datacollector.common.utils.HttpUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +21,24 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * 热门主题响应模型
+ *
+ * 职责：承载热门主题接口返回的字段结构。
+ *
+ * 设计目的：
+ * 1. 统一JSON字段与Java字段映射关系。
+ * 2. 作为解析与持久化的中间载体。
+ *
+ * 为什么需要该类：
+ * - 主题接口字段复杂，需要集中定义模型。
+ *
+ * 核心实现思路：
+ * - 通过Jackson注解完成字段映射，并使用Lombok生成访问方法。
+ *
  * @author Hao Li
  * @program: DataShareService
  * @Date 2025-07-17 17:54:34
- * @description:
+ * @description: 热门主题响应模型
  */
 @Data
 @Schema(description = "热门主题响应DTO")
@@ -114,6 +130,21 @@ class HotTopicResponse {
     private Double t;
 }
 
+/**
+ * 主题分类表模型
+ *
+ * 职责：描述主题下的分类层级结构。
+ *
+ * 设计目的：
+ * 1. 统一Level1/Level2层级表达。
+ * 2. 便于分类遍历与后续落库。
+ *
+ * 为什么需要该类：
+ * - 主题接口返回嵌套分类，需要独立模型承载。
+ *
+ * 核心实现思路：
+ * - 使用嵌套对象表示层级关系。
+ */
 @Data
 @Schema(description = "主题分类表DTO")
 class TopicTable {
@@ -126,6 +157,21 @@ class TopicTable {
     private List<CategoryLevel> level2;
 }
 
+/**
+ * 分类层级模型
+ *
+ * 职责：承载一级或二级分类的基础信息与股票列表。
+ *
+ * 设计目的：
+ * 1. 统一分类字段结构。
+ * 2. 支持分类下股票清单的解析。
+ *
+ * 为什么需要该类：
+ * - 分类层级包含多字段，需要集中封装。
+ *
+ * 核心实现思路：
+ * - 按JSON字段映射并嵌套股票列表。
+ */
 @Data
 @Schema(description = "分类级别DTO")
 class CategoryLevel {
@@ -150,6 +196,21 @@ class CategoryLevel {
     private Integer isNew;
 }
 
+/**
+ * 股票详情模型
+ *
+ * 职责：承载主题分类下单只股票的细节信息。
+ *
+ * 设计目的：
+ * 1. 统一股票ID、热度与原因等字段。
+ * 2. 便于输出与持久化处理。
+ *
+ * 为什么需要该类：
+ * - 股票细节字段多且与分类绑定，需要模型化。
+ *
+ * 核心实现思路：
+ * - 使用Jackson注解映射接口字段。
+ */
 @Data
 @Schema(description = "股票详情DTO")
 class StockDetail {
@@ -182,6 +243,21 @@ class StockDetail {
     private Integer hot;
 }
 
+/**
+ * 股票信息模型
+ *
+ * 职责：承载主题下股票列表的基础信息与标签。
+ *
+ * 设计目的：
+ * 1. 统一股票ID、名称、热度字段。
+ * 2. 支持标签列表的嵌套解析。
+ *
+ * 为什么需要该类：
+ * - 股票列表与标签结构复杂，需要独立模型。
+ *
+ * 核心实现思路：
+ * - 使用嵌套列表表达标签关系。
+ */
 @Data
 @Schema(description = "股票信息DTO")
 class StockInfo {
@@ -202,6 +278,21 @@ class StockInfo {
     private Integer hotNum;
 }
 
+/**
+ * 股票标签模型
+ *
+ * 职责：承载股票的标签与原因说明。
+ *
+ * 设计目的：
+ * 1. 统一标签字段结构。
+ * 2. 便于展示与分析标签原因。
+ *
+ * 为什么需要该类：
+ * - 标签是股票信息的关键补充，需要结构化表示。
+ *
+ * 核心实现思路：
+ * - 通过字段映射保持与接口一致。
+ */
 @Data
 @Schema(description = "股票标签DTO")
 class StockTag {
@@ -218,13 +309,32 @@ class StockTag {
     private String reason;
 }
 
-// 测试类
-class test {
+/**
+ * 热门主题响应解析测试
+ *
+ * 测试目的：
+ * 1. 验证主题接口响应解析是否成功。
+ * 2. 验证分类与股票列表字段的完整性。
+ *
+ * 设计思路：
+ * - 调用远程接口并对结果做结构化解析与输出。
+ */
+class HotTopicResponseTest {
+    private static final Logger LOG = LoggerFactory.getLogger(HotTopicResponseTest.class);
     public static final ObjectMapper objectMapper = new ObjectMapper();
     private static final String URL = "https://applhb.longhuvip.com/w1/api/index.php";
 
+    /**
+     * 主题接口请求解析测试
+     *
+     * 实现逻辑：
+     * 1. 循环请求主题接口。
+     * 2. 判断响应是否包含有效业务数据。
+     * 3. 解析并输出关键字段。
+     */
     @Test
     void getRequest() {
+        // 实现思路：按ID遍历请求并解析响应结构
         for (int id = 1; id <= 1000; id++) {
             try {
                 HttpHeaders headers = new HttpHeaders();
@@ -262,31 +372,53 @@ class test {
                                 !root.has("ID");
 
                         if (noData) {
-                            System.out.printf("ID=%d 响应成功但无业务数据，跳过%n", id);
+                            LOG.info("主题响应为空|Topic_response_empty,id={}", id);
                             continue;
                         }
                         // 有效数据才处理
-                        System.out.printf("ID=%d 响应成功，有效数据，响应长度=%d%n", id, result.length());
+                        LOG.info("主题响应成功|Topic_response_success,id={},length={}", id, result.length());
                         getData(response.getBody());
                         // 你可以在此处存库
                         // ThemeInfo info = ...
                         // repository.save(info);
                     }
                 } else {
-                    System.out.printf("ID=%d 响应失败，状态码=%s%n", id, response.getStatusCode());
+                    LOG.warn("主题响应失败|Topic_response_failed,id={},status={}", id, response.getStatusCode());
                 }
                 Thread.sleep(300); // 建议限速防止被ban
             } catch (Exception e) {
-                System.err.printf("请求ID=%d失败: %s%n", id, e.getMessage());
+                LOG.error("主题请求异常|Topic_request_error,id={},error={}", id, e.getMessage(), e);
             }
         }
     }
 
+    /**
+     * 判断指定字段是否为空数组
+     *
+     * 实现逻辑：
+     * 1. 校验字段存在且为数组类型。
+     * 2. 判断数组长度是否为0。
+     *
+     * @param node  JSON节点
+     * @param field 字段名
+     * @return 是否为空数组
+     */
     private static boolean isEmptyArray(JsonNode node, String field) {
+        // 实现思路：判断字段存在且数组长度为0
         return node.has(field) && node.get(field).isArray() && node.get(field).size() == 0;
     }
 
+    /**
+     * 解析响应并输出核心字段
+     *
+     * 实现逻辑：
+     * 1. 反序列化JSON为响应对象。
+     * 2. 输出主题、分类与股票列表摘要。
+     *
+     * @param jsonData JSON字符串
+     */
     public static void getData(String jsonData) {
+        // 实现思路：解析响应并输出关键字段摘要
         if (!StringUtils.hasLength(jsonData)) {
             jsonData = "{\n" +
                     "\t\"ID\": \"22\",\n" +
@@ -725,28 +857,28 @@ class test {
             HotTopicResponse response = objectMapper.readValue(jsonData, HotTopicResponse.class);
 
             // 验证基本信息
-            System.out.println("主题ID: " + response.getId());
-            System.out.println("主题名称: " + response.getName());
-            System.out.println("简介: " + response.getBriefIntro());
-            System.out.println("点赞数: " + response.getGoodNum());
-            System.out.println("评论数: " + response.getComNum());
+            LOG.info("主题ID|Topic_id,id={}", response.getId());
+            LOG.info("主题名称|Topic_name,name={}", response.getName());
+            LOG.info("主题简介|Topic_intro,intro={}", response.getBriefIntro());
+            LOG.info("点赞数|Like_count,count={}", response.getGoodNum());
+            LOG.info("评论数|Comment_count,count={}", response.getComNum());
 
             // 验证分类表信息
             if (response.getTable() != null && !response.getTable().isEmpty()) {
-                System.out.println("\n分类信息:");
+                LOG.info("分类信息开始|Category_info_start");
                 for (TopicTable table : response.getTable()) {
                     CategoryLevel level1 = table.getLevel1();
-                    System.out.println("一级分类: " + level1.getName() + " (ID: " + level1.getId() + ")");
+                    LOG.info("一级分类|Category_level1,name={},id={}", level1.getName(), level1.getId());
 
                     if (table.getLevel2() != null) {
                         for (CategoryLevel level2 : table.getLevel2()) {
-                            System.out.println("  二级分类: " + level2.getName() + " (ID: " + level2.getId() + ")");
+                            LOG.info("二级分类|Category_level2,name={},id={}", level2.getName(), level2.getId());
 
                             if (level2.getStocks() != null) {
                                 for (StockDetail stock : level2.getStocks()) {
-                                    System.out.println("    股票: " + stock.getProdName() + " (" + stock.getStockId() + ")");
-                                    System.out.println("    热度: " + stock.getHot());
-                                    System.out.println("    原因: " + stock.getReason());
+                                    LOG.info("股票明细|Stock_detail,name={},id={}", stock.getProdName(), stock.getStockId());
+                                    LOG.info("股票热度|Stock_hot,hot={}", stock.getHot());
+                                    LOG.info("入选原因|Select_reason,reason={}", stock.getReason());
                                 }
                             }
                         }
@@ -755,8 +887,8 @@ class test {
                     // 处理一级分类直接包含的股票
                     if (level1.getStocks() != null) {
                         for (StockDetail stock : level1.getStocks()) {
-                            System.out.println("  股票: " + stock.getProdName() + " (" + stock.getStockId() + ")");
-                            System.out.println("  热度: " + stock.getHot());
+                            LOG.info("股票明细|Stock_detail,name={},id={}", stock.getProdName(), stock.getStockId());
+                            LOG.info("股票热度|Stock_hot,hot={}", stock.getHot());
                         }
                     }
                 }
@@ -764,24 +896,23 @@ class test {
 
             // 验证股票列表
             if (response.getStockList() != null && !response.getStockList().isEmpty()) {
-                System.out.println("\n股票列表:");
+                LOG.info("股票列表开始|Stock_list_start");
                 for (StockInfo stock : response.getStockList()) {
-                    System.out.println("股票: " + stock.getProdName() + " (" + stock.getStockId() + ")");
-                    System.out.println("热度: " + stock.getHotNum());
+                    LOG.info("股票列表项|Stock_item,name={},id={}", stock.getProdName(), stock.getStockId());
+                    LOG.info("股票热度|Stock_hot,hot={}", stock.getHotNum());
 
                     if (stock.getTag() != null) {
                         for (StockTag tag : stock.getTag()) {
-                            System.out.println("  标签: " + tag.getName() + " - " + tag.getReason());
+                            LOG.info("标签信息|Tag_info,name={},reason={}", tag.getName(), tag.getReason());
                         }
                     }
                 }
             }
 
-            System.out.println("\n解析成功！");
+            LOG.info("解析成功|Parse_success");
 
         } catch (Exception e) {
-            System.err.println("JSON解析失败: " + e.getMessage());
-            e.printStackTrace();
+            LOG.error("JSON解析失败|Json_parse_failed,error={}", e.getMessage(), e);
         }
     }
 }

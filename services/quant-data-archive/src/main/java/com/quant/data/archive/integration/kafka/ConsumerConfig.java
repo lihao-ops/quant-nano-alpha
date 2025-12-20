@@ -25,7 +25,7 @@ public class ConsumerConfig {
         props.put(org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG, KafkaConstants.GROUP_DATA_ARCHIVE);
         props.put(org.apache.kafka.clients.consumer.ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(org.apache.kafka.clients.consumer.ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        props.put(org.apache.kafka.clients.consumer.ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false); // ⚠️ 关闭自动提交
+        props.put(org.apache.kafka.clients.consumer.ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false); //  关闭自动提交
         return new DefaultKafkaConsumerFactory<>(props);
     }
 
@@ -36,7 +36,7 @@ public class ConsumerConfig {
         factory.setConsumerFactory(consumerFactory());
         factory.getContainerProperties().setAckMode(
                 org.springframework.kafka.listener.ContainerProperties.AckMode.MANUAL_IMMEDIATE
-        ); // ⚠️ 设置手动提交模式
+        ); //  设置手动提交模式
         return factory;
     }
 }

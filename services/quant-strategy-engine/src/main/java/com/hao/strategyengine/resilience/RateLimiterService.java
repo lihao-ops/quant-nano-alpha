@@ -71,7 +71,7 @@ public class RateLimiterService {
         rateLimitScript = new DefaultRedisScript<>();
         rateLimitScript.setScriptText(LUA_SCRIPT);
         rateLimitScript.setResultType(Long.class);
-        log.info("RateLimiterService 初始化完成: distributedEnabled={}, defaultWindow={}s", distributedEnabled,
+        log.info("RateLimiterService_初始化完成:_distributedEnabled={},_defaultWindow={}s", distributedEnabled,
                 defaultWindow.getSeconds());
     }
 
@@ -127,7 +127,7 @@ public class RateLimiterService {
             if (distributedPass != null) {
                 return distributedPass;
             }
-            log.warn("分布式限流执行异常，降级到本地限流: key={} permits={} limit={} window={}", redisKey, permits, limitPerWindow,
+            log.warn("分布式限流执行异常，降级到本地限流:_key={}_permits={}_limit={}_window={}", redisKey, permits, limitPerWindow,
                     targetWindow);
         }
         return tryAcquireLocal(redisKey, permits, limitPerWindow, targetWindow);
@@ -149,7 +149,7 @@ public class RateLimiterService {
             return existing;
         });
         if (limiter != null) {
-            log.info("更新本地限流器: key={} rate={}", redisKey, limiter.getRate());
+            log.info("更新本地限流器:_key={}_rate={}", redisKey, limiter.getRate());
         }
     }
 
@@ -159,7 +159,7 @@ public class RateLimiterService {
     public void removeLocalLimiter(String keySuffix) {
         String redisKey = buildKey(keySuffix);
         localLimiters.remove(redisKey);
-        log.info("移除本地限流器: key={}", redisKey);
+        log.info("移除本地限流器:_key={}", redisKey);
     }
 
     /**
@@ -182,7 +182,7 @@ public class RateLimiterService {
             );
             return Long.valueOf(1).equals(result);
         } catch (Exception ex) {
-            log.error("分布式限流执行失败: key={} permits={} limit={} window={}", redisKey, permits, limitPerWindow, window, ex);
+            log.error("分布式限流执行失败:_key={}_permits={}_limit={}_window={}", redisKey, permits, limitPerWindow, window, ex);
             return null;
         }
     }
@@ -200,7 +200,7 @@ public class RateLimiterService {
         });
         boolean acquired = limiter.tryAcquire(permits, 100, TimeUnit.MILLISECONDS);
         if (!acquired) {
-            log.debug("本地限流拒绝: key={} permits={} rate={}pps", redisKey, permits, limiter.getRate());
+            log.debug("本地限流拒绝:_key={}_permits={}_rate={}pps", redisKey, permits, limiter.getRate());
         }
         return acquired;
     }

@@ -106,7 +106,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     public Boolean transferAnnouncement(String windCode, String startDate, String endDate, Integer pageNo, Integer pageSize) {
         List<AnnouncementVO> announcementVOList = getAnnouncementSourceData(windCode, startDate, endDate, pageNo, pageSize);
         if (announcementVOList.isEmpty()) {
-            log.error("transferAnnouncement_announcementVOList.isEmpty()!windCode={}", windCode);
+            log.warn("日志记录|Log_message,transferAnnouncement_announcementVOList.isEmpty()!windCode={}", windCode);
             return false;
         }
         // 批量转换日期格式
@@ -175,7 +175,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     public Boolean transferEvent(String windCode, String startDate, String endDate, Integer pageNo, Integer pageSize) {
         List<BigEventVO> eventSourceList = getEventSourceData(windCode, startDate, endDate, pageNo, pageSize);
         if (eventSourceList == null || eventSourceList.isEmpty()) {
-            log.error("transferEvent_eventSourceList.isEmpty()!windCode={}", windCode);
+            log.warn("日志记录|Log_message,transferEvent_eventSourceList.isEmpty()!windCode={}", windCode);
             return false;
         }
         // 调用 Mapper 批量写入事件数据

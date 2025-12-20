@@ -89,7 +89,7 @@ public class JobLogReportHelper {
 
                     } catch (Throwable e) {
                         if (!toStop) {
-                            logger.error(">>>>>>>>>>> xxl-job, job log report thread error:{}", e);
+                            logger.error("日志记录|Log_message,>>>>>>>>>>>_xxl-job,_job_log_report_thread_error:{}", e);
                         }
                     }
 
@@ -123,13 +123,13 @@ public class JobLogReportHelper {
                         TimeUnit.MINUTES.sleep(1);
                     } catch (Throwable e) {
                         if (!toStop) {
-                            logger.error(e.getMessage(), e);
+                            logger.error("日志记录|Log_message,exception={}", e.getMessage(), e);
                         }
                     }
 
                 }
 
-                logger.info(">>>>>>>>>>> xxl-job, job log report thread stop");
+                logger.info("日志记录|Log_message,>>>>>>>>>>>_xxl-job,_job_log_report_thread_stop");
 
             }
         });
@@ -145,7 +145,7 @@ public class JobLogReportHelper {
         try {
             logrThread.join();
         } catch (Throwable e) {
-            logger.error(e.getMessage(), e);
+            logger.error("日志记录|Log_message,exception={}", e.getMessage(), e);
         }
     }
 

@@ -36,7 +36,7 @@ class QuotationServiceTest {
         allWindCodeList.removeAll(endWindCodeList);
         for (String windCode : allWindCodeList) {
             Boolean transferResult = quotationService.transferQuotationBaseByStock(windCode, startDate, endDate);
-            log.info("transferQuotationBaseByStock_result={},windCode={},startDate={},endDate={}", transferResult, windCode, startDate, endDate);
+            log.info("日志记录|Log_message,transferQuotationBaseByStock_result={},windCode={},startDate={},endDate={}", transferResult, windCode, startDate, endDate);
         }
     }
 
@@ -55,7 +55,7 @@ class QuotationServiceTest {
                     .filter(code -> !completedWindCodes.contains(code))
                     .collect(Collectors.toList());
             if (!needFillBack.isEmpty()) {
-                log.info("补偿转档 {} 日期未完成的 {} 个 windCode", maxEndDate, needFillBack.size());
+                log.info("补偿转档_{}_日期未完成的_{}_个_windCode", maxEndDate, needFillBack.size());
                 List<String> needFillBackTradeDateList = new ArrayList<>();
                 needFillBackTradeDateList.add(maxEndDate);
                 transferOneDay(needFillBackTradeDateList, needFillBack, batchSize);
@@ -73,7 +73,7 @@ class QuotationServiceTest {
                 List<String> subList = windCodes.subList(i, Math.min(i + batchSize, totalSize));
                 String windCodeStr = String.join(",", subList);
                 Boolean transferResult = quotationService.transferQuotationHistoryTrend(Integer.parseInt(tradeDate), windCodeStr, 0);
-                log.info("transferQuotationHistoryTrend_result={}, tradeDate={}, windCodes={}", transferResult, tradeDate, windCodeStr);
+                log.info("日志记录|Log_message,transferQuotationHistoryTrend_result={},_tradeDate={},_windCodes={}", transferResult, tradeDate, windCodeStr);
             }
         }
     }
@@ -100,7 +100,7 @@ class QuotationServiceTest {
                     .filter(code -> !completedWindCodes.contains(code))
                     .collect(Collectors.toList());
             if (!needFillBack.isEmpty()) {
-                log.info("补偿转档 {} 日期未完成的 {} 个 windCode", maxEndDate, needFillBack.size());
+                log.info("补偿转档_{}_日期未完成的_{}_个_windCode", maxEndDate, needFillBack.size());
                 List<String> needFillBackTradeDateList = new ArrayList<>();
                 needFillBackTradeDateList.add(maxEndDate);
                 transferOneDayMarketIndex(needFillBackTradeDateList, needFillBack, batchSize);
@@ -115,14 +115,14 @@ class QuotationServiceTest {
         int totalSize = windCodes.size();
         for (String tradeDate : yearTradeDateList) {
             if (tradeDate.contains("2026")) {
-                log.error("out!,tradeDate={}", tradeDate);
+                log.error("日志记录|Log_message,out!,tradeDate={}", tradeDate);
                 throw new RuntimeException("2026!!!!");
             }
             for (int i = 0; i < totalSize; i += batchSize) {
                 List<String> subList = windCodes.subList(i, Math.min(i + batchSize, totalSize));
                 String windCodeStr = String.join(",", subList);
                 Boolean transferResult = quotationService.transferQuotationIndexHistoryTrend(Integer.parseInt(tradeDate), windCodeStr, 0);
-                log.info("transferQuotationHistoryTrend_result={}, tradeDate={}, windCodes={}", transferResult, tradeDate, windCodeStr);
+                log.info("日志记录|Log_message,transferQuotationHistoryTrend_result={},_tradeDate={},_windCodes={}", transferResult, tradeDate, windCodeStr);
             }
         }
     }
@@ -132,6 +132,6 @@ class QuotationServiceTest {
     public void getHistoryTrendDataByStockList() {
 //        List<String> allWindCodeList = new ArrayList<>(StockCache.allWindCode);
 //        List<HistoryTrendDTO> trendDTOS = quotationMapper.selectByWindCodeListAndDate("tb_quotation_history_trend_202508", "20250801", "20250802", allWindCodeList);
-//        log.info("trendDTOS={}", trendDTOS.size());
+//        log.info("日志记录|Log_message,trendDTOS={}", trendDTOS.size());
     }
 }

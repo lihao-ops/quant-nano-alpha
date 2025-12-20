@@ -39,7 +39,7 @@ public class StablePicksLockManager {
         try {
             boolean locked = lock.tryLock(waitTime.toMillis(), leaseTime.toMillis(), TimeUnit.MILLISECONDS);
             if (!locked) {
-                log.warn("获取缓存锁失败: {}", lockKey);
+                log.warn("获取缓存锁失败|Cache_lock_acquire_failed,lockKey={}", lockKey);
                 return fallback.get();
             }
             return supplier.get();

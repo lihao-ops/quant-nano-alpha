@@ -3,28 +3,35 @@ package com.xxl.job.admin.config;
 import com.xxl.job.admin.core.alarm.JobAlarm;
 import com.xxl.job.admin.core.model.XxlJobInfo;
 import com.xxl.job.admin.core.model.XxlJobLog;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-//默认提供邮件失败告警，可扩展短信、钉钉等方式。如果需要新增一种告警方式，只需要新增一个实现 “com.xxl.job.admin.core.alarm.JobAlarm” 接口的告警实现即可。可以参考默认提供邮箱告警实现 “EmailJobAlarm”。
-
 /**
- * 首选：钉钉 / 飞书 / 企业微信机器人
- * 👍 优点：
- * 秒级推送，不丢消息
+ * 任务告警适配器，默认承接调度失败事件，可扩展短信、邮件与机器人通知。
  *
- * 支持图文格式、链接跳转，适合展示“股票名 + 买/卖建议 + K线链接”
+ * 设计目的：
+ * 1. 统一调度失败告警入口，屏蔽不同通知渠道差异。
+ * 2. 保留扩展点，便于引入钉钉/飞书/企业微信机器人推送。
  *
- * 多终端同步（手机+PC）
+ * 为什么需要该类：
+ * - 调度失败涉及多种通知渠道，需要统一接口与落地入口。
  *
- * 免费，无限条
+ * 实现思路：
+ * - 通过实现 JobAlarm 接口暴露统一告警方法。
+ * - 在告警方法中汇总任务描述与失败信息，再交由具体渠道发送。
+ *
+ * 机器人告警建议：
+ * 1. 支持秒级推送与多终端同步，降低消息丢失概率。
+ * 2. 支持图文格式与链接跳转，适合展示股票名、买卖建议与K线链接。
  *
  * 示例消息：
- * 🛎️ 股票提醒
+ * 股票提醒
  * 股票：$贵州茅台(SH600519)$
  * 当前价格：1730.50
  * 推荐操作：买入
  * 技术信号：5日均线上穿10日均线
  */
+@Slf4j
 @Component  // 确保能被 Spring 扫描
 public class JobAlarmConfig implements JobAlarm {
 
@@ -37,9 +44,9 @@ public class JobAlarmConfig implements JobAlarm {
      */
     @Override
     public boolean doAlarm(XxlJobInfo info, XxlJobLog jobLog) {
-        System.out.println("告警触发！");
-        System.out.println("任务名称: " + info.getJobDesc());
-        System.out.println("失败信息: " + jobLog.getHandleMsg());
+        log.info("告警触发|Alarm_triggered,jobId={},jobDesc={}", info.getId(), info.getJobDesc());
+        log.warn("告警失败信息|Alarm_fail_msg,jobId={},handleMsg={}", info.getId(), jobLog.getHandleMsg());
         return true; // 告警成功
     }
 }
+

@@ -4,6 +4,8 @@ package com.hao.datacollector.common.utils;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.*;
@@ -37,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 // 定义IdGeneratorUtilTest测试类
 class IdGeneratorUtilTest {
+    private static final Logger LOG = LoggerFactory.getLogger(IdGeneratorUtilTest.class);
 
     /**
      * 测试单线程下生成的ID是否唯一和递增
@@ -59,6 +62,7 @@ class IdGeneratorUtilTest {
     @Test
     // 定义测试单线程ID唯一性的方法
     public void testIdUniqueness() {
+        // 实现思路：单线程生成ID并验证唯一性与递增性
         // 定义需要生成的ID数量
         final int COUNT = 10000;
         // 创建一个HashSet用于存储生成的ID，用于验证唯一性
@@ -115,6 +119,7 @@ class IdGeneratorUtilTest {
     @Test
     // 定义测试并发ID唯一性的方法，声明可能抛出InterruptedException异常
     public void testConcurrentIdUniqueness() throws InterruptedException {
+        // 实现思路：多线程并发生成ID并验证唯一性
         // 定义并发测试的线程数量
         final int THREAD_COUNT = 50;
         // 定义每个线程生成的ID数量
@@ -174,17 +179,17 @@ class IdGeneratorUtilTest {
     @Test
     // 定义测试ID结构的方法
     public void testIdStructure() {
+        // 实现思路：生成ID并输出十进制与二进制以便人工核对
         // 调用IdGeneratorUtil.nextId()方法生成一个ID
         long id = IdGeneratorUtil.nextId();
         // 断言生成的ID大于0
         assertTrue(id > 0, "生成的ID不是正数");
         // 检查ID的位数不超过63位(不包括符号位)
-        // assertTrue(id < (1L << 63), "ID超出了63位的范围"); // Incorrect assertion
+        // assertTrue(id < (1L << 63), "ID超出了63位的范围"); // 错误断言示例
         // 注释掉的错误断言，雪花算法ID是64位，最高位是符号位，通常为0表示正数，所以ID会小于2^63
-        // 打印生成的ID的十进制形式
-        System.out.println("ID: " + id);
-        // 打印生成的ID的二进制形式，用于人工检查其结构是否符合雪花算法定义
-        System.out.println("Binary: " + Long.toBinaryString(id));
+        LOG.info("ID结构验证输出|Id_structure_output,id={}", id);
+        // 输出二进制形式，便于人工检查位分布
+        LOG.info("ID结构二进制输出|Id_structure_binary_output,binary={}", Long.toBinaryString(id));
     }
 
     /**
@@ -205,6 +210,7 @@ class IdGeneratorUtilTest {
     @Test
     // 定义测试字符串形式ID生成的方法
     public void testStringIdGeneration() {
+        // 实现思路：验证字符串ID可解析且为正数
         // 调用IdGeneratorUtil.nextIdStr()方法生成字符串形式的ID
         String idStr = IdGeneratorUtil.nextIdStr();
         // 断言生成的字符串对象不为null
@@ -239,6 +245,7 @@ class IdGeneratorUtilTest {
     @Test
     // 定义测试ID生成性能的方法
     public void testPerformance() {
+        // 实现思路：统计批量生成ID耗时与吞吐
         // 定义性能测试中需要生成的ID数量
         final int COUNT = 1000000;
 
@@ -253,10 +260,8 @@ class IdGeneratorUtilTest {
         long endTime = System.currentTimeMillis();
         // 计算总耗时（毫秒）
         long duration = endTime - startTime;
-        // 打印总耗时
-        System.out.println("生成 " + COUNT + " 个ID耗时: " + duration + " 毫秒");
-        // 计算并打印平均每秒生成的ID数量
-        System.out.println("平均每秒生成ID数: " + (COUNT * 1000L / duration));
+        LOG.info("ID生成耗时统计|Id_generation_duration,totalCount={},durationMs={}", COUNT, duration);
+        LOG.info("ID生成吞吐统计|Id_generation_throughput,qps={}", (COUNT * 1000L / duration));
         // 断言平均每秒生成ID数大于100000，验证性能是否达标
         assertTrue((COUNT * 1000L / duration) > 100000, "ID生成性能不达标");
     }
@@ -275,6 +280,7 @@ class IdGeneratorUtilTest {
      */
     @Test
     public void testMillionIdUniqueness() {
+        // 实现思路：批量生成一百万ID并验证无重复
         // 定义需要生成的ID数量：一百万
         final int COUNT = 1000000;
         // 创建一个HashSet用于存储生成的ID，用于验证唯一性

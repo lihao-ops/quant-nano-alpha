@@ -41,7 +41,7 @@ public class StrategyResultEventListener {
             return;
         }
         try {
-            log.info("接收策略结果事件: {}", event);
+            log.info("接收策略结果事件|Receive_strategy_event,event={}", event);
             bloomFilter.addTradeDate(event.getTradeDate());
             String dateKey = DATE_FORMAT.format(event.getTradeDate());
             String dailyPattern = "stable:picks:daily:" + dateKey + "*";
@@ -64,6 +64,6 @@ public class StrategyResultEventListener {
             return;
         }
         keys.forEach(cacheRepository::evict);
-        log.info("批量清理缓存,pattern={}, size={}", pattern, keys.size());
+        log.info("批量清理缓存|Batch_cache_evict,pattern={},size={}", pattern, keys.size());
     }
 }

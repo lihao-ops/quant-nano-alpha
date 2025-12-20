@@ -1,6 +1,8 @@
 package com.hao.datacollector.report.mysql;
 
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -12,8 +14,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 行情历史表结构压测对比测试
+ *
+ * 测试目的：
+ * 1. 对比老表UNION与新表分区查询性能差异。
+ * 2. 校验新老表查询结果的一致性。
+ *
+ * 设计思路：
+ * - 先进行预热再执行多轮查询，降低缓存抖动。
+ */
 @SpringBootTest
 public class QuotationBenchmarkTest {
+    private static final Logger LOG = LoggerFactory.getLogger(QuotationBenchmarkTest.class);
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -27,13 +40,20 @@ public class QuotationBenchmarkTest {
     private final int WARMUP_CYCLES = 5;
     private final int TEST_CYCLES = 10;
 
+    /**
+     * 跨月范围查询压测
+     *
+     * 实现逻辑：
+     * 1. 生成新老表SQL并校验结果一致性。
+     * 2. 执行多轮压测并计算平均耗时。
+     * 3. 输出最终性能对比结论。
+     */
     @Test
     public void benchmarkCrossMonthQuery() {
-        System.out.println("=======================================================");
-        System.out.println("🔥 开始性能对比压测：跨月范围查询 (Range Select)");
-        System.out.println("📅 时间范围: " + START_DATE + " 至 " + END_DATE);
-        System.out.println("🎯 目标股票: " + STOCK_CODE);
-        System.out.println("=======================================================\n");
+        // 实现思路：统一生成SQL并对比新老表性能与结果一致性
+        LOG.info("压测开始|Benchmark_start");
+        LOG.info("压测范围|Benchmark_range,startDate={},endDate={}", START_DATE, END_DATE);
+        LOG.info("目标股票|Target_stock,stockCode={}", STOCK_CODE);
 
         // 1. 构造 SQL
         String oldTableSql = generateOldTableUnionSql();
@@ -44,9 +64,9 @@ public class QuotationBenchmarkTest {
         int newCount = verifyAndCount(newTableSql, "新表模式");
 
         if (oldCount != newCount) {
-            System.err.println("❌ 警告：新老表查询结果行数不一致！请检查数据迁移完整性。");
+            LOG.warn("数据一致性校验失败|Data_consistency_failed,oldCount={},newCount={}", oldCount, newCount);
         } else {
-            System.out.println("✅ 数据一致性校验通过，行数: " + newCount + "\n");
+            LOG.info("数据一致性校验通过|Data_consistency_pass,count={}", newCount);
         }
 
         // 3. 运行压测
@@ -58,9 +78,14 @@ public class QuotationBenchmarkTest {
     }
 
     /**
-     * 生成新表 SQL (极其简洁)
+     * 生成新表SQL
+     *
+     * 实现逻辑：
+     * 1. 使用分区主表与时间范围过滤。
+     * 2. 保持SQL简洁以体现结构优势。
      */
     private String generateNewTableSql() {
+        // 实现思路：使用单表查询并走分区裁剪
         return String.format(
             "SELECT * FROM tb_quotation_history_hot " +
             "WHERE wind_code = '%s' " +
@@ -70,10 +95,14 @@ public class QuotationBenchmarkTest {
     }
 
     /**
-     * 生成老表 SQL (模拟应用层的 UNION ALL 拼接噩梦)
-     * 这里的逻辑是模拟 Java 代码动态计算月份并拼接 SQL
+     * 生成老表SQL
+     *
+     * 实现逻辑：
+     * 1. 根据月份拆分表名。
+     * 2. 使用UNION ALL拼接成完整查询。
      */
     private String generateOldTableUnionSql() {
+        // 实现思路：模拟业务层动态拼接分表SQL
         // 模拟业务逻辑：计算出涉及 202401, 202402, 202403 三张表
         String[] tables = {
             "tb_quotation_history_trend_202401",
@@ -97,39 +126,56 @@ public class QuotationBenchmarkTest {
 
     /**
      * 执行压测核心逻辑
+     *
+     * 实现逻辑：
+     * 1. 先进行预热以消除冷启动抖动。
+     * 2. 执行多轮查询并统计耗时。
+     * 3. 计算平均耗时作为结果。
+     *
+     * @param scenarioName 场景名称
+     * @param sql          执行SQL
+     * @return 平均耗时
      */
     private long runBenchmark(String scenarioName, String sql) {
-        System.out.println("🚀 开始压测场景: " + scenarioName);
-        
+        // 实现思路：预热后多轮执行计算平均耗时
+        LOG.info("压测场景开始|Benchmark_scenario_start,scenario={}", scenarioName);
         // 预热 (Warmup) - 让数据库加载索引页到内存，消除冷启动差异
-        System.out.print("   正在预热...");
+        LOG.info("压测预热开始|Benchmark_warmup_start,cycle={}", WARMUP_CYCLES);
         for (int i = 0; i < WARMUP_CYCLES; i++) {
             jdbcTemplate.query(sql, (rs) -> {});
         }
-        System.out.println("完成");
+        LOG.info("压测预热完成|Benchmark_warmup_done");
 
         // 正式测试
         List<Long> costs = new ArrayList<>();
-        System.out.print("   正在执行 " + TEST_CYCLES + " 次查询...");
-        
+        LOG.info("压测执行开始|Benchmark_execution_start,cycle={}", TEST_CYCLES);
         for (int i = 0; i < TEST_CYCLES; i++) {
             long start = System.nanoTime();
             jdbcTemplate.query(sql, (rs) -> {}); // 执行查询并遍历结果集
             long end = System.nanoTime();
             costs.add(TimeUnit.NANOSECONDS.toMillis(end - start));
-            System.out.print(".");
         }
-        System.out.println();
+        LOG.info("压测执行完成|Benchmark_execution_done");
 
         // 计算平均耗时
         double avgTime = costs.stream().mapToLong(Long::longValue).average().orElse(0.0);
-        System.out.printf("   ⏱️ 平均耗时: %.2f ms%n", avgTime);
-        System.out.println("-------------------------------------------------------");
-        
+        LOG.info("压测平均耗时|Benchmark_avg_cost_ms,avgMs={}", avgTime);
         return (long) avgTime;
     }
 
+    /**
+     * 执行SQL并统计行数
+     *
+     * 实现逻辑：
+     * 1. 执行查询并遍历结果。
+     * 2. 返回行数用于一致性校验。
+     *
+     * @param sql  SQL语句
+     * @param name 场景名称
+     * @return 行数
+     */
     private int verifyAndCount(String sql, String name) {
+        // 实现思路：遍历结果集计数并在异常时记录日志
         try {
             List<Integer> rows = jdbcTemplate.query(sql, new RowMapper<Integer>() {
                 @Override
@@ -139,25 +185,32 @@ public class QuotationBenchmarkTest {
             });
             return rows.size();
         } catch (Exception e) {
-            System.err.println("❌ " + name + " SQL 执行失败: " + e.getMessage());
+            LOG.error("SQL执行失败|Sql_execute_failed,scenario={},error={}", name, e.getMessage(), e);
             return -1;
         }
     }
     
+    /**
+     * 输出压测结论
+     *
+     * 实现逻辑：
+     * 1. 输出新老表平均耗时。
+     * 2. 根据差异输出结论评价。
+     *
+     * @param oldTime 老表平均耗时
+     * @param newTime 新表平均耗时
+     */
     private void printConclusion(long oldTime, long newTime) {
-        System.out.println("\n🏆 === 最终对比结论 ===");
-        System.out.println("老表架构耗时: " + oldTime + " ms");
-        System.out.println("新表架构耗时: " + newTime + " ms");
-        
+        // 实现思路：根据耗时差异输出结论信息
+        LOG.info("压测结论输出|Benchmark_conclusion_output,oldMs={},newMs={}", oldTime, newTime);
         if (newTime < oldTime) {
             double improvement = ((double)(oldTime - newTime) / oldTime) * 100;
-            System.out.printf("🚀 性能提升: %.2f%%%n", improvement);
-            System.out.println("🌟 评价: 分区表架构不仅简化了代码，还带来了显著的性能优势！");
+            LOG.info("性能提升|Performance_improvement,percent={}", improvement);
+            LOG.info("结论评价|Conclusion_comment,comment=分区表架构带来性能优势");
         } else if (Math.abs(newTime - oldTime) < 5) {
-            System.out.println("⚖️ 评价: 性能持平。考虑到新表极大地降低了代码维护成本（无需分表逻辑），这依然是一次巨大的胜利！");
+            LOG.info("结论评价|Conclusion_comment,comment=性能持平但维护成本下降");
         } else {
-            System.out.println("🤔 评价: 新表略慢。请检查 EXPLAIN 计划是否正确触发了分区裁剪 (Partition Pruning)。");
+            LOG.warn("结论评价|Conclusion_comment,comment=新表略慢需检查分区裁剪");
         }
-        System.out.println("=======================================================");
     }
 }

@@ -99,12 +99,12 @@ public class QuotationServiceImpl implements QuotationService {
         });
         List<QuotationStockBaseDTO> quotationStockBaseList = new ArrayList<>();
         if (quotationList == null || quotationList.isEmpty()) {
-            log.error("quotationData.quotationList_isEmpty()!windCode={}", windCode);
+            log.warn("日志记录|Log_message,quotationData.quotationList_isEmpty()!windCode={}", windCode);
             return false;
         }
         for (List<Long> quotationData : quotationList) {
             if (quotationData.isEmpty()) {
-                log.error("quotationData.isEmpty()!windCode={}", windCode);
+                log.warn("日志记录|Log_message,quotationData.isEmpty()!windCode={}", windCode);
                 continue;
             }
             // 将 Wind 返回的原始数值数组映射为结构化 DTO
@@ -128,7 +128,7 @@ public class QuotationServiceImpl implements QuotationService {
             quotationStockBaseList.add(quotationStockBaseDTO);
         }
         if (quotationStockBaseList.isEmpty()) {
-            log.error("transferQuotationBaseByStock_list=null!,windCode={}", windCode);
+            log.warn("日志记录|Log_message,transferQuotationBaseByStock_list=null!,windCode={}", windCode);
             return false;
         }
         // 批量写入日线基础信息
@@ -148,7 +148,7 @@ public class QuotationServiceImpl implements QuotationService {
     public Boolean transferQuotationHistoryTrend(int tradeDate, String windCodes, Integer dateType) {
         List<HistoryTrendDTO> quotationHistoryTrendList = getQuotationHistoryTrendList(tradeDate, windCodes, dateType);
         if (quotationHistoryTrendList.isEmpty()) {
-            log.error("quotationHistoryTrendList.isEmpty()!tradeDate={},windCodes={},dateType={}", tradeDate, windCodes, dateType);
+            log.warn("日志记录|Log_message,quotationHistoryTrendList.isEmpty()!tradeDate={},windCodes={},dateType={}", tradeDate, windCodes, dateType);
             return false;
         }
         // Mapper 批量写入分时数据，避免重复网络请求
@@ -168,7 +168,7 @@ public class QuotationServiceImpl implements QuotationService {
     public Boolean transferQuotationIndexHistoryTrend(int tradeDate, String windCodes, Integer dateType) {
         List<HistoryTrendIndexDTO> quotationHistoryIndexTrendList = getQuotationHistoryIndexTrendList(tradeDate, windCodes, dateType);
         if (quotationHistoryIndexTrendList.isEmpty()) {
-            log.error("quotationHistoryIndexTrendList.isEmpty()!tradeDate={},windCodes={},dateType={}", tradeDate, windCodes, dateType);
+            log.warn("日志记录|Log_message,quotationHistoryIndexTrendList.isEmpty()!tradeDate={},windCodes={},dateType={}", tradeDate, windCodes, dateType);
             return false;
         }
         // 指标分时数据同样集中落库
@@ -277,7 +277,7 @@ public class QuotationServiceImpl implements QuotationService {
                 allHistoryTrendList.addAll(historyTrendList);
             }
         }
-        log.info("getQuotationHistoryTrendList_allHistoryTrendList.size={}", allHistoryTrendList.size());
+        log.info("日志记录|Log_message,getQuotationHistoryTrendList_allHistoryTrendList.size={}", allHistoryTrendList.size());
         return allHistoryTrendList;
     }
 
@@ -333,7 +333,7 @@ public class QuotationServiceImpl implements QuotationService {
             }
         } catch (Exception e) {
             // 如果解析失败，使用原始响应体
-            log.warn("解析外层包装失败，使用原始响应体: {}", e.getMessage());
+            log.warn("解析外层包装失败，使用原始响应体:_{}|Log_message", e.getMessage());
         }
         // 解析实际数据
         Map<String, Map<String, Object>> rawData;
@@ -341,11 +341,11 @@ public class QuotationServiceImpl implements QuotationService {
             rawData = JSON.parseObject(actualDataJson, new TypeReference<Map<String, Map<String, Object>>>() {
             });
         } catch (Exception e) {
-            log.error("解析JSON数据失败: {}", e.getMessage());
+            log.error("解析JSON数据失败:_{}", e.getMessage(), e);
             throw new RuntimeException("数据解析失败", e);
         }
         if (rawData == null || rawData.isEmpty()) {
-            log.warn("解析后的数据为空");
+            log.warn("解析后的数据为空|Log_message");
             return new ArrayList<>();
         }
         List<HistoryTrendIndexDTO> allHistoryIndexTrendList = new ArrayList<>();
@@ -368,7 +368,7 @@ public class QuotationServiceImpl implements QuotationService {
                     dataArrays = JSON.parseObject(JSON.toJSONString(dateData), new TypeReference<List<List<Number>>>() {
                     });
                 } catch (Exception e) {
-                    log.warn("转换数据数组失败, stockCode: {}, date: {}, error: {}", stockCode, date, e.getMessage());
+                    log.warn("转换数据数组失败,_stockCode:_{},_date:_{},_error:_{}", stockCode, date, e.getMessage());
                     continue;
                 }
                 if (dataArrays == null || dataArrays.isEmpty()) {
@@ -379,12 +379,12 @@ public class QuotationServiceImpl implements QuotationService {
                     List<HistoryTrendIndexDTO> historyIndexTrendList = processStockDateData(stockCode, date, dataArrays);
                     allHistoryIndexTrendList.addAll(historyIndexTrendList);
                 } catch (Exception e) {
-                    log.error("处理股票数据失败, stockCode: {}, date: {}, error: {}", stockCode, date, e.getMessage());
+                    log.error("处理股票数据失败,_stockCode:_{},_date:_{},_error:_{}", stockCode, date, e.getMessage(), e);
                     // 继续处理其他数据，不中断整个流程
                 }
             }
         }
-        log.info("getQuotationHistoryTrendList_allHistoryTrendList.size={}", allHistoryIndexTrendList.size());
+        log.info("日志记录|Log_message,getQuotationHistoryTrendList_allHistoryTrendList.size={}", allHistoryIndexTrendList.size());
         return allHistoryIndexTrendList;
     }
 
@@ -444,7 +444,7 @@ public class QuotationServiceImpl implements QuotationService {
                     Math.max(totalAmount >= 0 ? totalAmount : 0,
                             totalVolume >= 0 ? totalVolume : 0));
             if (row.size() <= maxIndex) {
-                log.warn("行数据不完整，跳过该行: stockCode={}, date={}, rowIndex={}", stockCode, date, i);
+                log.warn("行数据不完整，跳过该行:_stockCode={},_date={},_rowIndex={}", stockCode, date, i);
                 continue;
             }
             try {
@@ -459,7 +459,7 @@ public class QuotationServiceImpl implements QuotationService {
                 int seconds = time_s % 100;
                 // 验证时间有效性
                 if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59 || seconds < 0 || seconds > 59) {
-                    log.warn("时间数据异常，跳过该行: time_s={}", time_s);
+                    log.warn("时间数据异常，跳过该行:_time_s={}", time_s);
                     continue;
                 }
                 LocalTime time = LocalTime.of(hours, minutes, seconds);
@@ -503,8 +503,8 @@ public class QuotationServiceImpl implements QuotationService {
                 historyIndexTrendList.add(historyTrendIndexDTO);
 
             } catch (Exception e) {
-                log.error("处理行数据失败: stockCode={}, date={}, rowIndex={}, error={}",
-                        stockCode, date, i, e.getMessage());
+                log.error("处理行数据失败:_stockCode={},_date={},_rowIndex={},_error={}",
+                        stockCode, date, i, e.getMessage(), e);
                 // 继续处理下一行
             }
         }
@@ -533,7 +533,7 @@ public class QuotationServiceImpl implements QuotationService {
                         historyTrendDTO.getTotalVolume(), 2, false));
 
             } catch (Exception e) {
-                log.error("精度处理失败: stockCode={}, date={}, error={}", stockCode, date, e.getMessage());
+                log.error("精度处理失败:_stockCode={},_date={},_error={}", stockCode, date, e.getMessage(), e);
             }
         }
         return historyIndexTrendList;
@@ -587,7 +587,7 @@ public class QuotationServiceImpl implements QuotationService {
                 String queryEnd = (current.equals(endMonth) ? end : monthEnd).format(pattern);
 //                queryEnd = DateUtil.stringTimeToAdjust(queryEnd, DateTimeFormatConstants.COMPACT_DATE_FORMAT, 1);
                 // 调试日志
-                log.info("Query table={}, range {} ~ {}, stockList={}", tableName, queryStart, queryEnd, stockList);
+                log.info("日志记录|Log_message,Query_table={},_range_{}_~_{},_stockList={}", tableName, queryStart, queryEnd, stockList);
                 List<HistoryTrendDTO> part = quotationMapper.selectByWindCodeListAndDate(
                         tableName, queryStart, queryEnd, stockList
                 );
@@ -598,10 +598,10 @@ public class QuotationServiceImpl implements QuotationService {
         //判断当前传入startDate和endDate所属年份
         //跨越冷热双表则使用多线程查询结果后合并(暂未使用多线程)
         /**todo 待优化
-         * ✔ 未来做“区间裁剪器”
-         * ✔ 加入排序保证结果稳定
-         * ✔ 大量数据时使用 CompletableFuture 并行查询
-         * ✔ mapper SQL 确保范围条件严格走索引
+         *  未来做“区间裁剪器”
+         *  加入排序保证结果稳定
+         *  大量数据时使用 CompletableFuture 并行查询
+         *  mapper SQL 确保范围条件严格走索引
          */
         else if (newVersion.equals(version)) {
             //tb_quotation_history_warm [2020, 2023]

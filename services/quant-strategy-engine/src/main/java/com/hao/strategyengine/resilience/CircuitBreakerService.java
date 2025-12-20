@@ -41,7 +41,7 @@ public class CircuitBreakerService {
                 Duration.ofSeconds(Math.max(1, defaultOpenStateSeconds)),
                 defaultHalfOpenSuccessThreshold
         );
-        log.info("CircuitBreakerService 初始化完成: defaultConfig={} ", defaultConfig);
+        log.info("CircuitBreakerService_初始化完成:_defaultConfig={}_", defaultConfig);
     }
 
     /**

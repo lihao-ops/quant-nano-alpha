@@ -14,11 +14,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * ✅ HotTopicStrategy 集成测试
+ *  HotTopicStrategy 集成测试
  * 运行环境：Spring Boot 容器
  * 验证：
- * 1️⃣ Bean 是否能正常注入
- * 2️⃣ execute() 能否正确执行（基于 Mock Redis 数据）
+ * 1⃣ Bean 是否能正常注入
+ * 2⃣ execute() 能否正确执行（基于 Mock Redis 数据）
  */
 @Slf4j
 @SpringBootTest
@@ -28,14 +28,14 @@ public class HotTopicStrategyTest {
     private HotTopicStrategy hotTopicStrategy;
 
     @Test
-    @DisplayName("1️⃣ 验证策略ID是否正确")
+    @DisplayName("1⃣ 验证策略ID是否正确")
     void getId() {
         String id = hotTopicStrategy.getId();
-        log.info("✅ 策略ID = {}", id);
+        log.info("_策略ID_=_{}", id);
     }
 
     @Test
-    @DisplayName("2️⃣ 执行策略（按题材ID查询）")
+    @DisplayName("2⃣ 执行策略（按题材ID查询）")
     void execute_byTopicId() {
         // 构造 StrategyContext（携带 topicId）
         Map<String, Object> extra = new HashMap<>();
@@ -48,7 +48,7 @@ public class HotTopicStrategyTest {
 
         StrategyResult result = hotTopicStrategy.execute(context);
 
-        log.info("✅ 执行结果 = {}", JSON.toJSONString(result));
+        log.info("_执行结果_=_{}|Log_message", JSON.toJSONString(result));
 
         // 验证结果
         assert result != null;
@@ -56,7 +56,7 @@ public class HotTopicStrategyTest {
     }
 //
 //    @Test
-//    @DisplayName("3️⃣ 执行策略（按题材名称模糊查询）")
+//    @DisplayName("3⃣ 执行策略（按题材名称模糊查询）")
 //    void execute_byTopicName() {
 //        // 构造 StrategyContext（携带 topicName）
 //        Map<String, Object> extra = new HashMap<>();
@@ -70,7 +70,7 @@ public class HotTopicStrategyTest {
 //
 //        StrategyResult result = hotTopicStrategy.execute(context);
 //
-//        log.info("✅ 模糊查询结果 = {}", JSON.toJSONString(result));
+//        log.info("日志记录|Log_message,_模糊查询结果_=_{}", JSON.toJSONString(result));
 //
 //        assert result != null;
 //        assert !((List<?>) result.getData()).isEmpty();

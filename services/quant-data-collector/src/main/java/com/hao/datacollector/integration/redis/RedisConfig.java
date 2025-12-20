@@ -89,7 +89,7 @@ public class RedisConfig implements RedisClient<String>, InitializingBean, Dispo
     @Override
     public void afterPropertiesSet() {
         try {
-            log.info("开始初始化Redis连接 - host: {}, port: {}, database: {}, timeout: {}, password: {}",
+            log.info("开始初始化Redis连接_-_host:_{},_port:_{},_database:_{},_timeout:_{},_password:_{}",
                     redisHost, redisPort, redisDatabase, connectionTimeout,
                     StringUtils.hasText(redisPassword) ? "已配置" : "未配置");
 
@@ -108,9 +108,9 @@ public class RedisConfig implements RedisClient<String>, InitializingBean, Dispo
             redisTemplate.afterPropertiesSet();
 
             testConnection();
-            log.info("Redis初始化成功 - 连接到 {}:{}/{}", redisHost, redisPort, redisDatabase);
+            log.info("Redis初始化成功_-_连接到_{}:{}/{}", redisHost, redisPort, redisDatabase);
         } catch (Exception e) {
-            log.error("Redis初始化失败: {}", e.getMessage(), e);
+            log.error("Redis初始化失败:_{}", e.getMessage(), e);
             throw new RuntimeException("Redis initialization failed", e);
         }
     }
@@ -130,7 +130,7 @@ public class RedisConfig implements RedisClient<String>, InitializingBean, Dispo
             redisTemplate.delete(testKey);
             log.info("Redis连接测试成功");
         } catch (Exception e) {
-            log.error("Redis连接测试失败: {}", e.getMessage(), e);
+            log.error("Redis连接测试失败:_{}", e.getMessage(), e);
             throw new RuntimeException("Redis connection test failed", e);
         }
     }
@@ -146,7 +146,7 @@ public class RedisConfig implements RedisClient<String>, InitializingBean, Dispo
                 log.info("Redis连接工厂已关闭");
             }
         } catch (Exception e) {
-            log.error("关闭Redis连接时发生错误: {}", e.getMessage(), e);
+            log.error("关闭Redis连接时发生错误:_{}", e.getMessage(), e);
         }
     }
 
@@ -807,7 +807,7 @@ public class RedisConfig implements RedisClient<String>, InitializingBean, Dispo
             redisTemplate.delete(testKey);
             return "ok".equals(result);
         } catch (Exception e) {
-            log.warn("Redis健康检查失败: {}", e.getMessage());
+            log.warn("Redis健康检查失败:_{}", e.getMessage());
             return false;
         }
     }

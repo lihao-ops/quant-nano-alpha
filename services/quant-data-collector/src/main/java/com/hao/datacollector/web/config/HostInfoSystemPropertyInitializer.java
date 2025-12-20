@@ -13,12 +13,19 @@ import java.util.Enumeration;
 
 /**
  * 主机信息系统属性初始化器
- * 
- * <p>目的：在 logback 初始化之前就设置好主机信息系统属性，
- * 确保 kafka-appender.xml 能够正确读取到 hostname 和 ip 信息。
- * 
- * <p>执行时机：使用 @Order(Ordered.HIGHEST_PRECEDENCE) 确保最早执行
- * 
+ *
+ * 设计目的：
+ * 1. 在logback初始化前设置主机信息系统属性。
+ * 2. 确保日志系统能够读取到主机名与IP。
+ *
+ * 为什么需要该类：
+ * - 需要在日志系统初始化前完成主机信息注入。
+ *
+ * 核心实现思路：
+ * - 启动时读取环境变量与网卡信息并写入系统属性。
+ *
+ * <p>执行时机：使用@Order(Ordered.HIGHEST_PRECEDENCE)确保最早执行
+ *
  * @author quant-team
  * @since 2025-10-21
  */
@@ -38,8 +45,11 @@ public class HostInfoSystemPropertyInitializer implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        log.info("=== 初始化主机信息系统属性 ===");
-        
+        // 实现思路：
+        // 1. 获取主机名与IP并写入系统属性。
+        // 2. 异常时设置默认值兜底。
+        log.info("主机信息系统属性初始化开始|Host_info_sysprop_init_start");
+
         try {
             // 获取主机信息
             String hostName = getHostName();
@@ -53,16 +63,16 @@ public class HostInfoSystemPropertyInitializer implements InitializingBean {
             System.setProperty("spring.profiles.active", env);
             System.setProperty("logging.kafka.topic", "log-" + serviceName);
             
-            log.info("主机信息系统属性设置完成:");
-            log.info("  - HOST_NAME: {}", hostName);
-            log.info("  - HOST_IP: {}", hostIp);
-            log.info("  - server.port: {}", serverPort);
-            log.info("  - spring.application.name: {}", serviceName);
-            log.info("  - spring.profiles.active: {}", env);
-            log.info("  - logging.kafka.topic: log-{}", serviceName);
+            log.info("主机信息系统属性设置完成|Host_info_sysprop_set_done");
+            log.info("日志记录|Log_message,HOST_NAME|Host_name,name={}", hostName);
+            log.info("日志记录|Log_message,HOST_IP|Host_ip,ip={}", hostIp);
+            log.info("日志记录|Log_message,server.port|Server_port,port={}", serverPort);
+            log.info("日志记录|Log_message,spring.application.name|Service_name,name={}", serviceName);
+            log.info("日志记录|Log_message,spring.profiles.active|Active_profile,profile={}", env);
+            log.info("日志记录|Log_message,logging.kafka.topic|Log_topic,topic=log-{}", serviceName);
             
         } catch (Exception e) {
-            log.error("设置主机信息系统属性失败: {}", e.getMessage(), e);
+            log.error("主机信息系统属性设置失败|Host_info_sysprop_set_failed,error={}", e.getMessage(), e);
             
             // 设置默认值
             System.setProperty("HOST_NAME", "unknown");
@@ -72,14 +82,23 @@ public class HostInfoSystemPropertyInitializer implements InitializingBean {
             System.setProperty("spring.profiles.active", env);
             System.setProperty("logging.kafka.topic", "log-" + serviceName);
             
-            log.warn("已设置默认主机信息系统属性");
+            log.warn("已设置默认主机信息系统属性|Default_sysprop_applied");
         }
     }
 
     /**
      * 获取主机名
+     *
+     * 实现逻辑：
+     * 1. 优先读取环境变量HOSTNAME。
+     * 2. 回退到JavaAPI获取。
+     *
+     * @return 主机名
      */
     private String getHostName() {
+        // 实现思路：
+        // 1. 优先使用环境变量。
+        // 2. 失败时回退到JavaAPI。
         try {
             // 优先使用环境变量
             String envHostName = System.getenv("HOSTNAME");
@@ -91,15 +110,24 @@ public class HostInfoSystemPropertyInitializer implements InitializingBean {
             return InetAddress.getLocalHost().getHostName();
             
         } catch (Exception e) {
-            log.debug("获取主机名失败: {}", e.getMessage());
+            log.debug("获取主机名失败|Host_name_load_failed,error={}", e.getMessage());
             return "unknown";
         }
     }
 
     /**
      * 获取最佳主机 IP 地址
+     *
+     * 实现逻辑：
+     * 1. 读取环境变量HOST_IP优先返回。
+     * 2. 遍历网卡选择最佳IP。
+     *
+     * @return 主机IP
      */
     private String getBestHostIp() {
+        // 实现思路：
+        // 1. 优先使用环境变量IP。
+        // 2. 根据评分选择最佳网卡IP。
         try {
             // 优先使用环境变量
             String envHostIp = System.getenv("HOST_IP");
@@ -146,15 +174,25 @@ public class HostInfoSystemPropertyInitializer implements InitializingBean {
             return InetAddress.getLocalHost().getHostAddress();
             
         } catch (Exception e) {
-            log.debug("获取主机 IP 失败: {}", e.getMessage());
+            log.debug("获取主机IP失败|Host_ip_load_failed,error={}", e.getMessage());
             return "unknown";
         }
     }
 
     /**
      * 计算 IP 地址评分（分数越高越优）
+     *
+     * 实现逻辑：
+     * 1. IPv4优先加分。
+     * 2. 私网段与物理网卡优先加分。
+     *
+     * @param ip IP地址
+     * @param interfaceName 网卡名称
+     * @return 评分
      */
     private int calculateIpScore(String ip, String interfaceName) {
+        // 实现思路：
+        // 1. 以IP类型与网卡类型进行打分。
         int score = 0;
         
         // IPv4 优于 IPv6

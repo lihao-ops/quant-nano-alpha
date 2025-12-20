@@ -48,7 +48,7 @@ public class JobRegistryHelper {
 					@Override
 					public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
 						r.run();
-						logger.warn(">>>>>>>>>>> xxl-job, registry or remove too fast, match threadpool rejected handler(run now).");
+						logger.warn("日志记录|Log_message,>>>>>>>>>>>_xxl-job,_registry_or_remove_too_fast,_match_threadpool_rejected_handler(run_now).");
 					}
 				});
 
@@ -109,18 +109,18 @@ public class JobRegistryHelper {
 						}
 					} catch (Throwable e) {
 						if (!toStop) {
-							logger.error(">>>>>>>>>>> xxl-job, job registry monitor thread error:{}", e);
+							logger.error("日志记录|Log_message,>>>>>>>>>>>_xxl-job,_job_registry_monitor_thread_error:{}", e);
 						}
 					}
 					try {
 						TimeUnit.SECONDS.sleep(RegistryConfig.BEAT_TIMEOUT);
 					} catch (Throwable e) {
 						if (!toStop) {
-							logger.error(">>>>>>>>>>> xxl-job, job registry monitor thread error:{}", e);
+							logger.error("日志记录|Log_message,>>>>>>>>>>>_xxl-job,_job_registry_monitor_thread_error:{}", e);
 						}
 					}
 				}
-				logger.info(">>>>>>>>>>> xxl-job, job registry monitor thread stop");
+				logger.info("日志记录|Log_message,>>>>>>>>>>>_xxl-job,_job_registry_monitor_thread_stop");
 			}
 		});
 		registryMonitorThread.setDaemon(true);
@@ -139,7 +139,7 @@ public class JobRegistryHelper {
 		try {
 			registryMonitorThread.join();
 		} catch (Throwable e) {
-			logger.error(e.getMessage(), e);
+			logger.error("日志记录|Log_message,exception={}", e.getMessage(), e);
 		}
 	}
 

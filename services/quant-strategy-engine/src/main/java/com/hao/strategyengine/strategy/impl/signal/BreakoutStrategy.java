@@ -98,7 +98,7 @@ public class BreakoutStrategy implements QuantStrategy {
                 selectedStocks = selectedStocks.subList(0, MAX_RESULTS);
             }
 
-            log.info("Breakout Strategy selected {} stocks from {} candidates", 
+            log.info("日志记录|Log_message,Breakout_Strategy_selected_{}_stocks_from_{}_candidates", 
                     selectedStocks.size(), stockPool.size());
 
             return StrategyResult.builder()
@@ -108,7 +108,7 @@ public class BreakoutStrategy implements QuantStrategy {
                     .build();
 
         } catch (Exception e) {
-            log.error("Breakout strategy execution failed", e);
+            log.error("日志记录|Log_message,Breakout_strategy_execution_failed", e);
             return buildErrorResult(start, e.getMessage());
         }
     }

@@ -50,8 +50,8 @@ import java.util.List;
  *   - 任意一个 Handler 抛出异常即可中断整个策略执行流程。
  *
  * 【执行链位置】：
- *   ✅ 属于系统执行链的「第 1 阶段：风控 / 前置校验阶段」
- *   Controller → Facade → ⚙ StrategyChain → Lock → Dispatcher → Strategy
+ *    属于系统执行链的「第 1 阶段：风控 / 前置校验阶段」
+ *   Controller → Facade →  StrategyChain → Lock → Dispatcher → Strategy
  *
  * 【执行流程】：
  *   ┌────────────────────────────────────────┐
@@ -62,7 +62,7 @@ import java.util.List;
  *   └────────────────────────────────────────┘
  *
  * 【设计模式】：
- *   ➤ Chain of Responsibility
+ *    Chain of Responsibility
  *     - 每个 Handler 专注于单一逻辑；
  *     - 顺序可控、可插拔；
  *     - 易于扩展和维护；
@@ -123,7 +123,7 @@ public class StrategyChain {
      * 中文：处理器抛出异常表示校验未通过 / English: handler exceptions indicate validation failure
      */
     public void apply(StrategyContext ctx) throws Exception {
-        // Step 1️⃣ 依次执行所有前置 Handler
+        // Step 1⃣ 依次执行所有前置 Handler
         for (StrategyHandler handler : handlers) {
             // 中文：执行单一处理器的前置校验或风控逻辑
             // English: Execute pre-check or risk control logic of a single handler
@@ -131,6 +131,6 @@ public class StrategyChain {
 
         }
 
-        // Step 2️⃣ 所有 Handler 校验通过，放行策略计算阶段
+        // Step 2⃣ 所有 Handler 校验通过，放行策略计算阶段
     }
 }

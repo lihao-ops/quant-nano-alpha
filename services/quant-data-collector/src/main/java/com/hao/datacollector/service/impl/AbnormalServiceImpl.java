@@ -105,7 +105,7 @@ public class AbnormalServiceImpl implements AbnormalService {
         // 使用 Fastjson 将数组 JSON 反序列化为 VO，保持字段顺序不变
         List<AbnormalIndexVO> indexVOList = JSONObject.parseObject(entity.getBody().toString(), new TypeReference<List<AbnormalIndexVO>>() {
         }, Feature.OrderedField);
-        log.info("getSourceHomePage_indexVOList.size={}", indexVOList.size());
+        log.info("日志记录|Log_message,getSourceHomePage_indexVOList.size={}", indexVOList.size());
         return indexVOList;
 
     }
@@ -124,7 +124,7 @@ public class AbnormalServiceImpl implements AbnormalService {
         }
         // 调用 Mapper 做批量写入，依赖数据库层面的去重保障幂等
         int resultCount = abnormalMapper.insertHomePageSourceData(indexVOList, indexSourceParam.getTradeDate());
-        log.info("transferHomePage_countResult={}", resultCount);
+        log.info("日志记录|Log_message,transferHomePage_countResult={}", resultCount);
         return resultCount > 0;
     }
 
@@ -168,7 +168,7 @@ public class AbnormalServiceImpl implements AbnormalService {
         // 将 JSON 直接转换为 VO 列表，供后续转档或透传使用
         List<ActiveSeatsRankVO> activeSeatsRankList = JSONObject.parseObject(entity.getBody().toString(), new TypeReference<List<ActiveSeatsRankVO>>() {
         }, Feature.OrderedField);
-        log.info("getSourceListOfSeats_activeSeatsRankList.size={}", activeSeatsRankList.size());
+        log.info("日志记录|Log_message,getSourceListOfSeats_activeSeatsRankList.size={}", activeSeatsRankList.size());
         return activeSeatsRankList;
     }
 
@@ -231,7 +231,7 @@ public class AbnormalServiceImpl implements AbnormalService {
         // Fastjson 反序列化列表数据，供后续落库或直接返回
         List<ActiveRankRecordVO> activeRankRecordVOList = JSONObject.parseObject(entity.getBody().toString(), new TypeReference<List<ActiveRankRecordVO>>() {
         }, Feature.OrderedField);
-        log.info("getSourceActiveRank_activeRankRecordVOList.size={}", activeRankRecordVOList.size());
+        log.info("日志记录|Log_message,getSourceActiveRank_activeRankRecordVOList.size={}", activeRankRecordVOList.size());
         return activeRankRecordVOList;
     }
 

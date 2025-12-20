@@ -21,7 +21,7 @@ import com.hao.strategyengine.common.model.core.StrategyContext;
  * public class LoggingHandler implements StrategyHandler {
  *     @Override
  *     public void handle(StrategyContext ctx) {
- *         log.info("策略执行上下文：{}", ctx);
+ *         log.info("策略执行上下文：{}|Log_message", ctx);
  *     }
  * }
  * }</pre>

@@ -16,6 +16,19 @@ import org.springframework.retry.annotation.EnableRetry;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+/**
+ * 数据采集服务启动类
+ *
+ * 设计目的：
+ * 1. 启动数据采集服务并加载Spring上下文。
+ * 2. 注册Nacos配置监听，感知配置变更。
+ *
+ * 为什么需要该类：
+ * - 作为应用入口统一承载启动与配置治理流程。
+ *
+ * 核心实现思路：
+ * - 通过ApplicationRunner注册配置监听器并记录变更日志。
+ */
 @Slf4j
 @MapperScan("com.hao.datacollector.dal.dao")
 @SpringBootApplication
@@ -24,30 +37,55 @@ import java.util.concurrent.Executors;
 @EnableRetry
 public class DataCollectorApplication {
 
+    /**
+     * 启动入口
+     *
+     * 实现逻辑：
+     * 1. 启动Spring应用上下文。
+     *
+     * @param args 启动参数
+     */
     public static void main(String[] args) {
+        // 实现思路：
+        // 1. 交由SpringApplication启动上下文。
         SpringApplication.run(DataCollectorApplication.class, args);
     }
 
-    //1.项目启动就监听配置文件变化
-    //2.发生变化后拿到变化的内容
-    //3，发送提醒邮件
+    // 实现思路：
+    // 1. 项目启动后监听配置文件变化。
+    // 2. 发生变化后记录日志并预留通知入口。
     @Bean
     ApplicationRunner applicationRunner(NacosConfigManager nacosConfigManager) {
+        /**
+         * 注册配置监听器
+         *
+         * 实现逻辑：
+         * 1. 获取Nacos配置服务并注册监听器。
+         * 2. 输出配置变更日志，便于运维排查。
+         *
+         * @param nacosConfigManager Nacos配置管理器
+         * @return ApplicationRunner回调
+         */
         return args -> {
             ConfigService configService = nacosConfigManager.getConfigService();
             configService.addListener("application-dev.yml", "quant-data-collector", new Listener() {
                 @Override
                 public Executor getExecutor() {
+                    // 实现思路：
+                    // 1. 使用独立线程池处理配置回调。
                     return Executors.newFixedThreadPool(2);
                 }
 
                 @Override
                 public void receiveConfigInfo(String configInfo) {
-                    log.info("nacosConfig_conversionInfo_listener_info={}", configInfo);
-                    log.info("to email!");
+                    // 实现思路：
+                    // 1. 输出配置变更内容。
+                    // 2. 预留告警通知入口。
+                    log.info("配置监听变更|Config_listener_change,configInfo={}", configInfo);
+                    log.info("发送告警邮件|Send_alert_email");
                 }
             });
-            log.info("start_nacosConfig_conversionInfo_listener!");
+            log.info("启动配置监听|Start_config_listener");
         };
     }
 }

@@ -42,7 +42,7 @@ class ThreadPoolConfigTest {
             }
             int batchSize = (dataList.size() + threadCount - 1) / threadCount; // 1300
             CountDownLatch latch = new CountDownLatch(threadCount);
-            log.info("总数据量：{}，线程数：{}，每线程处理：{}条", dataList.size(), threadCount, batchSize);
+            log.info("总数据量：{}，线程数：{}，每线程处理：{}条|Log_message", dataList.size(), threadCount, batchSize);
             for (int i = 0; i < threadCount; i++) {
                 final int startIndex = i * batchSize;
                 final int endIndex = Math.min(startIndex + batchSize, dataList.size());
@@ -51,11 +51,11 @@ class ThreadPoolConfigTest {
                 if (startIndex < dataList.size()) {
                     taskThreadPools.execute(() -> {
                         try {
-                            log.info("线程{}开始处理，范围：{}-{}", Thread.currentThread().getName(), startIndex, endIndex - 1);
+                            log.info("线程{}开始处理，范围：{}-{}|Log_message", Thread.currentThread().getName(), startIndex, endIndex - 1);
                             for (int j = startIndex; j < endIndex; j++) {
                                 processData(dataList.get(j), threadId);
                             }
-                            log.info("线程{}完成处理", Thread.currentThread().getName());
+                            log.info("线程{}完成处理|Log_message", Thread.currentThread().getName());
                         } finally {
                             latch.countDown();
                         }
@@ -77,7 +77,7 @@ class ThreadPoolConfigTest {
     private void processData(String data, int threadId) {
         try {
             Thread.sleep(50);
-            log.info("ThreadId={}, ThreadName={}, 处理数据: {}",
+            log.info("ThreadId={},_ThreadName={},_处理数据:_{}",
                     threadId, Thread.currentThread().getName(), data);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

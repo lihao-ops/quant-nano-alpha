@@ -41,7 +41,7 @@ public class XxlJobConfig {
 
     @Bean
     public XxlJobSpringExecutor xxlJobExecutor() {
-        logger.info(">>>>>>>>>>> xxl-job config init.");
+        logger.info("日志记录|Log_message,>>>>>>>>>>>_xxl-job_config_init.");
         XxlJobSpringExecutor xxlJobSpringExecutor = new XxlJobSpringExecutor();
         xxlJobSpringExecutor.setAdminAddresses(adminAddresses);
         xxlJobSpringExecutor.setAppname(appName);

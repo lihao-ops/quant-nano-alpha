@@ -42,7 +42,7 @@ public class BaseDataController {
             @RequestParam String startTime,
             @Parameter(description = "终止日", example = "60")
             @RequestParam(defaultValue = "20250614") String endTime) {
-        log.info("setTradeDateList,startTime={},endTime={}", startTime, endTime);
+        log.info("设置交易日历|Set_trade_date_list,startTime={},endTime={}", startTime, endTime);
         return baseDataService.setTradeDateList(startTime, endTime);
     }
 
@@ -56,7 +56,7 @@ public class BaseDataController {
             @RequestParam String startTime,
             @Parameter(description = "终止日", example = "60")
             @RequestParam(defaultValue = "20250614") String endTime) {
-        log.info("getTradeDateListByTime,startTime={},endTime={}", startTime, endTime);
+        log.info("获取交易日历|Get_trade_date_list,startTime={},endTime={}", startTime, endTime);
         List<LocalDate> dateListByTime = baseDataService.getTradeDateListByTime(startTime, endTime);
         //默认转换为8位数字日期格式（如：20190214）
         return DateUtil.formatLocalDateList(dateListByTime, DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT);
@@ -132,7 +132,7 @@ public class BaseDataController {
         queryParam.setFloatSharesMax(floatSharesMax);
         queryParam.setPageNo(pageNo);
         queryParam.setPageSize(pageSize);
-        log.info("queryStockBasicInfo,queryParam={}", queryParam);
+        log.info("查询股票基础信息|Query_stock_basic_info,queryParam={}", queryParam);
         return baseDataService.queryStockBasicInfo(queryParam);
     }
 
@@ -323,7 +323,7 @@ public class BaseDataController {
         queryParam.setEsgRatingWind(esgRatingWind);
         queryParam.setPageNo(pageNo);
         queryParam.setPageSize(pageSize);
-        log.info("queryStockMarketData,queryParam={}", queryParam);
+        log.info("查询股票行情数据|Query_stock_market_data,queryParam={}", queryParam);
         return baseDataService.queryStockMarketData(queryParam);
     }
 }

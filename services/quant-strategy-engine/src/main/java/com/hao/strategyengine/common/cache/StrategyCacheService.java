@@ -30,7 +30,7 @@ import java.util.function.Supplier;
  *
  * 【执行流程位置】：
  *   属于系统执行链的「第 5 层」（策略执行后的缓存层）：
- *   Controller → Service → Facade → Dispatcher → Strategy → ✅ Cache
+ *   Controller → Service → Facade → Dispatcher → Strategy →  Cache
  */
 @Service
 @RequiredArgsConstructor
@@ -61,7 +61,7 @@ public class StrategyCacheService {
      *   Dispatcher 内部或单策略执行时调用
      */
     public StrategyResult getOrCompute(String key, Supplier<StrategyResult> supplier) {
-        // Step 1️⃣ 从缓存获取
+        // Step 1⃣ 从缓存获取
         String s = redis.opsForValue().get(key);
         if (s != null) {
             try {
@@ -69,10 +69,10 @@ public class StrategyCacheService {
             } catch (Exception ignored) {}
         }
 
-        // Step 2️⃣ 执行计算逻辑
+        // Step 2⃣ 执行计算逻辑
         StrategyResult v = supplier.get();
 
-        // Step 3️⃣ 计算随机 TTL 并写入 Redis
+        // Step 3⃣ 计算随机 TTL 并写入 Redis
         Duration ttl = BASE_TTL.plusSeconds(ThreadLocalRandom.current().nextInt(0, 60));
         redis.opsForValue().set(key, JSON.toJSONString(v), ttl);
 

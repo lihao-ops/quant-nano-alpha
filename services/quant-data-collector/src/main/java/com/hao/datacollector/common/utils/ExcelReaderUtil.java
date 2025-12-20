@@ -5,16 +5,46 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.util.*;
 
+/**
+ * Excel读取工具类
+ *
+ * 职责：将Excel表格读取为行数据或表头列表。
+ *
+ * 设计目的：
+ * 1. 统一Excel读取逻辑，避免重复处理单元格类型。
+ * 2. 提供稳定的数据结构供转换层复用。
+ *
+ * 为什么需要该类：
+ * - Excel字段解析细节繁多，需要集中维护。
+ *
+ * 核心实现思路：
+ * - 使用POI读取首个Sheet并按行列构建Map列表。
+ */
 public class ExcelReaderUtil {
+    private static final Logger LOG = LoggerFactory.getLogger(ExcelReaderUtil.class);
     private static List<String> headers = new ArrayList<>();
 
+    /**
+     * 读取Excel内容为行数据列表
+     *
+     * 实现逻辑：
+     * 1. 读取首个Sheet的表头。
+     * 2. 从第二行开始读取数据并按表头映射成Map。
+     *
+     * @param file Excel文件
+     * @return 行数据列表
+     */
     public static List<Map<String, String>> readExcel(File file) {
+        // 实现思路：表头作为键，逐行读取构造Map
         try (InputStream inputStream = new FileInputStream(file);
              Workbook workbook = new XSSFWorkbook(inputStream)) {
 
@@ -50,7 +80,18 @@ public class ExcelReaderUtil {
         }
     }
 
+    /**
+     * 读取单元格值
+     *
+     * 实现逻辑：
+     * 1. 根据单元格类型选择读取方式。
+     * 2. 统一转换为字符串。
+     *
+     * @param cell 单元格
+     * @return 单元格值
+     */
     private static String getCellValue(Cell cell) {
+        // 实现思路：统一处理字符串、数值、布尔与公式类型
         if (cell == null) return "";
         return switch (cell.getCellType()) {
             case STRING -> cell.getStringCellValue().trim();
@@ -65,8 +106,16 @@ public class ExcelReaderUtil {
 
     /**
      * 只读取Excel第一行表头，返回表头列名列表
+     *
+     * 实现逻辑：
+     * 1. 读取首个Sheet的第一行。
+     * 2. 遍历列并返回表头列表。
+     *
+     * @param file Excel文件
+     * @return 表头列表
      */
     public static List<String> readHeaders(File file) {
+        // 实现思路：只读取表头行避免全量加载
         try (InputStream inputStream = new FileInputStream(file);
              Workbook workbook = new XSSFWorkbook(inputStream)) {
 
@@ -85,13 +134,22 @@ public class ExcelReaderUtil {
         }
     }
 
+    /**
+     * Excel读取演示入口
+     *
+     * 实现逻辑：
+     * 1. 读取Excel行数据。
+     * 2. 输出部分字段供人工核验。
+     *
+     * @param args 启动参数
+     */
     public static void main(String[] args) {
-        File file = new File("C:\\Users\\lihao\\Desktop\\data\\1.xlsx");
+        // 实现思路：使用相对路径避免平台绑定
+        File file = Paths.get("data", "1.xlsx").toFile();
         List<Map<String, String>> dataList = ExcelReaderUtil.readExcel(file);
         // 打印数据
         dataList.forEach(row -> {
-            System.out.println("证券代码: " + row.get("证券代码"));
-            System.out.println("公司简介: " + row.get("公司简介"));
+            LOG.info("Excel读取结果|Excel_read_result,stockCode={},profile={}", row.get("证券代码"), row.get("公司简介"));
         });
 
     }

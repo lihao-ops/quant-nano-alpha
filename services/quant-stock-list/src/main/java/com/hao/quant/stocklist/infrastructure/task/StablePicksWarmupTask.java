@@ -34,7 +34,7 @@ public class StablePicksWarmupTask {
             return;
         }
         LocalDate latest = tradeDates.getFirst();
-        log.info("执行晨间预热任务,tradeDate={}", latest);
+        log.info("晨间预热任务执行|Warmup_task_run,tradeDate={}", latest);
         // 调用领域服务预热缓存
         stablePicksService.warmupCache(latest);
     }

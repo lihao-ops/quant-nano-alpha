@@ -13,6 +13,18 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
+ * 股票相关缓存
+ *
+ * 设计目的：
+ * 1. 缓存股票代码与基础信息，减少数据库访问。
+ * 2. 提供股票ID与WindCode的快速映射。
+ *
+ * 为什么需要该类：
+ * - 股票基础信息是高频依赖数据，需要集中缓存。
+ *
+ * 核心实现思路：
+ * - 启动时批量加载股票基础数据并构建映射关系。
+ *
  * @author hli
  * @program: datacollector
  * @Date 2025-06-20 21:11:07
@@ -42,34 +54,62 @@ public class StockCache {
      */
     public static Map<String, String> windCodeToNameMap = new HashMap<>();
 
+    /**
+     * 初始化股票基础缓存
+     *
+     * 实现逻辑：
+     * 1. 加载A股代码与基础信息。
+     * 2. 构建风格代码与名称映射。
+     * 3. 生成股票ID到WindCode映射。
+     */
     @PostConstruct
     private void initDateList() {
+        // 实现思路：
+        // 1. 批量读取股票基础数据。
+        // 2. 构建多维映射结构。
         allWindCode = baseDataMapper.getAllAStockCode();
-        log.info("StockCache_allWindCode.size={}", allWindCode.size());
+        log.info("股票代码缓存完成|Stock_code_cache_loaded,totalSize={}", allWindCode.size());
         List<StockBaseDTO> allWindBaseInfo = baseDataMapper.getAllStockBaseInfo();
         windCodeToNameMap = allWindBaseInfo.stream()
                 .collect(Collectors.toMap(StockBaseDTO::getWindCode, StockBaseDTO::getWindName));
-        log.info("StockCache_allWindBaseInfo.size={},windCodeToNameMap.size={}", allWindBaseInfo.size(), windCodeToNameMap.size());
+        log.info("股票基础信息缓存完成|Stock_base_cache_loaded,baseInfoSize={},nameMapSize={}",
+                allWindBaseInfo.size(), windCodeToNameMap.size());
         for (String windCode : allWindCode) {
             // 例如 windCode 是 000001.SZ，截取前缀作为 key
             String prefix = windCode.split("\\.")[0];
             // 避免覆盖已有的
             stockIdToWindCodeMap.putIfAbsent(prefix, windCode);
         }
-        log.info("StockCache_stockIdToWindCodeMap.size={}", stockIdToWindCodeMap.size());
+        log.info("股票ID映射缓存完成|Stock_id_mapping_cache_loaded,mapSize={}", stockIdToWindCodeMap.size());
     }
 
     /**
      * 根据股票ID获取完整wind_code
+     *
+     * 实现逻辑：
+     * 1. 通过缓存映射返回WindCode。
+     *
+     * @param stockId 股票ID
+     * @return WindCode
      */
     public static String getWindCodeByStockId(String stockId) {
+        // 实现思路：
+        // 1. 直接查询缓存映射。
         return stockIdToWindCodeMap.get(stockId);
     }
 
     /**
      * 根据windCode获取股票名称
+     *
+     * 实现逻辑：
+     * 1. 通过缓存映射返回股票名称。
+     *
+     * @param windCode WindCode
+     * @return 股票名称
      */
     public static String getWindNameByWindCode(String windCode) {
+        // 实现思路：
+        // 1. 直接查询缓存映射。
         return windCodeToNameMap.get(windCode);
     }
 }

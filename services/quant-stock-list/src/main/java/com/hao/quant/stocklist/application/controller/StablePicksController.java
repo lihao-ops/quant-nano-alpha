@@ -82,7 +82,7 @@ public class StablePicksController {
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "20") Integer pageSize) {
 
-        log.info("查询每日精选: tradeDate={}, strategyId={}, industry={}", tradeDate, strategyId, industry);
+        log.info("查询每日精选|Daily_picks_query,tradeDate={},strategyId={},industry={}", tradeDate, strategyId, industry);
 
         StablePicksQueryDTO query = StablePicksQueryDTO.builder()
                 .tradeDate(tradeDate)
@@ -119,7 +119,7 @@ public class StablePicksController {
     public Result<List<StablePicksVO>> queryLatestPicks(
             @RequestParam(required = false) String strategyId,
             @RequestParam(defaultValue = "50") Integer limit) {
-        log.info("查询最新精选: strategyId={}, limit={}", strategyId, limit);
+        log.info("查询最新精选|Latest_picks_query,strategyId={},limit={}", strategyId, limit);
         // 中文：拉取最新交易日数据并返回成功结果
         // English: Fetch latest trade day data and return success result
         return Result.success(stablePicksService.queryLatestPicks(strategyId, limit));
@@ -146,7 +146,7 @@ public class StablePicksController {
     public Result<StablePicksVO> queryStockDetail(
             @PathVariable String stockCode,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate tradeDate) {
-        log.info("查询股票详情: stockCode={}, tradeDate={}", stockCode, tradeDate);
+        log.info("查询股票详情|Stock_detail_query,stockCode={},tradeDate={}", stockCode, tradeDate);
         // 中文：调用应用服务拉取详情并返回
         // English: Call application service to fetch detail and return
         return Result.success(stablePicksService.queryStockDetail(stockCode, tradeDate));
@@ -172,7 +172,7 @@ public class StablePicksController {
     public Result<Void> refreshCache(
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate tradeDate,
             @RequestParam(required = false) String strategyId) {
-        log.info("手动刷新缓存: tradeDate={}, strategyId={}", tradeDate, strategyId);
+        log.info("手动刷新缓存|Manual_cache_refresh,tradeDate={},strategyId={}", tradeDate, strategyId);
         // 中文：调用应用服务刷新缓存
         // English: Invoke application service to refresh cache
         stablePicksService.manualRefreshCache(tradeDate, strategyId);
@@ -196,7 +196,7 @@ public class StablePicksController {
     @PostMapping("/cache/warmup")
     @Operation(summary = "预热缓存", description = "交易日开盘前预热当日数据")
     public Result<Void> warmupCache(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate tradeDate) {
-        log.info("预热缓存: tradeDate={}", tradeDate);
+        log.info("预热缓存|Cache_warmup,tradeDate={}", tradeDate);
         // 中文：调用应用服务执行预热
         // English: Invoke application service to warm up
         stablePicksService.warmupCache(tradeDate);
@@ -223,7 +223,7 @@ public class StablePicksController {
      * 中文：无额外异常，记录告警日志 / English: none; logs a warning
      */
     public Result<PageResult<StablePicksVO>> rateLimitFallback(LocalDate tradeDate, String strategyId, String industry, Integer pageNum, Integer pageSize, Throwable ex) {
-        log.warn("每日精选限流降级: {}", ex.getMessage());
+        log.warn("每日精选限流降级|Daily_picks_rate_limit_fallback,error={}", ex.getMessage());
         return Result.failure(429, "请求过于频繁,请稍后再试");
     }
 
@@ -244,7 +244,7 @@ public class StablePicksController {
      * 中文：无额外异常，记录告警日志 / English: none; logs a warning
      */
     public Result<List<StablePicksVO>> rateLimitListFallback(String strategyId, Integer limit, Throwable ex) {
-        log.warn("最新精选限流降级: {}", ex.getMessage());
+        log.warn("最新精选限流降级|Latest_picks_rate_limit_fallback,error={}", ex.getMessage());
         return Result.failure(429, "请求过于频繁,请稍后再试");
     }
 
@@ -265,7 +265,7 @@ public class StablePicksController {
      * 中文：无额外异常，记录告警日志 / English: none; logs a warning
      */
     public Result<StablePicksVO> rateLimitDetailFallback(String stockCode, LocalDate tradeDate, Throwable ex) {
-        log.warn("股票详情限流降级: {}", ex.getMessage());
+        log.warn("股票详情限流降级|Stock_detail_rate_limit_fallback,error={}", ex.getMessage());
         return Result.failure(429, "请求过于频繁,请稍后再试");
     }
 }

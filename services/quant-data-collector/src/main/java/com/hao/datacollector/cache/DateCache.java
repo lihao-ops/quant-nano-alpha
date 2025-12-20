@@ -12,6 +12,18 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
+ * 日期相关数据缓存
+ *
+ * 设计目的：
+ * 1. 缓存年度交易日历，降低重复查询开销。
+ * 2. 提供统一的交易日历访问入口。
+ *
+ * 为什么需要该类：
+ * - 交易日历是多处依赖的基础数据，需集中管理与复用。
+ *
+ * 核心实现思路：
+ * - 启动时预加载不同年份的交易日历并缓存到静态列表。
+ *
  * @author hli
  * @program: datacollector
  * @Date 2025-06-14 17:34:21
@@ -57,8 +69,18 @@ public class DateCache {
     @Autowired
     private BaseDataService baseDataService;
 
+    /**
+     * 初始化交易日历缓存
+     *
+     * 实现逻辑：
+     * 1. 计算年度起止日期。
+     * 2. 按年份批量拉取交易日历并缓存。
+     */
     @PostConstruct
     private void initDateList() {
+        // 实现思路：
+        // 1. 获取年度范围并加载交易日历。
+        // 2. 将结果缓存到静态列表。
         //今年整年的交易日历
         String firstDayOfYear = DateUtil.getFirstDayOfYear(DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT);
         String lastDayOfYear = DateUtil.getLastDayOfYear(DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT);
@@ -76,6 +98,8 @@ public class DateCache {
         Year2023TradeDateList = baseDataService.getTradeDateListByTime(DateUtil.getFirstDayOfYear(2023, DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT), DateUtil.getLastDayOfYear(2023, DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT));
         //2024年的交易日历
         Year2024TradeDateList = baseDataService.getTradeDateListByTime(DateUtil.getFirstDayOfYear(2024, DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT), DateUtil.getLastDayOfYear(2024, DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT));
-        log.info("CurrentYearTradeDateList.size={},CurrentYearTradeDateList.size={},Year2022TradeDateList.size={},Year2023TradeDateList.size={},Year2024TradeDateList.size={},", ThisYearTradeDateList.size(), CurrentYearTradeDateList.size(), Year2022TradeDateList.size(), Year2023TradeDateList.size(), Year2024TradeDateList.size());
+        log.info("交易日历缓存完成|Trade_date_cache_loaded,thisYearSize={},currentYearSize={},year2022Size={},year2023Size={},year2024Size={}",
+                ThisYearTradeDateList.size(), CurrentYearTradeDateList.size(), Year2022TradeDateList.size(),
+                Year2023TradeDateList.size(), Year2024TradeDateList.size());
     }
 }

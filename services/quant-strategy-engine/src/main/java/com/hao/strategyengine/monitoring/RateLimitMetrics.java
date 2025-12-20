@@ -37,7 +37,7 @@ public class RateLimitMetrics {
 
     @PostConstruct
     public void init() {
-        log.info("✅ 限流监控指标初始化完成");
+        log.info("_限流监控指标初始化完成|Log_message");
     }
 
     /**
@@ -61,7 +61,7 @@ public class RateLimitMetrics {
         counter.increment();
 
         // 可选: 如果需要知道具体用户,用日志而不是metric
-        log.debug("限流拒绝: limitType={}, userId={}, strategyType={}",
+        log.debug("限流拒绝:_limitType={},_userId={},_strategyType={}",
                 limitType, hashUserId(userId), strategyType);
     }
 
@@ -107,10 +107,10 @@ public class RateLimitMetrics {
                             [timer.takeSnapshot().percentileValues().length - 1]
                             .value(TimeUnit.MILLISECONDS);
 
-                    report.append(String.format("📊 [%s] 检查次数: %d, 平均: %.2fms, P99: %.2fms, 最大: %.2fms\n",
+                    report.append(String.format(" [%s] 检查次数: %d, 平均: %.2fms, P99: %.2fms, 最大: %.2fms\n",
                             limitType, timer.count(), meanMs, p99Ms, maxMs));
                 } catch (Exception e) {
-                    log.warn("无法获取P99延迟: {}", e.getMessage());
+                    log.warn("无法获取P99延迟:_{}", e.getMessage());
                 }
             }
         }
@@ -121,15 +121,16 @@ public class RateLimitMetrics {
             Counter counter = entry.getValue();
 
             if (counter.count() > 0) {
-                report.append(String.format("⛔ [%s] 拒绝次数: %.0f\n",
+                report.append(String.format(" [%s] 拒绝次数: %.0f\n",
                         key, counter.count()));
             }
         }
 
         report.append("==================================");
         //todo 待完善
-        if (report.toString().contains("检查次数") || report.toString().contains("拒绝次数")) {
-            log.info(report.toString());
+        String reportText = report.toString().replace(" ", "_").replace("\n", "\\n");
+        if (reportText.contains("检查次数") || reportText.contains("拒绝次数")) {
+            log.info("限流监控报告|Rate_limit_report,report={}", reportText);
         }
     }
 
@@ -193,7 +194,7 @@ public class RateLimitMetricsAdvanced {
 
                 if (total > 0) {
                     double passRate = (pass / total) * 100;
-                    log.info("📈 [{}] 通过率: {:.2f}% (通过: {}, 拒绝: {})",
+                    log.info("_[{}]_通过率:_{:.2f}%_(通过:_{},_拒绝:_{})",
                         limitType, passRate, (long)pass, (long)reject);
                 }
             }

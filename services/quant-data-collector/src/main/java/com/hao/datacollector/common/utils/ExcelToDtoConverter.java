@@ -3,9 +3,12 @@ package com.hao.datacollector.common.utils;
 import com.hao.datacollector.dto.table.base.StockBasicInfoInsertDTO;
 import com.hao.datacollector.dto.table.base.StockFinancialMetricsInsertDTO;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.math.BigDecimal;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -14,18 +17,44 @@ import java.util.Map;
 
 import static com.hao.datacollector.common.utils.ExcelReaderUtil.readHeaders;
 
+/**
+ * Excel数据转DTO工具类
+ *
+ * 职责：将Excel读取结果转换为业务DTO，屏蔽字段映射细节。
+ *
+ * 设计目的：
+ * 1. 统一Excel列名与DTO字段的映射逻辑。
+ * 2. 减少业务层重复的字段解析与类型转换。
+ *
+ * 为什么需要该类：
+ * - Excel结构变化频繁，需要集中维护解析规则。
+ *
+ * 核心实现思路：
+ * - 先读取表头并按模糊匹配取值，再填充DTO并返回。
+ */
 public class ExcelToDtoConverter {
+    private static final Logger LOG = LoggerFactory.getLogger(ExcelToDtoConverter.class);
 
     /**
-     * 表字段名list
+     * 表头字段列表
      */
     public static List<String> headers = new ArrayList<>();
 
+    /**
+     * 转换基础信息DTO列表
+     *
+     * 实现逻辑：
+     * 1. 遍历行数据并按表头模糊匹配字段。
+     * 2. 填充StockBasicInfoInsertDTO并收集返回。
+     *
+     * @param rows Excel行数据
+     * @return 基础信息DTO列表
+     */
     public static List<StockBasicInfoInsertDTO> convertToBasicInfoDTO(List<Map<String, String>> rows) {
+        // 实现思路：按表头模糊匹配取值并填充DTO
         List<StockBasicInfoInsertDTO> list = new ArrayList<>();
         for (Map<String, String> row : rows) {
             StockBasicInfoInsertDTO dto = new StockBasicInfoInsertDTO();
-            //getValueByFuzzyKey(row, headers,
             dto.setWindCode(getValueByFuzzyKey(row, headers, "证券代码"));
             dto.setSecName(getValueByFuzzyKey(row, headers, "证券简称"));
             dto.setListingDate(getValueByFuzzyKey(row, headers, "上市日期"));
@@ -49,7 +78,18 @@ public class ExcelToDtoConverter {
         return list;
     }
 
+    /**
+     * 转换财务指标DTO列表
+     *
+     * 实现逻辑：
+     * 1. 遍历行数据并按表头模糊匹配字段。
+     * 2. 填充StockFinancialMetricsInsertDTO并收集返回。
+     *
+     * @param rows Excel行数据
+     * @return 财务指标DTO列表
+     */
     public static List<StockFinancialMetricsInsertDTO> convertToFinancialMetricsDTO(List<Map<String, String>> rows) {
+        // 实现思路：按表头匹配并转换为数值类型字段
         List<StockFinancialMetricsInsertDTO> list = new ArrayList<>();
         for (Map<String, String> row : rows) {
             StockFinancialMetricsInsertDTO dto = new StockFinancialMetricsInsertDTO();
@@ -93,12 +133,17 @@ public class ExcelToDtoConverter {
     /**
      * 模糊取列
      *
-     * @param row
-     * @param headers
-     * @param keyPart
-     * @return
+     * 实现逻辑：
+     * 1. 遍历表头列表。
+     * 2. 找到包含关键字的列并返回对应值。
+     *
+     * @param row     行数据
+     * @param headers 表头列表
+     * @param keyPart 关键字片段
+     * @return 匹配到的单元格内容
      */
     private static String getValueByFuzzyKey(Map<String, String> row, List<String> headers, String keyPart) {
+        // 实现思路：通过包含关系匹配列名
         for (String header : headers) {
             if (header.contains(keyPart)) {
                 return row.get(header);
@@ -107,8 +152,18 @@ public class ExcelToDtoConverter {
         return null;
     }
 
-    // 工具方法
+    /**
+     * 解析日期
+     *
+     * 实现逻辑：
+     * 1. 按固定格式解析字符串。
+     * 2. 异常时返回null。
+     *
+     * @param str 日期字符串
+     * @return 本地日期
+     */
     private static LocalDate parseDate(String str) {
+        // 实现思路：异常兜底返回空值
         try {
             return LocalDate.parse(str, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         } catch (Exception e) {
@@ -116,7 +171,18 @@ public class ExcelToDtoConverter {
         }
     }
 
+    /**
+     * 解析小数
+     *
+     * 实现逻辑：
+     * 1. 去除分隔符并转换为BigDecimal。
+     * 2. 异常时返回null。
+     *
+     * @param str 数值字符串
+     * @return BigDecimal结果
+     */
     private static BigDecimal parseDecimal(String str) {
+        // 实现思路：统一去逗号并转换
         try {
             return new BigDecimal(str.replace(",", ""));
         } catch (Exception e) {
@@ -124,7 +190,18 @@ public class ExcelToDtoConverter {
         }
     }
 
+    /**
+     * 解析整数
+     *
+     * 实现逻辑：
+     * 1. 去除分隔符并转换为整数。
+     * 2. 异常时返回null。
+     *
+     * @param str 数值字符串
+     * @return 整数结果
+     */
     private static Integer parseInt(String str) {
+        // 实现思路：统一去逗号并转换
         try {
             return Integer.parseInt(str.replace(",", ""));
         } catch (Exception e) {
@@ -132,7 +209,18 @@ public class ExcelToDtoConverter {
         }
     }
 
+    /**
+     * 解析长整数
+     *
+     * 实现逻辑：
+     * 1. 去除分隔符并转换为长整数。
+     * 2. 异常时返回null。
+     *
+     * @param str 数值字符串
+     * @return 长整数结果
+     */
     private static Long parseLong(String str) {
+        // 实现思路：统一去逗号并转换
         try {
             return Long.parseLong(str.replace(",", ""));
         } catch (Exception e) {
@@ -140,24 +228,45 @@ public class ExcelToDtoConverter {
         }
     }
 
+    /**
+     * 解析布尔型字段
+     *
+     * 实现逻辑：
+     * 1. 将"1"或"是"判定为真。
+     * 2. 其他情况返回0。
+     *
+     * @param str 字符串值
+     * @return 1表示真，0表示假
+     */
     private static int parseBoolean(String str) {
+        // 实现思路：按约定字符串判断布尔值
         if ("1".equals(str) || "是".equalsIgnoreCase(str)) {
             return 1;
         }
         return 0;
     }
 
+    /**
+     * Excel转DTO演示入口
+     *
+     * 实现逻辑：
+     * 1. 读取指定Excel文件表头与数据。
+     * 2. 转换为DTO并输出示例数据。
+     *
+     * @param args 启动参数
+     */
     public static void main(String[] args) {
-        File file = new File("C:\\Users\\lihao\\Desktop\\data\\基本信息.xlsx");
+        // 实现思路：使用相对路径避免平台绑定
+        File file = Paths.get("data", "基本信息.xlsx").toFile();
         headers = readHeaders(file);
-        System.out.println("读取到表头：");
-        headers.forEach(System.out::println);
+        LOG.info("读取表头完成|Read_headers_done,headerSize={}", headers.size());
+        headers.forEach(header -> LOG.info("表头内容|Header_item,header={}", header));
         List<Map<String, String>> dataList = ExcelReaderUtil.readExcel(file);
-        // 转 DTO
+        // 转DTO
         List<StockBasicInfoInsertDTO> basicInfoList = ExcelToDtoConverter.convertToBasicInfoDTO(dataList);
         List<StockFinancialMetricsInsertDTO> metricsList = ExcelToDtoConverter.convertToFinancialMetricsDTO(dataList);
         // 你可以根据需要进行数据库插入、校验或日志输出
-        System.out.println("basicInfoList=" + basicInfoList.get(0));
-        System.out.println("metricsList=" + metricsList.get(0));
+        LOG.info("基础信息示例|Basic_info_sample,data={}", basicInfoList.isEmpty() ? null : basicInfoList.get(0));
+        LOG.info("财务指标示例|Financial_metrics_sample,data={}", metricsList.isEmpty() ? null : metricsList.get(0));
     }
 }

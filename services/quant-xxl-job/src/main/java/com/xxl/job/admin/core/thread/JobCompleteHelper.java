@@ -51,7 +51,7 @@ public class JobCompleteHelper {
 					@Override
 					public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
 						r.run();
-						logger.warn(">>>>>>>>>>> xxl-job, callback too fast, match threadpool rejected handler(run now).");
+						logger.warn("日志记录|Log_message,>>>>>>>>>>>_xxl-job,_callback_too_fast,_match_threadpool_rejected_handler(run_now).");
 					}
 				});
 
@@ -67,7 +67,7 @@ public class JobCompleteHelper {
 					TimeUnit.MILLISECONDS.sleep(50);
 				} catch (Throwable e) {
 					if (!toStop) {
-						logger.error(e.getMessage(), e);
+						logger.error("日志记录|Log_message,exception={}", e.getMessage(), e);
 					}
 				}
 
@@ -94,7 +94,7 @@ public class JobCompleteHelper {
 						}
 					} catch (Throwable e) {
 						if (!toStop) {
-							logger.error(">>>>>>>>>>> xxl-job, job fail monitor thread error:{}", e);
+							logger.error("日志记录|Log_message,>>>>>>>>>>>_xxl-job,_job_fail_monitor_thread_error:{}", e);
 						}
 					}
 
@@ -102,13 +102,13 @@ public class JobCompleteHelper {
                         TimeUnit.SECONDS.sleep(60);
                     } catch (Throwable e) {
                         if (!toStop) {
-                            logger.error(e.getMessage(), e);
+                            logger.error("日志记录|Log_message,exception={}", e.getMessage(), e);
                         }
                     }
 
                 }
 
-				logger.info(">>>>>>>>>>> xxl-job, JobLosedMonitorHelper stop");
+				logger.info("日志记录|Log_message,>>>>>>>>>>>_xxl-job,_JobLosedMonitorHelper_stop");
 
 			}
 		});
@@ -128,7 +128,7 @@ public class JobCompleteHelper {
 		try {
 			monitorThread.join();
 		} catch (Throwable e) {
-			logger.error(e.getMessage(), e);
+			logger.error("日志记录|Log_message,exception={}", e.getMessage(), e);
 		}
 	}
 
@@ -142,7 +142,7 @@ public class JobCompleteHelper {
 			public void run() {
 				for (HandleCallbackParam handleCallbackParam: callbackParamList) {
 					ReturnT<String> callbackResult = callback(handleCallbackParam);
-					logger.debug(">>>>>>>>> JobApiController.callback {}, handleCallbackParam={}, callbackResult={}",
+					logger.debug("日志记录|Log_message,>>>>>>>>>_JobApiController.callback_{},_handleCallbackParam={},_callbackResult={}",
 							(callbackResult.getCode()== ReturnT.SUCCESS_CODE?"success":"fail"), handleCallbackParam, callbackResult);
 				}
 			}

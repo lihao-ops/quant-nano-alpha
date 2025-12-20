@@ -60,10 +60,10 @@ public class MyBatisSlowSqlInterceptor implements Interceptor {
         StatementHandler statementHandler = (StatementHandler) invocation.getTarget();
         String sql = statementHandler.getBoundSql().getSql().replaceAll("\\s+", " ");
         // 打印所有 SQL 执行时间
-//        logger.info("[SQL EXEC] 耗时={}ms, SQL: {}", cost, sql);
+//        logger.info("[SQL_EXEC]_耗时={}ms,_SQL:_{}", cost, sql);
         // 超过阈值的慢 SQL
         if (cost >= slowSqlThresholdMs) {
-            logger.warn("[SLOW SQL] 耗时={}ms, 超过阈值={}ms, SQL: {}", cost, slowSqlThresholdMs, sql);
+            logger.warn("[SLOW_SQL]_耗时={}ms,_超过阈值={}ms,_SQL:_{}", cost, slowSqlThresholdMs, sql);
         }
 
         return result;

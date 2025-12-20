@@ -39,8 +39,8 @@ public class MarketDataProducerPerformanceTest {
         AtomicLong errorCount = new AtomicLong(0);
         AtomicLong totalLatency = new AtomicLong(0);
 
-        log.info("🚀 启动行情数据性能压测");
-        log.info("Topic: {}, QPS: {}, 时长: {}s, 并发: {}, 校验回调: {}",
+        log.info("_启动行情数据性能压测|Log_message");
+        log.info("Topic:_{},_QPS:_{},_时长:_{}s,_并发:_{},_校验回调:_{}",
                 TOPIC, TARGET_QPS, TEST_SECONDS, THREAD_COUNT, VERIFY_CALLBACK);
 
         long startTime = System.currentTimeMillis();
@@ -60,14 +60,14 @@ public class MarketDataProducerPerformanceTest {
 
                         if (ex != null) {
                             errorCount.incrementAndGet();
-                            log.error("❌ Send failed: {}", ex.getMessage());
+                            log.error("日志记录|Log_message,_Send_failed:_{}", ex.getMessage(), ex);
                         } else if (VERIFY_CALLBACK) {
                             RecordMetadata meta = result.getRecordMetadata();
                             if (meta != null) {
                                 successCount.incrementAndGet();
                             } else {
                                 errorCount.incrementAndGet();
-                                log.warn("⚠️ Send success but no metadata");
+                                log.warn("日志记录|Log_message,_Send_success_but_no_metadata");
                             }
                         } else {
                             successCount.incrementAndGet();
@@ -78,7 +78,7 @@ public class MarketDataProducerPerformanceTest {
 
             long cost = System.currentTimeMillis() - secondStart;
             double achievedQps = TARGET_QPS * 1000.0 / Math.max(cost, 1);
-            log.info("✅ 第{}秒发送完毕, 耗时 {} ms, 实际QPS ≈ {}", sec + 1, cost, (int) achievedQps);
+            log.info("_第{}秒发送完毕,_耗时_{}_ms,_实际QPS_≈_{}", sec + 1, cost, (int) achievedQps);
 
             // 保证每秒控制在 1s 内节奏
             TimeUnit.MILLISECONDS.sleep(Math.max(0, 1000 - cost));
@@ -90,14 +90,14 @@ public class MarketDataProducerPerformanceTest {
         double avgLatency = totalLatency.get() * 1.0 / Math.max(successCount.get(), 1);
         double avgQps = successCount.get() * 1000.0 / totalCost;
 
-        log.info("📊 测试结果汇总 ===============================");
-        log.info("总发送消息数: {}", totalMsgCount);
-        log.info("成功消息数: {}", successCount);
-        log.info("失败消息数: {}", errorCount);
-        log.info("平均延迟: {} ms", String.format("%.2f", avgLatency));
-        log.info("平均QPS: {}", String.format("%.2f", avgQps));
-        log.info("总耗时: {} 秒", totalCost / 1000.0);
-        log.info("=============================================");
+        log.info("_测试结果汇总_===============================|Log_message");
+        log.info("总发送消息数:_{}|Log_message", totalMsgCount);
+        log.info("成功消息数:_{}|Log_message", successCount);
+        log.info("失败消息数:_{}|Log_message", errorCount);
+        log.info("平均延迟:_{}_ms", String.format("%.2f", avgLatency));
+        log.info("平均QPS:_{}", String.format("%.2f", avgQps));
+        log.info("总耗时:_{}_秒|Log_message", totalCost / 1000.0);
+        log.info("日志记录|Log_message");
 
         executor.shutdown();
     }

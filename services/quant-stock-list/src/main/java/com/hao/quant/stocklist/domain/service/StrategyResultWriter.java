@@ -37,12 +37,12 @@ public class StrategyResultWriter {
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED)
     public void batchSave(List<StrategyDailyPickPO> picks) {
         if (picks == null || picks.isEmpty()) {
-            log.warn("批量保存策略结果数据为空");
+            log.warn("批量保存为空|Batch_save_empty");
             return;
         }
         // 通过 Mapper 批量写入数据库
         int inserted = stablePicksMapper.batchInsert(picks);
-        log.info("批量保存策略结果成功,共{}条", inserted);
+        log.info("批量保存成功|Batch_save_success,count={}", inserted);
         // 将所有涉及的交易日回写布隆过滤器,降低查询时穿透风险
         picks.stream().map(StrategyDailyPickPO::getTradeDate).distinct().forEach(bloomFilter::addTradeDate);
         publishEvent(picks.getFirst().getStrategyId(), picks);
@@ -80,6 +80,6 @@ public class StrategyResultWriter {
                 .build();
         // Kafka 异步推送事件,由查询侧监听刷新缓存
         kafkaTemplate.send("strategy.result.completed", event);
-        log.info("发布策略结果事件: {}", event);
+        log.info("发布策略结果事件|Publish_strategy_event,event={}", event);
     }
 }

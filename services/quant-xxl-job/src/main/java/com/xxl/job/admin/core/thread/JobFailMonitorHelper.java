@@ -73,7 +73,7 @@ public class JobFailMonitorHelper {
 
 					} catch (Throwable e) {
 						if (!toStop) {
-							logger.error(">>>>>>>>>>> xxl-job, job fail monitor thread error:{}", e);
+							logger.error("日志记录|Log_message,>>>>>>>>>>>_xxl-job,_job_fail_monitor_thread_error:{}", e);
 						}
 					}
 
@@ -81,13 +81,13 @@ public class JobFailMonitorHelper {
                         TimeUnit.SECONDS.sleep(10);
                     } catch (Throwable e) {
                         if (!toStop) {
-                            logger.error(e.getMessage(), e);
+                            logger.error("日志记录|Log_message,exception={}", e.getMessage(), e);
                         }
                     }
 
                 }
 
-				logger.info(">>>>>>>>>>> xxl-job, job fail monitor thread stop");
+				logger.info("日志记录|Log_message,>>>>>>>>>>>_xxl-job,_job_fail_monitor_thread_stop");
 
 			}
 		});
@@ -103,7 +103,7 @@ public class JobFailMonitorHelper {
 		try {
 			monitorThread.join();
 		} catch (Throwable e) {
-			logger.error(e.getMessage(), e);
+			logger.error("日志记录|Log_message,exception={}", e.getMessage(), e);
 		}
 	}
 

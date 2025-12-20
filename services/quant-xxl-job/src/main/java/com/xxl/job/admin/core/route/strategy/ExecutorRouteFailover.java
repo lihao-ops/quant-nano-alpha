@@ -25,7 +25,7 @@ public class ExecutorRouteFailover extends ExecutorRouter {
                 ExecutorBiz executorBiz = XxlJobScheduler.getExecutorBiz(address);
                 beatResult = executorBiz.beat();
             } catch (Exception e) {
-                logger.error(e.getMessage(), e);
+                logger.error("日志记录|Log_message,exception={}", e.getMessage(), e);
                 beatResult = new ReturnT<String>(ReturnT.FAIL_CODE, ""+e );
             }
             beatResultSB.append( (beatResultSB.length()>0)?"<br><br>":"")

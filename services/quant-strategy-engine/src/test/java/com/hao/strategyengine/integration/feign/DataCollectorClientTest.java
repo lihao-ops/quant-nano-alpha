@@ -19,12 +19,12 @@ public class DataCollectorClientTest {
     @Test
     void getTradeDateListByTime() {
         List<String> dateList = client.getTradeDateListByTime("20240101", "20241212");
-        log.info("dateList={}", JSON.toJSONString(dateList));
+        log.info("日志记录|Log_message,dateList={}", JSON.toJSONString(dateList));
     }
 
     @Test
     void queryStockBasicInfo() {
         List<StockBasicInfoQueryResultVO> infoQueryResultVOS = client.queryStockBasicInfo("000001.SZ", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
-        log.info("infoQueryResultVOS={}", JSON.toJSONString(infoQueryResultVOS));
+        log.info("日志记录|Log_message,infoQueryResultVOS={}", JSON.toJSONString(infoQueryResultVOS));
     }
 }

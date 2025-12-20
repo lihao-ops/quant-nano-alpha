@@ -26,7 +26,7 @@
 //        context.setCurrentData(new MarketData());
 //        if (strategy.isReady()) {
 //            Signal signal = strategy.analyze(context);
-//            System.out.println("生成信号: " + signal);
+//            log.info("生成信号|Generate_signal,signal={}", signal);
 //        }
 //    }
 //}

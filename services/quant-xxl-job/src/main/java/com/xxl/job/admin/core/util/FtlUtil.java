@@ -23,7 +23,7 @@ public class FtlUtil {
             TemplateHashModel fileStatics = (TemplateHashModel) staticModels.get(packageName);
             return fileStatics;
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            logger.error("日志记录|Log_message,exception={}", e.getMessage(), e);
         }
         return null;
     }

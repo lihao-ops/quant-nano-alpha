@@ -51,7 +51,7 @@ class RateLimitHandlerTest {
             }
         }
 
-        log.info("单用户限流测试结果: 通过={}, 拒绝={}", passCount.get(), rejectCount.get());
+        log.info("单用户限流测试结果:_通过={},_拒绝={}|Log_message", passCount.get(), rejectCount.get());
 
         // 验证: 通过数应该接近预期值(允许±2的误差)
         assertTrue(Math.abs(passCount.get() - expectedPass) <= 2,
@@ -102,7 +102,7 @@ class RateLimitHandlerTest {
         latch.await();
         executor.shutdown();
 
-        log.info("并发限流测试结果: 总请求={}, 通过={}, 拒绝={}",
+        log.info("并发限流测试结果:_总请求={},_通过={},_拒绝={}|Log_message",
                 totalRequests, passCount.get(), rejectCount.get());
 
         // 验证: 通过数应该接近用户QPS限制(10)
@@ -147,7 +147,7 @@ class RateLimitHandlerTest {
             }
         }
 
-        log.info("策略类型限流测试: SIMPLE通过={}, ML_MODEL通过={}",
+        log.info("策略类型限流测试:_SIMPLE通过={},_ML_MODEL通过={}",
                 simplePassCount.get(), mlPassCount.get());
 
         // 验证: SIMPLE策略通过数应该更多
@@ -178,7 +178,7 @@ class RateLimitHandlerTest {
             }
         }
 
-        log.info("全局限流测试结果: 50个不同用户请求, 通过={}", passCount.get());
+        log.info("全局限流测试结果:_50个不同用户请求,_通过={}|Log_message", passCount.get());
 
         // 验证: 全局限流应该生效
         assertTrue(passCount.get() < userCount, "全局限流应该拒绝部分请求");
@@ -199,9 +199,9 @@ class RateLimitHandlerTest {
                 .build();
         try {
             rateLimitHandler.handle(ctx);
-            log.info("✅ Redis降级测试: 限流功能正常(可能使用了降级方案)");
+            log.info("_Redis降级测试:_限流功能正常(可能使用了降级方案)");
         } catch (RateLimitHandler.RateLimitException e) {
-            log.info("⛔ Redis降级测试: 触发限流={}", e.getMessage());
+            log.info("_Redis降级测试:_触发限流={}", e.getMessage());
         } catch (Exception e) {
             fail("Redis不可用时应该降级到单机限流,而不是抛出异常");
         }
@@ -229,10 +229,10 @@ class RateLimitHandlerTest {
             }
         }
 
-        log.info("第一轮请求: 通过={}", firstRoundPass);
+        log.info("第一轮请求:_通过={}|Log_message", firstRoundPass);
 
         // 等待2秒(超过1秒的窗口期)
-        log.info("等待2秒,让滑动窗口过期...");
+        log.info("等待2秒,让滑动窗口过期...|Log_message");
         Thread.sleep(2000);
 
         // 第二轮: 再次发送请求,应该能通过
@@ -249,7 +249,7 @@ class RateLimitHandlerTest {
             }
         }
 
-        log.info("第二轮请求: 通过={}", secondRoundPass);
+        log.info("第二轮请求:_通过={}|Log_message", secondRoundPass);
 
         // 验证: 窗口过期后应该能再次通过请求
         assertTrue(secondRoundPass > 0, "窗口过期后应该能再次通过请求");

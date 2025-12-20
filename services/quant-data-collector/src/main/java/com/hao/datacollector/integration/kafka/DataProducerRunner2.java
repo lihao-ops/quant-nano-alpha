@@ -43,7 +43,7 @@
 //        }
 //        // 测试 3 分钟 → 3 × 60 × 1800 ≈ 324,000 条消息
 //        historyTrendDataByDate = historyTrendDataByDate.subList(0, Math.min(324000, historyTrendDataByDate.size()));
-//        log.info("开始发送历史行情数据到 Kafka topic={}，总条数={}", topic, historyTrendDataByDate.size());
+//        log.info("开始发送历史行情数据到_Kafka_topic={}，总条数={}", topic, historyTrendDataByDate.size());
 //        sendPerSecondWithTPS(topic, historyTrendDataByDate, BATCH_SIZE, PER_SECOND_TARGET);
 //    }
 //
@@ -75,7 +75,7 @@
 //                long now = System.currentTimeMillis();
 //                long elapsed = now - secondStartTime;
 //                double tps = countInCurrentSecond * 1000.0 / Math.max(elapsed, 1);
-//                log.info("本秒发送条数={}, 耗时={}ms, 实时TPS={}, 总发送条数={}",
+//                log.info("本秒发送条数={},_耗时={}ms,_实时TPS={},_总发送条数={}",
 //                        countInCurrentSecond, elapsed, df.format(tps), totalSent);
 //
 //                if (elapsed < 1000) {
@@ -95,7 +95,7 @@
 //            long now = System.currentTimeMillis();
 //            long elapsed = now - secondStartTime;
 //            double tps = batchList.size() * 1000.0 / Math.max(elapsed, 1);
-//            log.info("最后批次发送条数={}，耗时={}ms，实时TPS={}, 总发送条数={}",
+//            log.info("最后批次发送条数={}，耗时={}ms，实时TPS={},_总发送条数={}",
 //                    batchList.size(), elapsed, df.format(tps), totalSent);
 //        }
 //
@@ -113,7 +113,7 @@
 //            try {
 //                producerService.send(topic, dto.getWindCode(), dto);
 //            } catch (Exception e) {
-//                log.error("批量发送失败: windCode={}, error={}", dto.getWindCode(), e.getMessage(), e);
+//                log.error("批量发送失败:_windCode={},_error={}", dto.getWindCode(), e.getMessage(), e);
 //            }
 //        }
 //    }

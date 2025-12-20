@@ -173,9 +173,9 @@ public class LimitUpController {
         queryParam.setTopicHotMax(topicHotMax);
         queryParam.setPageNo(pageNo);
         queryParam.setPageSize(pageSize);
-        log.info("queryLimitUpStockList_start=queryParam={}", queryParam);
+        log.info("查询涨停股票开始|Query_limit_up_start,queryParam={}", queryParam);
         List<LimitUpStockQueryResultVO> resultList = limitUpService.queryLimitUpStockList(queryParam);
-        log.info("queryLimitUpStockList_success=result_count={}", resultList.size());
+        log.info("查询涨停股票成功|Query_limit_up_success,resultCount={}", resultList.size());
         return resultList;
     }
 

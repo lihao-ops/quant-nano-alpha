@@ -108,7 +108,7 @@ public class VWAPStrategy implements QuantStrategy {
                 selectedStocks = selectedStocks.subList(0, MAX_RESULTS);
             }
 
-            log.info("VWAP Strategy selected {} stocks from {} candidates",
+            log.info("日志记录|Log_message,VWAP_Strategy_selected_{}_stocks_from_{}_candidates",
                     selectedStocks.size(), stockPool.size());
 
             return StrategyResult.builder()
@@ -118,7 +118,7 @@ public class VWAPStrategy implements QuantStrategy {
                     .build();
 
         } catch (Exception e) {
-            log.error("VWAP strategy execution failed", e);
+            log.error("日志记录|Log_message,VWAP_strategy_execution_failed", e);
             return buildErrorResult(start, e.getMessage());
         }
     }

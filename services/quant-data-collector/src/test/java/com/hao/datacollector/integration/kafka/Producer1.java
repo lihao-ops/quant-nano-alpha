@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
@@ -18,12 +19,29 @@ import java.util.Random;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * Kafka消息发送压测生产者1号
+ *
+ * 设计目的：
+ * 1. 构造稳定可控的发送流量，用于验证Kafka发送链路稳定性。
+ * 2. 记录发送序列ID，便于后续消费端核对丢失与乱序情况。
+ *
+ * 为什么需要该类：
+ * - 压测需要可复现的发送节奏与可追踪的ID记录。
+ * - 独立生产者便于与其他测试组隔离验证。
+ *
+ * 核心实现思路：
+ * - 通过单线程定时循环控制QPS与持续时间。
+ * - 发送成功后将序列号写入本地日志文件。
+ * - 出现异常时记录错误并统计失败数量。
+ */
 @Component
 public class Producer1 {
     private static final Logger logger = LoggerFactory.getLogger(Producer1.class);
     private static final String TOPIC = "ping-topic3";
     private static final String BOOTSTRAP_SERVERS = "192.168.254.2:9092";
-    private static final String SENT_IDS_FILE = "E:\\项目暂存\\quant-nano-alpha\\services\\quant-data-collector\\src\\main\\resources\\sent_ids_group1.log";
+    private static final String SENT_IDS_FILE = Paths.get("services", "quant-data-collector", "src", "main",
+            "resources", "sent_ids_group1.log").toString();
 
     private KafkaProducer<String, String> producer;
     private AtomicLong sequenceId = new AtomicLong(0);
@@ -31,11 +49,25 @@ public class Producer1 {
     private Random random = new Random();
     private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
+    /**
+     * 初始化Kafka生产者与发送ID记录文件
+     *
+     * 实现逻辑：
+     * 1. 构建Kafka生产者配置。
+     * 2. 创建Producer实例并初始化ID记录文件。
+     * 3. 输出初始化关键信息便于排查。
+     *
+     * @throws IOException 写入记录文件失败时抛出
+     */
     public void init() throws IOException {
-        logger.info("========== 初始化Producer1 ==========");
-        logger.info("配置: acks=1, enable.idempotence=false");
-        logger.info("Topic: {}", TOPIC);
-        logger.info("Bootstrap Servers: {}", BOOTSTRAP_SERVERS);
+        // 实现思路：
+        // 1. 初始化生产者配置与连接信息。
+        // 2. 创建Producer与记录文件。
+        // 3. 打印启动参数用于排查。
+        logger.info("初始化Producer1开始|Init_producer1_start");
+        logger.info("生产者配置|Producer_config,acks={},enableIdempotence={}", "1", "false");
+        logger.info("主题信息|Topic_info,topic={}", TOPIC);
+        logger.info("集群地址|Bootstrap_servers,servers={}", BOOTSTRAP_SERVERS);
 
         Properties props = new Properties();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
@@ -54,17 +86,31 @@ public class Producer1 {
         producer = new KafkaProducer<>(props);
         sentIdsWriter = new FileWriter(SENT_IDS_FILE, false);
 
-        logger.info("Producer1初始化完成");
-        logger.info("发送ID记录文件: {}", SENT_IDS_FILE);
-        logger.info("=====================================");
+        logger.info("Producer1初始化完成|Init_producer1_completed");
+        logger.info("发送ID记录文件|Sent_id_file,path={}", SENT_IDS_FILE);
+        logger.info("初始化结束|Init_finished");
     }
 
+    /**
+     * 按指定QPS与持续时间发送消息
+     *
+     * 实现逻辑：
+     * 1. 以秒为单位控制发送节奏。
+     * 2. 每条消息生成唯一序列号并写入文件。
+     * 3. 统计成功/失败并输出汇总指标。
+     *
+     * @param qps 每秒发送条数
+     * @param durationSeconds 持续时间（秒）
+     */
     public void sendMessages(int qps, int durationSeconds) {
-        logger.info("========== 开始发送消息 ==========");
-        logger.info("目标QPS: {} 条/秒", qps);
-        logger.info("持续时间: {} 秒", durationSeconds);
-        logger.info("预计发送总数: {} 条", qps * durationSeconds);
-        logger.info("=================================");
+        // 实现思路：
+        // 1. 用时间窗口控制发送持续时间。
+        // 2. 每秒发送qps条消息并flush。
+        // 3. 统计成功与失败并输出结果。
+        logger.info("发送任务开始|Send_task_start");
+        logger.info("发送参数|Send_params,qps={},durationSeconds={}", qps, durationSeconds);
+        logger.info("预计发送总数|Expected_total,total={}", qps * durationSeconds);
+        logger.info("发送准备完成|Send_prepare_completed");
 
         long startTime = System.currentTimeMillis();
         long endTime = startTime + (durationSeconds * 1000L);
@@ -87,11 +133,12 @@ public class Producer1 {
                                 new ProducerRecord<>(TOPIC, String.valueOf(seq), message),
                                 (metadata, exception) -> {
                                     if (exception != null) {
-                                        logger.error("消息发送失败回调 - seq: {}, 分区: {}, offset: {}, 异常: {}",
+                                        logger.error("消息发送失败回调|Send_message_failed_callback,seq={},partition={},offset={},error={}",
                                                 seq,
                                                 metadata != null ? metadata.partition() : "unknown",
                                                 metadata != null ? metadata.offset() : "unknown",
-                                                exception.getMessage());
+                                                exception.getMessage(),
+                                                exception);
                                     }
                                 }
                         );
@@ -101,11 +148,11 @@ public class Producer1 {
                         sentThisSecond++;
 
                         if (totalSent % 50000 == 0) {
-                            logger.info("已累计发送: {} 条消息", totalSent);
+                            logger.info("累计发送进度|Send_progress,totalSent={}", totalSent);
                         }
 
                     } catch (Exception e) {
-                        logger.error("发送消息异常 - seq: {}, 错误信息: {}", seq, e.getMessage());
+                        logger.error("发送消息异常|Send_message_error,seq={},error={}", seq, e.getMessage(), e);
                         totalFailed++;
                     }
                 }
@@ -113,23 +160,24 @@ public class Producer1 {
                 producer.flush();
 
                 long elapsed = System.currentTimeMillis() - secondStart;
-                logger.info("第 {} 秒: 发送 {} 条消息, 耗时 {} ms", currentSecond, sentThisSecond, elapsed);
+                logger.info("单秒发送统计|Second_send_stats,secondIndex={},sentCount={},costMs={}",
+                        currentSecond, sentThisSecond, elapsed);
 
                 if (elapsed < 1000) {
                     try {
                         Thread.sleep(1000 - elapsed);
                     } catch (InterruptedException e) {
-                        logger.warn("线程等待被中断", e);
+                        logger.warn("线程等待中断|Thread_sleep_interrupted", e);
                         break;
                     }
                 }
             }
 
             producer.flush();
-            logger.info("最终flush完成");
+            logger.info("最终Flush完成|Final_flush_completed");
 
         } catch (Exception e) {
-            logger.error("发送过程发生异常", e);
+            logger.error("发送过程异常|Send_process_error", e);
         } finally {
             cleanup();
         }
@@ -137,18 +185,34 @@ public class Producer1 {
         long actualDuration = (System.currentTimeMillis() - startTime) / 1000;
         double actualQps = actualDuration > 0 ? totalSent / (double) actualDuration : 0;
 
-        logger.info("========== Producer1发送统计 ==========");
-        logger.info("总发送数: {} 条", totalSent);
-        logger.info("发送成功: {} 条", totalSent - totalFailed);
-        logger.info("发送失败: {} 条", totalFailed);
-        logger.info("实际持续时间: {} 秒", actualDuration);
-        logger.info("实际平均QPS: {}", String.format("%.2f", actualQps));
-        logger.info("发送成功率: {}%", String.format("%.2f", (totalSent - totalFailed) * 100.0 / totalSent));
-        logger.info("发送ID记录文件: {}", SENT_IDS_FILE);
-        logger.info("======================================");
+        logger.info("发送统计开始|Send_stats_start");
+        logger.info("发送总量|Send_total,totalSent={}", totalSent);
+        logger.info("发送成功|Send_success,successCount={}", totalSent - totalFailed);
+        logger.info("发送失败|Send_failed,failCount={}", totalFailed);
+        logger.info("实际持续时间|Actual_duration,seconds={}", actualDuration);
+        logger.info("实际平均QPS|Actual_avg_qps,qps={}", String.format("%.2f", actualQps));
+        logger.info("发送成功率|Send_success_rate,ratePercent={}%",
+                String.format("%.2f", (totalSent - totalFailed) * 100.0 / totalSent));
+        logger.info("发送ID记录文件|Sent_id_file,path={}", SENT_IDS_FILE);
+        logger.info("发送统计结束|Send_stats_end");
     }
 
+    /**
+     * 生成模拟行情消息体
+     *
+     * 实现逻辑：
+     * 1. 构造证券代码与价格/成交量字段。
+     * 2. 生成两列时间戳用于后续校验。
+     * 3. 拼接为制表符分隔的发送体。
+     *
+     * @param seq 消息序列号
+     * @return 消息体字符串
+     */
     private String generateMessage(long seq) {
+        // 实现思路：
+        // 1. 使用序列号生成稳定证券代码。
+        // 2. 生成随机价格与成交量。
+        // 3. 返回固定字段顺序的消息体。
         String symbol = String.format("%06d.SZ", (seq % 1000000) + 1);
         double price = 10.0 + random.nextDouble() * 490.0;
         double volume = 1000.0 + random.nextDouble() * 9000.0;
@@ -159,29 +223,52 @@ public class Producer1 {
                 symbol, timestamp1, price, volume, price, timestamp2, timestamp2, seq);
     }
 
+    /**
+     * 关闭Producer与发送ID记录文件
+     *
+     * 实现逻辑：
+     * 1. 关闭文件写入器并输出日志。
+     * 2. 关闭KafkaProducer释放资源。
+     */
     private void cleanup() {
+        // 实现思路：
+        // 1. 先关闭文件，再关闭Producer。
+        // 2. 捕获IO异常并记录。
         try {
             if (sentIdsWriter != null) {
                 sentIdsWriter.close();
-                logger.info("发送ID记录文件已关闭");
+                logger.info("发送ID记录文件关闭|Sent_id_file_closed");
             }
             if (producer != null) {
                 producer.close();
-                logger.info("Kafka Producer已关闭");
+                logger.info("KafkaProducer关闭|Kafka_producer_closed");
             }
         } catch (IOException e) {
-            logger.error("关闭资源时发生异常", e);
+            logger.error("资源关闭异常|Resource_close_error", e);
         }
     }
 
+    /**
+     * 本地执行入口
+     *
+     * 实现逻辑：
+     * 1. 读取启动参数设置QPS与持续时间。
+     * 2. 初始化生产者并开始发送。
+     *
+     * @param args 启动参数
+     * @throws IOException 初始化失败时抛出
+     */
     public static void main(String[] args) throws IOException {
+        // 实现思路：
+        // 1. 参数缺省使用默认QPS与时长。
+        // 2. 初始化生产者并执行发送。
         Producer1 producer = new Producer1();
         producer.init();
 
         int qps = args.length > 0 ? Integer.parseInt(args[0]) : 10000;
         int duration = args.length > 1 ? Integer.parseInt(args[1]) : 60;
 
-        logger.info("启动参数 - QPS: {}, Duration: {}秒", qps, duration);
+        logger.info("启动参数|Startup_params,qps={},durationSeconds={}", qps, duration);
         producer.sendMessages(qps, duration);
     }
 }

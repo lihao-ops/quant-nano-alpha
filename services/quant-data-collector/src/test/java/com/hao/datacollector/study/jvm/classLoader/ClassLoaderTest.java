@@ -23,7 +23,7 @@ public class ClassLoaderTest {
         testLoadCoreClass(myLoader);
 
         // 再次加载普通类，验证父加载器缓存机制
-        log.info("=== 再次加载普通类 ===");
+        log.info("===_再次加载普通类_===|Log_message");
         testLoadNormalClass(myLoader);
     }
 
@@ -31,12 +31,12 @@ public class ClassLoaderTest {
      * 实验目的：观察自定义 ClassLoader 加载普通类的过程
      */
     static void testLoadNormalClass(MyClassLoader myLoader) {
-        log.info("=== 加载普通类 ===");
+        log.info("===_加载普通类_===|Log_message");
         try {
             Class<?> myClass = myLoader.loadClass("com.hao.datacollector.study.jvm.classLoader.MyTestClass");
-            log.info("MyTestClass 的 ClassLoader: {}", myClass.getClassLoader());
+            log.info("MyTestClass_的_ClassLoader:_{}", myClass.getClassLoader());
         } catch (ClassNotFoundException e) {
-            log.error("加载普通类失败", e);
+            log.error("加载普通类失败|Log_message", e);
         }
     }
 
@@ -44,12 +44,12 @@ public class ClassLoaderTest {
      * 实验目的：验证核心类始终由 Bootstrap ClassLoader 加载
      */
     static void testLoadCoreClass(MyClassLoader myLoader) {
-        log.info("=== 加载核心类 java.lang.String ===");
+        log.info("===_加载核心类_java.lang.String_===");
         try {
             Class<?> stringClass = myLoader.loadClass("java.lang.String");
-            log.info("String 的 ClassLoader: {}", stringClass.getClassLoader());
+            log.info("String_的_ClassLoader:_{}", stringClass.getClassLoader());
         } catch (ClassNotFoundException e) {
-            log.error("加载核心类失败", e);
+            log.error("加载核心类失败|Log_message", e);
         }
     }
 }
@@ -72,21 +72,21 @@ class MyClassLoader extends ClassLoader {
      */
     @Override
     public Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-        log.info("{} 尝试加载类: {}", this.getClass().getSimpleName(), name);
+        log.info("{}_尝试加载类:_{}|Log_message", this.getClass().getSimpleName(), name);
 
         // 先尝试父加载器
         ClassLoader parent = getParent();
         if (parent != null) {
             try {
                 Class<?> parentClass = parent.loadClass(name);
-                log.info("{} 父加载器 {} 成功加载类: {}", this.getClass().getSimpleName(),
+                log.info("{}_父加载器_{}_成功加载类:_{}|Log_message", this.getClass().getSimpleName(),
                         parent.getClass().getSimpleName(), name);
                 if (resolve) {
                     resolveClass(parentClass);
                 }
                 return parentClass;
             } catch (ClassNotFoundException e) {
-                log.info("{} 父加载器 {} 未找到类: {}, 尝试自己加载", this.getClass().getSimpleName(),
+                log.info("{}_父加载器_{}_未找到类:_{},_尝试自己加载|Log_message", this.getClass().getSimpleName(),
                         parent.getClass().getSimpleName(), name);
             }
         }
@@ -104,7 +104,7 @@ class MyClassLoader extends ClassLoader {
      */
     @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException {
-        log.info("{} 自己尝试加载: {}", this.getClass().getSimpleName(), name);
+        log.info("{}_自己尝试加载:_{}|Log_message", this.getClass().getSimpleName(), name);
 
         // 普通类 MyTestClass
         if (name.equals("com.hao.datacollector.study.jvm.classLoader.MyTestClass")) {

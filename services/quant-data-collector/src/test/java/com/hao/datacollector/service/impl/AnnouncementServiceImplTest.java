@@ -64,9 +64,9 @@ class AnnouncementServiceImplTest {
         for (String windCode : jobStockList) {
             try {
                 Boolean transferAnnouncementResult = announcementService.transferAnnouncement(windCode, startDate, endDate, 1, 500);
-                log.info("AnnouncementServiceImplTest_transferAnnouncement_windCode={},transferAnnouncementResult={}", windCode, transferAnnouncementResult);
+                log.info("日志记录|Log_message,AnnouncementServiceImplTest_transferAnnouncement_windCode={},transferAnnouncementResult={}", windCode, transferAnnouncementResult);
             } catch (Exception e) {
-                log.error("AnnouncementServiceImplTest_transferAnnouncement_windCode={},e={}", windCode, e);
+                log.error("日志记录|Log_message,AnnouncementServiceImplTest_transferAnnouncement_windCode={},e={}", windCode, e);
             }
         }
     }
@@ -97,9 +97,9 @@ class AnnouncementServiceImplTest {
             CompletableFuture.runAsync(() -> {
                 try {
                     Boolean transferAnnouncementResult = announcementService.transferAnnouncement(windCode, startDate, endDate, 1, 500);
-                    log.info("AnnouncementServiceImplTest_transferAnnouncement_windCode={},transferAnnouncementResult={}", windCode, transferAnnouncementResult);
+                    log.info("日志记录|Log_message,AnnouncementServiceImplTest_transferAnnouncement_windCode={},transferAnnouncementResult={}", windCode, transferAnnouncementResult);
                 } catch (Exception e) {
-                    log.error("AnnouncementServiceImplTest_transferAnnouncement_windCode={},e={}", windCode, e);
+                    log.error("日志记录|Log_message,AnnouncementServiceImplTest_transferAnnouncement_windCode={},e={}", windCode, e);
                 } finally {
                     latch.countDown();
                 }
@@ -108,7 +108,7 @@ class AnnouncementServiceImplTest {
         try {
             latch.await();
         } catch (InterruptedException e) {
-            log.error("transferAnnouncementBatch interrupted", e);
+            log.error("日志记录|Log_message,transferAnnouncementBatch_interrupted", e);
         }
     }
 
@@ -139,9 +139,9 @@ class AnnouncementServiceImplTest {
             CompletableFuture.runAsync(() -> {
                 try {
                     Boolean transferAnnouncementResult = announcementService.transferAnnouncement(windCode, startDate, endDate, 1, 500);
-                    log.info("AnnouncementServiceImplTest_transferAnnouncement_windCode={},transferAnnouncementResult={}", windCode, transferAnnouncementResult);
+                    log.info("日志记录|Log_message,AnnouncementServiceImplTest_transferAnnouncement_windCode={},transferAnnouncementResult={}", windCode, transferAnnouncementResult);
                 } catch (Exception e) {
-                    log.error("AnnouncementServiceImplTest_transferAnnouncement_windCode={},e={}", windCode, e);
+                    log.error("日志记录|Log_message,AnnouncementServiceImplTest_transferAnnouncement_windCode={},e={}", windCode, e);
                 } finally {
                     latch.countDown();
                 }
@@ -150,7 +150,7 @@ class AnnouncementServiceImplTest {
         try {
             latch.await();
         } catch (InterruptedException e) {
-            log.error("transferAnnouncementBatch interrupted", e);
+            log.error("日志记录|Log_message,transferAnnouncementBatch_interrupted", e);
         }
     }
 
@@ -168,7 +168,7 @@ class AnnouncementServiceImplTest {
         jobStockList.removeAll(abnormalStockList);
         for (String windCode : jobStockList) {
             Boolean transferEventResult = announcementService.transferEvent(windCode, startDate, endDate, 1, 500);
-            log.info("AnnouncementServiceImplTest_transferEvent_windCode={},transferEventResult={}", windCode, transferEventResult);
+            log.info("日志记录|Log_message,AnnouncementServiceImplTest_transferEvent_windCode={},transferEventResult={}", windCode, transferEventResult);
         }
     }
 
@@ -198,9 +198,9 @@ class AnnouncementServiceImplTest {
             CompletableFuture.runAsync(() -> {
                 try {
                     Boolean transferEventResult = announcementService.transferEvent(windCode, startDate, endDate, 1, 500);
-                    log.info("AnnouncementServiceImplTest_transferEvent_windCode={},transferEventResult={}", windCode, transferEventResult);
+                    log.info("日志记录|Log_message,AnnouncementServiceImplTest_transferEvent_windCode={},transferEventResult={}", windCode, transferEventResult);
                 } catch (Exception e) {
-                    log.error("AnnouncementServiceImplTest_transferEvent_windCode={},e={}", windCode, e);
+                    log.error("日志记录|Log_message,AnnouncementServiceImplTest_transferEvent_windCode={},e={}", windCode, e);
                 } finally {
                     latch.countDown();
                 }
@@ -209,7 +209,7 @@ class AnnouncementServiceImplTest {
         try {
             latch.await();
         } catch (InterruptedException e) {
-            log.error("transferEventBatch interrupted", e);
+            log.error("日志记录|Log_message,transferEventBatch_interrupted", e);
         }
     }
 }

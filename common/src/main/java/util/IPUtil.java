@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author: hli
@@ -14,6 +16,7 @@ import java.util.stream.Collectors;
  * @description: IP工具类
  */
 public class IPUtil {
+    private static final Logger LOG = LoggerFactory.getLogger(IPUtil.class);
     /**
      * 保存本机所有IP地址
      */
@@ -56,7 +59,7 @@ public class IPUtil {
                 }
             }
         } catch (Exception e) {
-            System.err.println("IP地址获取失败" + e.toString());
+            LOG.error("IP获取失败|Ip_fetch_failed,errorClass={}", e.getClass().getSimpleName(), e);
         }
         return hostAddresses;
     }

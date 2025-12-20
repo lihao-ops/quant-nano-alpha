@@ -37,7 +37,7 @@ public class StablePicksAssembler {
                 // 统一将扩展字段转为 JSON 字符串,方便前端展示
                 extraJson = objectMapper.writeValueAsString(pick.extraData());
             } catch (JsonProcessingException e) {
-                log.warn("序列化扩展字段失败: {}", e.getMessage());
+                log.warn("序列化扩展字段失败|Extra_field_serialize_failed,error={}", e.getMessage());
             }
         }
         return StablePicksVO.builder()

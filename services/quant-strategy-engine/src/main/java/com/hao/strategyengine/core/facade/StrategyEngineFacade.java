@@ -158,26 +158,26 @@ public class StrategyEngineFacade {
     public StrategyResultBundle executeAll(Integer userId, List<String> strategyIds, StrategyContext ctx) throws Exception {
         // 中文：前置风险/合规校验，阻断不合法或超限的执行请求
         // English: Pre-run risk and compliance checks to block illegal or exceeded execution requests
-        // Step 1️⃣ 前置责任链风控校验 —— 防止违规策略执行
+        // Step 1⃣ 前置责任链风控校验 —— 防止违规策略执行
         try {
             chain.apply(ctx);
         } catch (Exception e) {
-            log.error("责任链执行异常：{}", e.getMessage(), e);
+            log.error("责任链执行异常：{}|Log_message", e.getMessage(), e);
             // 可视情况决定：是否中断策略执行 / 返回默认结果
         }
 
 
         // 中文：根据策略ID集合生成组合键，用于锁控制与结果标识
         // English: Generate a combo key from strategy ID set for lock control and result identification
-        // Step 2️⃣ 生成组合Key（如 "MA_MOM_DRAGON_TWO"）
+        // Step 2⃣ 生成组合Key（如 "MA_MOM_DRAGON_TWO"）
         String comboKey = KeyUtils.comboKey(strategyIds);
 
         // 中文：以Supplier封装计算体，实现惰性执行与锁保护分离
         // English: Wrap compute body as Supplier to enable lazy execution and separate from lock protection
-        // Step 3️⃣ 构建计算逻辑 Supplier —— 包含并行执行多个策略的逻辑
+        // Step 3⃣ 构建计算逻辑 Supplier —— 包含并行执行多个策略的逻辑
         //当执行到这行时：
-        //✅ compute 只是被“定义”出来（函数体还没执行）这里的 compute 是一个 惰性执行（lazy execution） 的计算逻辑。
-        //❌ 真正的策略计算逻辑（CompletableFuture那段）此时还没跑。
+        // compute 只是被“定义”出来（函数体还没执行）这里的 compute 是一个 惰性执行（lazy execution） 的计算逻辑。
+        // 真正的策略计算逻辑（CompletableFuture那段）此时还没跑。
         Supplier<StrategyResultBundle> compute = () -> {
             // 中文：（1）为每个策略创建并行任务，利用线程池提升吞吐
             // English: (1) Create parallel tasks for each strategy to increase throughput using thread pool
@@ -215,7 +215,7 @@ public class StrategyEngineFacade {
          */
         // 中文：通过分布式锁保护计算体，保证同一组合在集群内只执行一次；其他节点等待结果
         // English: Protect compute body with distributed lock to ensure single execution per combo across cluster; other nodes wait for the result
-        // Step 4️⃣ 分布式锁控制 —— 仅允许一个节点执行计算，其余节点等待结果
+        // Step 4⃣ 分布式锁控制 —— 仅允许一个节点执行计算，其余节点等待结果
         return lockService.acquireOrWait(comboKey, compute);
     }
 }

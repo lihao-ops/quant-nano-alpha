@@ -36,7 +36,7 @@ public class KafkaProducerService {
         kafkaTemplate.send(topic, key, json)
                 .whenComplete((result, ex) -> {
                     if (ex != null) {
-                        log.error("kafka—sendError! key={}, error={}", key, ex.getMessage());
+                        log.error("日志记录|Log_message,kafka—sendError!_key={},_error={}", key, ex.getMessage(), ex);
                     }
                 });
     }
@@ -72,7 +72,7 @@ public class KafkaProducerService {
                 try {
                     send(topic, dto.getWindCode(), dto);
                 } catch (Exception e) {
-                    log.error("批量发送失败: windCode={}, error={}", dto.getWindCode(), e.getMessage(), e);
+                    log.error("批量发送失败|Batch_send_failed,windCode={},error={}", dto.getWindCode(), e.getMessage(), e);
                 }
             }
         });

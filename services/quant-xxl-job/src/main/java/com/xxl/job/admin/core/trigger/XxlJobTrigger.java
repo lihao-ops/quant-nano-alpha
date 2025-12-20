@@ -85,7 +85,7 @@ public class XxlJobTrigger {
         // English: Load job/group info; safely override exec params and retry count
         XxlJobInfo jobInfo = XxlJobAdminConfig.getAdminConfig().getXxlJobInfoDao().loadById(jobId);
         if (jobInfo == null) {
-            logger.warn(">>>>>>>>>>>> trigger fail, jobId invalid，jobId={}", jobId);
+            logger.warn("日志记录|Log_message,>>>>>>>>>>>>_trigger_fail,_jobId_invalid，jobId={}", jobId);
             return;
         }
         if (executorParam != null) {
@@ -184,7 +184,7 @@ public class XxlJobTrigger {
         jobLog.setJobId(jobInfo.getId());
         jobLog.setTriggerTime(new Date());
         XxlJobAdminConfig.getAdminConfig().getXxlJobLogDao().save(jobLog);
-        logger.debug(">>>>>>>>>>> xxl-job trigger start, jobId:{}", jobLog.getId());
+        logger.debug("日志记录|Log_message,>>>>>>>>>>>_xxl-job_trigger_start,_jobId:{}", jobLog.getId());
 
         // 2、init trigger-param
         // 中文：组装触发参数以传递至执行器
@@ -262,7 +262,7 @@ public class XxlJobTrigger {
         jobLog.setTriggerMsg(triggerMsgSb.toString());
         XxlJobAdminConfig.getAdminConfig().getXxlJobLogDao().updateTriggerInfo(jobLog);
 
-        logger.debug(">>>>>>>>>>> xxl-job trigger end, jobId:{}", jobLog.getId());
+        logger.debug("日志记录|Log_message,>>>>>>>>>>>_xxl-job_trigger_end,_jobId:{}", jobLog.getId());
     }
 
     /**
@@ -294,7 +294,7 @@ public class XxlJobTrigger {
             ExecutorBiz executorBiz = XxlJobScheduler.getExecutorBiz(address);
             runResult = executorBiz.run(triggerParam);
         } catch (Exception e) {
-            logger.error(">>>>>>>>>>> xxl-job trigger error, please check if the executor[{}] is running.", address, e);
+            logger.error("日志记录|Log_message,>>>>>>>>>>>_xxl-job_trigger_error,_please_check_if_the_executor[{}]_is_running.", address, e);
             runResult = new ReturnT<String>(ReturnT.FAIL_CODE, ThrowableUtil.toString(e));
         }
 

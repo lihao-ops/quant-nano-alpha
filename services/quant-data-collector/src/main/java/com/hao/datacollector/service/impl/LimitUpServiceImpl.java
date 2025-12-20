@@ -77,7 +77,7 @@ public class LimitUpServiceImpl implements LimitUpService {
             //非交易日无数据。
             // Corrected DateCache usage if it was incorrect
             if (!DateCache.ThisYearTradeDateList.contains(DateUtil.parseToLocalDate(tradeTime, DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT))) {
-                log.error("LimitUpServiceImpl_getLimitUpData: {} is not a trade date.", tradeTime);
+                log.warn("日志记录|Log_message,LimitUpServiceImpl_getLimitUpData:_{}_is_not_a_trade_date.", tradeTime);
                 throw new RuntimeException("LimitUpServiceImpl_getLimitUpData: " + tradeTime + " is not a trade date.");
             }
             //url具体参数含义可查看TopicDetailParam,日期格式必须类似20250609
@@ -87,7 +87,7 @@ public class LimitUpServiceImpl implements LimitUpService {
             // 调用 Wind 接口获取涨停原始 JSON 字符串
             String response = HttpUtil.sendGetRequest(DataSourceConstants.WIND_PROD_WGQ + url, headers, 10000, 30000).getBody();
             if (!StringUtils.hasLength(response)) {
-                log.error("LimitUpServiceImpl_getLimitUpData: HTTP response body is empty for tradeTime: {}", tradeTime);
+                log.warn("日志记录|Log_message,LimitUpServiceImpl_getLimitUpData:_HTTP_response_body_is_empty_for_tradeTime:_{}", tradeTime);
                 throw new RuntimeException("LimitUpServiceImpl_getLimitUpData: HTTP response body is empty for tradeTime: " + tradeTime);
             }
             // 配置忽略未知字段，避免反序列化错误。解析JSON响应为ApiResponse对象
@@ -100,7 +100,7 @@ public class LimitUpServiceImpl implements LimitUpService {
                             ResultObjectVO.class
                     )
             );
-            log.info("LimitUpServiceImpl_getLimitUpData,resultCode={}", result.getResultCode());
+            log.info("日志记录|Log_message,LimitUpServiceImpl_getLimitUpData,resultCode={}", result.getResultCode());
             if (result == null || !"200".equals(result.getResultCode()) || result.getResultObject() == null || result.getResultObject().getStockDetail() == null || result.getResultObject().getStockDetail().isEmpty()) {
                 throw new RuntimeException("获取涨停数据为空或接口返回错误，交易日期: {}，响应码: {}" + tradeTime + result != null ? result.getResultCode() : "null");
             }
@@ -123,13 +123,13 @@ public class LimitUpServiceImpl implements LimitUpService {
             tradeTime = DateUtil.getCurrentDateTime(DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT);
         }
         try {
-            log.info("开始执行涨停数据转档任务，交易日期: {}", tradeTime);
+            log.info("开始执行涨停数据转档任务，交易日期:_{}|Log_message", tradeTime);
             // 获取涨停数据
             ApiResponse<ResultObjectVO> limitUpResponse = getLimitUpData(tradeTime);
             // 获取详情数据,进行分表转换
             ResultObjectVO resultData = limitUpResponse.getResultObject();
             List<TopicStockVO> stockDetails = resultData.getStockDetail();
-            log.info("获取到 {} 条涨停股票数据，开始转档到数据库", stockDetails.size());
+            log.info("获取到_{}_条涨停股票数据，开始转档到数据库|Log_message", stockDetails.size());
             List<LimitUpStockInfoInsertDTO> limitUpStockInfoList = new ArrayList<>();
             //对应基础标签表
             List<BaseTopicInsertDTO> baseTopicInsertList = new ArrayList<>();
@@ -138,7 +138,7 @@ public class LimitUpServiceImpl implements LimitUpService {
             for (TopicStockVO stockDetail : stockDetails) {
                 for (TopicInfoVO stockDetailTopic : stockDetail.getTopics()) {
                     if (stockDetailTopic == null) {
-                        log.error("LimitUpServiceImpl_transferLimitUpDataToDatabase:stockDetailTopic_is_null,tradeDate={},windCode={},", localTradeTime, stockDetail.getWindCode());
+                        log.warn("日志记录|Log_message,LimitUpServiceImpl_transferLimitUpDataToDatabase:stockDetailTopic_is_null,tradeDate={},windCode={},", localTradeTime, stockDetail.getWindCode());
                         continue;
                     }
                     //基础标签
@@ -164,12 +164,12 @@ public class LimitUpServiceImpl implements LimitUpService {
                 limitUpStockInfoList.add(stockInfoInsertDTO);
             }
             // 先删除当天旧数据
-            log.info("开始删除当前交易日 {} 的旧数据", tradeTime);
+            log.info("开始删除当前交易日_{}_的旧数据|Log_message", tradeTime);
             limitUpMapper.deleteLimitUpStockInfoByTradeDate(tradeTime);
             limitUpMapper.deleteStockTopicRelationByTradeDate(tradeTime);
-            log.info("删除交易日 {} 的旧数据完成", tradeTime);
+            log.info("删除交易日_{}_的旧数据完成|Log_message", tradeTime);
             // 批量插入新数据
-            log.info("开始批量插入新数据");
+            log.info("开始批量插入新数据|Log_message");
             if (!baseTopicInsertList.isEmpty()) {
                 //去重后的结果
                 List<BaseTopicInsertDTO> distinctList = baseTopicInsertList.stream()
@@ -185,7 +185,7 @@ public class LimitUpServiceImpl implements LimitUpService {
                 for (BaseTopicInsertDTO topicInsertDTO : distinctList) {
                     // BaseTopic 逐条 upsert，避免重复主键导致批量失败
                     Boolean insertBaseTopicResult = limitUpMapper.insertBaseTopic(topicInsertDTO);
-                    log.info("LimitUpServiceImpl_transferLimitUpDataToDatabase_insertBaseTopicResult={}", insertBaseTopicResult);
+                    log.info("日志记录|Log_message,LimitUpServiceImpl_transferLimitUpDataToDatabase_insertBaseTopicResult={}", insertBaseTopicResult);
                 }
                 log.info("插入BaseTopic={}条", baseTopicInsertList.size());
             }
@@ -197,13 +197,13 @@ public class LimitUpServiceImpl implements LimitUpService {
             if (!limitUpStockInfoList.isEmpty()) {
                 // 主表信息一次性写入，供后续查询接口使用
                 limitUpMapper.batchInsertLimitUpStockInfo(limitUpStockInfoList);
-                log.info("插入limitUpStockInfoList={} 条", limitUpStockInfoList.size());
+                log.info("插入limitUpStockInfoList={}_条", limitUpStockInfoList.size());
             }
-            log.info("批量插入新数据完成");
-            log.info("涨停数据转档成功，交易日期={}，共处理={}条记录", tradeTime, stockDetails.size());
+            log.info("批量插入新数据完成|Log_message");
+            log.info("涨停数据转档成功，交易日期={}，共处理={}条记录|Log_message", tradeTime, stockDetails.size());
             return true;
         } catch (Exception e) {
-            log.error("涨停数据转档失败，交易日期: {}", tradeTime, e);
+            log.error("涨停数据转档失败，交易日期:_{}|Log_message", tradeTime, e);
             return false;
         }
     }
@@ -216,7 +216,7 @@ public class LimitUpServiceImpl implements LimitUpService {
      */
     @Override
     public List<LimitUpStockQueryResultVO> queryLimitUpStockList(LimitUpStockQueryParam queryParam) {
-        log.info("LimitUpServiceImpl_queryLimitUpStockList_start=queryParam={}", JSON.toJSONString(queryParam));
+        log.info("日志记录|Log_message,LimitUpServiceImpl_queryLimitUpStockList_start=queryParam={}", JSON.toJSONString(queryParam));
         // 处理分页参数，将pageNo转换为offset
         if (queryParam.getPageNo() != null && queryParam.getPageSize() != null) {
             int offset = PageUtil.calculateOffset(queryParam.getPageNo(), queryParam.getPageSize());
@@ -224,7 +224,7 @@ public class LimitUpServiceImpl implements LimitUpService {
         }
         // Mapper 负责根据筛选条件返回指定页的数据
         List<LimitUpStockQueryResultVO> result = limitUpMapper.queryLimitUpStockList(queryParam);
-        log.info("LimitUpServiceImpl_queryLimitUpStockList_success=result_count={}", result.size());
+        log.info("日志记录|Log_message,LimitUpServiceImpl_queryLimitUpStockList_success=result_count={}", result.size());
         return result;
     }
 

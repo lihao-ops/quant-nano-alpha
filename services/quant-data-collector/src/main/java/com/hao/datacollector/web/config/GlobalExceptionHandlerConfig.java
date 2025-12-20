@@ -18,7 +18,16 @@ import java.util.Map;
 
 /**
  * 全局异常处理配置类
- * 统一处理系统中的各种异常，不改变原有接口返回格式
+ *
+ * 设计目的：
+ * 1. 统一处理系统异常并保持接口返回格式一致。
+ * 2. 记录异常信息便于排查与告警。
+ *
+ * 为什么需要该类：
+ * - 分散的异常处理会导致返回格式不统一且难以维护。
+ *
+ * 核心实现思路：
+ * - 按异常类型分类处理并构建统一响应结构。
  *
  * @author hli
  * @program datacollector
@@ -31,6 +40,11 @@ public class GlobalExceptionHandlerConfig {
 
     /**
      * 处理参数校验异常
+     *
+     * 实现逻辑：
+     * 1. 收集字段错误并构建响应体。
+     * 2. 返回统一的错误结构。
+     *
      * @param ex 参数校验异常
      * @param request HTTP请求
      * @return 错误响应
@@ -38,7 +52,9 @@ public class GlobalExceptionHandlerConfig {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationException(
             MethodArgumentNotValidException ex, HttpServletRequest request) {
-        log.warn("参数校验异常: {}", ex.getMessage());
+        // 实现思路：
+        // 1. 提取字段错误并返回标准结构。
+        log.warn("参数校验异常|Validation_error,error={}", ex.getMessage());
 
         Map<String, String> fieldErrors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach(error -> {
@@ -60,6 +76,11 @@ public class GlobalExceptionHandlerConfig {
 
     /**
      * 处理绑定异常
+     *
+     * 实现逻辑：
+     * 1. 收集绑定错误并构建响应体。
+     * 2. 返回统一的错误结构。
+     *
      * @param ex 绑定异常
      * @param request HTTP请求
      * @return 错误响应
@@ -67,7 +88,9 @@ public class GlobalExceptionHandlerConfig {
     @ExceptionHandler(BindException.class)
     public ResponseEntity<Map<String, Object>> handleBindException(
             BindException ex, HttpServletRequest request) {
-        log.warn("参数绑定异常: {}", ex.getMessage());
+        // 实现思路：
+        // 1. 提取绑定错误并返回标准结构。
+        log.warn("参数绑定异常|Bind_error,error={}", ex.getMessage());
 
         Map<String, String> fieldErrors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach(error -> {
@@ -89,6 +112,11 @@ public class GlobalExceptionHandlerConfig {
 
     /**
      * 处理缺少请求参数异常
+     *
+     * 实现逻辑：
+     * 1. 构建缺参错误响应。
+     * 2. 返回统一的错误结构。
+     *
      * @param ex 缺少请求参数异常
      * @param request HTTP请求
      * @return 错误响应
@@ -96,7 +124,9 @@ public class GlobalExceptionHandlerConfig {
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<Map<String, Object>> handleMissingParameterException(
             MissingServletRequestParameterException ex, HttpServletRequest request) {
-        log.warn("缺少请求参数异常: {}", ex.getMessage());
+        // 实现思路：
+        // 1. 返回缺参错误与请求路径。
+        log.warn("缺少请求参数异常|Missing_param_error,error={}", ex.getMessage());
 
         Map<String, Object> errorResponse = new HashMap<>();
         errorResponse.put("timestamp", LocalDateTime.now());
@@ -110,6 +140,11 @@ public class GlobalExceptionHandlerConfig {
 
     /**
      * 处理参数类型不匹配异常
+     *
+     * 实现逻辑：
+     * 1. 构建类型错误提示信息。
+     * 2. 返回统一的错误结构。
+     *
      * @param ex 参数类型不匹配异常
      * @param request HTTP请求
      * @return 错误响应
@@ -117,7 +152,9 @@ public class GlobalExceptionHandlerConfig {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<Map<String, Object>> handleTypeMismatchException(
             MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
-        log.warn("参数类型不匹配异常: {}", ex.getMessage());
+        // 实现思路：
+        // 1. 构建类型不匹配提示信息。
+        log.warn("参数类型不匹配异常|Param_type_mismatch,error={}", ex.getMessage());
 
         String message = String.format("参数 '%s' 的值 '%s' 无法转换为 %s 类型",
                 ex.getName(), ex.getValue(), ex.getRequiredType().getSimpleName());
@@ -134,6 +171,11 @@ public class GlobalExceptionHandlerConfig {
 
     /**
      * 处理业务异常
+     *
+     * 实现逻辑：
+     * 1. 读取业务异常码与信息。
+     * 2. 返回统一的错误结构。
+     *
      * @param ex 业务异常
      * @param request HTTP请求
      * @return 错误响应
@@ -141,7 +183,9 @@ public class GlobalExceptionHandlerConfig {
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<Map<String, Object>> handleBusinessException(
             BusinessException ex, HttpServletRequest request) {
-        log.warn("业务异常: {}", ex.getMessage());
+        // 实现思路：
+        // 1. 使用业务异常码构建响应。
+        log.warn("业务异常|Business_error,error={}", ex.getMessage());
 
         Map<String, Object> errorResponse = new HashMap<>();
         errorResponse.put("timestamp", LocalDateTime.now());
@@ -155,6 +199,11 @@ public class GlobalExceptionHandlerConfig {
 
     /**
      * 处理数据库异常
+     *
+     * 实现逻辑：
+     * 1. 记录数据库异常信息。
+     * 2. 返回统一的错误结构。
+     *
      * @param ex 数据库异常
      * @param request HTTP请求
      * @return 错误响应
@@ -162,7 +211,9 @@ public class GlobalExceptionHandlerConfig {
     @ExceptionHandler({org.springframework.dao.DataAccessException.class})
     public ResponseEntity<Map<String, Object>> handleDataAccessException(
             Exception ex, HttpServletRequest request) {
-        log.error("数据库访问异常: ", ex);
+        // 实现思路：
+        // 1. 记录异常并返回统一错误响应。
+        log.error("数据库访问异常|Database_access_error", ex);
 
         Map<String, Object> errorResponse = new HashMap<>();
         errorResponse.put("timestamp", LocalDateTime.now());
@@ -176,6 +227,11 @@ public class GlobalExceptionHandlerConfig {
 
     /**
      * 处理空指针异常
+     *
+     * 实现逻辑：
+     * 1. 记录空指针异常。
+     * 2. 返回统一的错误结构。
+     *
      * @param ex 空指针异常
      * @param request HTTP请求
      * @return 错误响应
@@ -183,7 +239,9 @@ public class GlobalExceptionHandlerConfig {
     @ExceptionHandler(NullPointerException.class)
     public ResponseEntity<Map<String, Object>> handleNullPointerException(
             NullPointerException ex, HttpServletRequest request) {
-        log.error("空指针异常: ", ex);
+        // 实现思路：
+        // 1. 记录异常并返回统一错误响应。
+        log.error("空指针异常|Null_pointer_error", ex);
 
         Map<String, Object> errorResponse = new HashMap<>();
         errorResponse.put("timestamp", LocalDateTime.now());
@@ -197,6 +255,11 @@ public class GlobalExceptionHandlerConfig {
 
     /**
      * 处理其他未捕获的异常
+     *
+     * 实现逻辑：
+     * 1. 记录未知异常信息。
+     * 2. 返回统一的错误结构。
+     *
      * @param ex 未知异常
      * @param request HTTP请求
      * @return 错误响应
@@ -204,7 +267,9 @@ public class GlobalExceptionHandlerConfig {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericException(
             Exception ex, HttpServletRequest request) {
-        log.error("未知异常: ", ex);
+        // 实现思路：
+        // 1. 记录异常并返回统一错误响应。
+        log.error("未知异常|Unknown_error", ex);
 
         Map<String, Object> errorResponse = new HashMap<>();
         errorResponse.put("timestamp", LocalDateTime.now());
@@ -218,25 +283,68 @@ public class GlobalExceptionHandlerConfig {
 
     /**
      * 业务异常类
+     *
+     * 设计目的：
+     * 1. 封装业务异常码与异常信息。
+     *
+     * 为什么需要该类：
+     * - 业务异常需要统一的错误码与消息承载。
+     *
+     * 核心实现思路：
+     * - 通过构造函数设置错误码并继承RuntimeException。
      */
     public static class BusinessException extends RuntimeException {
         private final int code;
 
+        /**
+         * 构造业务异常（默认400）
+         *
+         * 实现逻辑：
+         * 1. 设置默认错误码并传递消息。
+         *
+         * @param message 异常消息
+         */
         public BusinessException(String message) {
             super(message);
             this.code = HttpStatus.BAD_REQUEST.value();
         }
 
+        /**
+         * 构造业务异常（指定错误码）
+         *
+         * 实现逻辑：
+         * 1. 设置指定错误码并传递消息。
+         *
+         * @param code 错误码
+         * @param message 异常消息
+         */
         public BusinessException(int code, String message) {
             super(message);
             this.code = code;
         }
 
+        /**
+         * 构造业务异常（携带异常原因）
+         *
+         * 实现逻辑：
+         * 1. 设置500错误码并传递异常原因。
+         *
+         * @param message 异常消息
+         * @param cause 异常原因
+         */
         public BusinessException(String message, Throwable cause) {
             super(message, cause);
             this.code = HttpStatus.INTERNAL_SERVER_ERROR.value();
         }
 
+        /**
+         * 获取业务错误码
+         *
+         * 实现逻辑：
+         * 1. 返回当前异常携带的错误码。
+         *
+         * @return 错误码
+         */
         public int getCode() {
             return code;
         }

@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
- * 🎯 MySQL 生产级性能优化验证（面试简历版）
+ *  MySQL 生产级性能优化验证（面试简历版）
  *
  * 测试目标：
  * 1. 验证覆盖索引优化效果（对比有无索引）
@@ -37,7 +37,7 @@ public class MySQLPerformanceOptimizationTest {
     private JdbcTemplate jdbc;
 
     // ========================================================================
-    // 📌 配置区域 - 根据实际数据调整
+    //  配置区域 - 根据实际数据调整
     // ========================================================================
 
     // 1. 自动检测数据最多的时间范围（优先使用2024年数据）
@@ -50,7 +50,7 @@ public class MySQLPerformanceOptimizationTest {
     private static final int BATCH_SIZE = 100;       // 批量查询股票数（100只合理）
 
     @Test
-    @DisplayName("🔥 MySQL性能优化完整验证 - 生成简历数据")
+    @DisplayName(" MySQL性能优化完整验证 - 生成简历数据")
     public void runCompleteOptimizationTest() {
         printHeader();
 
@@ -67,30 +67,30 @@ public class MySQLPerformanceOptimizationTest {
         // 1.3 准备测试样本
         List<String> allCodes = StockCache.allWindCode;
         if (allCodes == null || allCodes.isEmpty()) {
-            throw new RuntimeException("❌ StockCache 为空！请检查缓存加载。");
+            throw new RuntimeException(" StockCache 为空！请检查缓存加载。");
         }
 
         // 选择数据量最大的股票进行测试
         String targetStock = selectStockWithMostData(allCodes);
         List<String> batchStocks = allCodes.subList(0, Math.min(BATCH_SIZE, allCodes.size()));
 
-        log.info("✅ 测试样本确定：");
-        log.info("   - 单股测试: {}", targetStock);
-        log.info("   - 批量测试: {} 只股票", batchStocks.size());
-        log.info("   - 时间范围: {} 至 {}\n", startDate, endDate);
+        log.info("_测试样本确定：|Log_message");
+        log.info("___-_单股测试:_{}|Log_message", targetStock);
+        log.info("___-_批量测试:_{}_只股票|Log_message", batchStocks.size());
+        log.info("___-_时间范围:_{}_至_{}\n", startDate, endDate);
 
         // ====================================================================
         // 阶段2：性能基准测试
         // ====================================================================
 
         // 2.1 测试冷启动性能（模拟优化前 - 无预热）
-        log.info(">>> [阶段2.1] 测试冷启动性能（模拟优化前）\n");
+        log.info(">>>_[阶段2.1]_测试冷启动性能（模拟优化前）\n");
         TestResult coldStart = testColdStart(targetStock);
 
         // 2.2 预热Buffer Pool（模拟优化后 - 有预热）
-        log.info("\n>>> [阶段2.2] 预热Buffer Pool（优化手段）");
+        log.info("\n>>>_[阶段2.2]_预热Buffer_Pool（优化手段）");
         long totalRows = warmupBufferPool(batchStocks);
-        log.info("✅ 预热完成，数据量: {} 万行\n", String.format("%.2f", totalRows / 10000.0));
+        log.info("_预热完成，数据量:_{}_万行\n", String.format("%.2f", totalRows / 10000.0));
 
         // 2.3 测试热数据性能（优化后）
         TestResult singleHot = testSingleStockQuery(targetStock);
@@ -100,14 +100,14 @@ public class MySQLPerformanceOptimizationTest {
         // ====================================================================
         // 阶段3：对比优化效果（无索引 vs 有索引）
         // ====================================================================
-        log.info("\n>>> [阶段3] 对比索引优化效果");
+        log.info("\n>>>_[阶段3]_对比索引优化效果");
         TestResult withoutIndex = testWithoutCoveringIndex(targetStock);
-        // 🚀【新增】立即分析刚才那条 SQL 的追踪结果
-        log.info("   🔍 [深度分析] 无索引查询的优化器决策：");
+        // 【新增】立即分析刚才那条 SQL 的追踪结果
+        log.info("____[深度分析]_无索引查询的优化器决策：|Log_message");
         analyzeOptimizerTrace();
         TestResult withIndex = testWithCoveringIndex(targetStock);
-        // 🚀【新增】分析有索引的决策
-        log.info("   🔍 [深度分析] 覆盖索引查询的优化器决策：");
+        // 【新增】分析有索引的决策
+        log.info("____[深度分析]_覆盖索引查询的优化器决策：|Log_message");
         analyzeOptimizerTrace();
 
         // ====================================================================
@@ -120,10 +120,10 @@ public class MySQLPerformanceOptimizationTest {
     }
 
     /**
-     * 🔍 检查表结构和索引配置
+     *  检查表结构和索引配置
      */
     private void verifyTableStructure() {
-        log.info(">>> [阶段1.1] 验证表结构与索引...");
+        log.info(">>>_[阶段1.1]_验证表结构与索引...|Log_message");
 
         // 检查索引
         String indexSql = """
@@ -140,7 +140,7 @@ public class MySQLPerformanceOptimizationTest {
         """;
 
         jdbc.query(indexSql, rs -> {
-            log.info("   索引: {} | 列: {} | 类型: {} | 唯一: {}",
+            log.info("___索引:_{}_|_列:_{}_|_类型:_{}_|_唯一:_{}|Log_message",
                     rs.getString("INDEX_NAME"),
                     rs.getString("columns"),
                     rs.getString("INDEX_TYPE"),
@@ -161,22 +161,22 @@ public class MySQLPerformanceOptimizationTest {
             ORDER BY PARTITION_ORDINAL_POSITION
         """;
 
-        log.info("\n   分区信息:");
+        log.info("\n___分区信息:");
         jdbc.query(partitionSql, rs -> {
-            log.info("   - {}: 约 {} 万行",
+            log.info("___-_{}:_约_{}_万行|Log_message",
                     rs.getString("PARTITION_NAME"),
                     rs.getLong("TABLE_ROWS") / 10000
             );
         });
 
-        log.info("");
+        log.info("日志记录|Log_message");
     }
 
     /**
-     * 🔍 自动检测最佳测试时间范围
+     *  自动检测最佳测试时间范围
      */
     private void detectBestDateRange() {
-        log.info(">>> [阶段1.2] 检测最佳测试时间范围...");
+        log.info(">>>_[阶段1.2]_检测最佳测试时间范围...|Log_message");
 
         String sql = """
             SELECT 
@@ -191,12 +191,12 @@ public class MySQLPerformanceOptimizationTest {
         List<Map<String, Object>> results = jdbc.queryForList(sql);
 
         if (results.isEmpty()) {
-            throw new RuntimeException("❌ 表中无数据！");
+            throw new RuntimeException(" 表中无数据！");
         }
 
-        log.info("   数据分布TOP3:");
+        log.info("___数据分布TOP3:");
         for (Map<String, Object> row : results) {
-            log.info("   - {}: {} 万行",
+            log.info("___-_{}:_{}_万行|Log_message",
                     row.get("month"),
                     ((Number) row.get("row_count")).longValue() / 10000
             );
@@ -207,11 +207,11 @@ public class MySQLPerformanceOptimizationTest {
         this.startDate = bestMonth + "-01 00:00:00";
         this.endDate = bestMonth + "-31 23:59:59";
 
-        log.info("   ✅ 选择测试区间: {} (数据量最大)\n", bestMonth);
+        log.info("____选择测试区间:_{}_(数据量最大)\n", bestMonth);
     }
 
     /**
-     * 🔍 选择数据量最大的股票
+     *  选择数据量最大的股票
      */
     private String selectStockWithMostData(List<String> codes) {
         // 简化查询：直接查询该时间范围内数据量最大的股票
@@ -228,13 +228,13 @@ public class MySQLPerformanceOptimizationTest {
             return jdbc.queryForObject(sql, (rs, rowNum) -> rs.getString("wind_code"),
                     startDate, endDate);
         } catch (Exception e) {
-            log.warn("   ⚠️ 自动选择股票失败，使用第一个股票: {}", e.getMessage());
+            log.warn("____自动选择股票失败，使用第一个股票:_{}|Log_message", e.getMessage());
             return codes.get(0);
         }
     }
 
     /**
-     * ❄️ 测试冷启动（模拟优化前）
+     *  测试冷启动（模拟优化前）
      */
     private TestResult testColdStart(String stock) {
         // 清空Buffer Pool（仅MySQL 8.0+支持，生产环境慎用）
@@ -242,7 +242,7 @@ public class MySQLPerformanceOptimizationTest {
             jdbc.execute("SET GLOBAL innodb_buffer_pool_dump_at_shutdown = OFF");
             jdbc.execute("SET GLOBAL innodb_buffer_pool_load_at_startup = OFF");
         } catch (Exception e) {
-            log.warn("   ⚠️ 无法清空Buffer Pool（需要超级权限），跳过冷启动测试");
+            log.warn("____无法清空Buffer_Pool（需要超级权限），跳过冷启动测试");
             return null;
         }
 
@@ -253,7 +253,7 @@ public class MySQLPerformanceOptimizationTest {
             AND trade_date BETWEEN ? AND ?
         """;
 
-        log.info("   正在测试冷启动性能（首次查询，含磁盘IO）...");
+        log.info("___正在测试冷启动性能（首次查询，含磁盘IO）...");
 
         long start = System.nanoTime();
         AtomicLong rows = new AtomicLong(0);
@@ -266,13 +266,13 @@ public class MySQLPerformanceOptimizationTest {
         }, stock, startDate, endDate);
 
         long cost = System.nanoTime() - start;
-        log.info("   ❄️ 冷启动耗时: {} ms (含磁盘IO + 索引加载)\n", cost / 1_000_000.0);
+        log.info("____冷启动耗时:_{}_ms_(含磁盘IO_+_索引加载)\n", cost / 1_000_000.0);
 
         return new TestResult("冷启动", List.of(cost), rows.get());
     }
 
     /**
-     * 🔥 预热Buffer Pool
+     *  预热Buffer Pool
      */
     private long warmupBufferPool(List<String> stocks) {
         String inClause = String.join(",", Collections.nCopies(stocks.size(), "?"));
@@ -288,17 +288,17 @@ public class MySQLPerformanceOptimizationTest {
             long start = System.nanoTime();
             totalRows = jdbc.queryForObject(sql, Long.class, createParams(stocks, startDate, endDate));
             long cost = (System.nanoTime() - start) / 1_000_000;
-            log.info("   预热轮次 {}: 扫描 {} 行, 耗时 {} ms", i + 1, totalRows, cost);
+            log.info("___预热轮次_{}:_扫描_{}_行,_耗时_{}_ms", i + 1, totalRows, cost);
         }
 
         return totalRows;
     }
 
     /**
-     * 📊 测试1：单股查询（优化后）
+     *  测试1：单股查询（优化后）
      */
     private TestResult testSingleStockQuery(String stock) {
-        log.info("\n>>> [测试1] 单股时间范围查询（OLTP典型场景）");
+        log.info("\n>>>_[测试1]_单股时间范围查询（OLTP典型场景）");
 
         String sql = """
             SELECT wind_code, trade_date, latest_price, total_volume, average_price 
@@ -314,10 +314,10 @@ public class MySQLPerformanceOptimizationTest {
     }
 
     /**
-     * 📊 测试2：批量查询
+     *  测试2：批量查询
      */
     private TestResult testBatchStockQuery(List<String> stocks) {
-        log.info("\n>>> [测试2] 批量股票查询（数据导出场景）");
+        log.info("\n>>>_[测试2]_批量股票查询（数据导出场景）");
 
         String inClause = String.join(",", Collections.nCopies(stocks.size(), "?"));
         String sql = String.format("""
@@ -332,10 +332,10 @@ public class MySQLPerformanceOptimizationTest {
     }
 
     /**
-     * 📊 测试3：聚合查询
+     *  测试3：聚合查询
      */
     private TestResult testAggregation(List<String> stocks) {
-        log.info("\n>>> [测试3] 聚合统计（OLAP场景）");
+        log.info("\n>>>_[测试3]_聚合统计（OLAP场景）");
 
         String inClause = String.join(",", Collections.nCopies(stocks.size(), "?"));
         String sql = String.format("""
@@ -353,10 +353,10 @@ public class MySQLPerformanceOptimizationTest {
     }
 
     /**
-     * 🔍 测试无覆盖索引性能（只用前缀索引，必须回表）
+     *  测试无覆盖索引性能（只用前缀索引，必须回表）
      */
     private TestResult testWithoutCoveringIndex(String stock) {
-        log.info("   [对比A] 无覆盖索引（只能通过唯一索引定位，然后回表获取数据列）");
+        log.info("___[对比A]_无覆盖索引（只能通过唯一索引定位，然后回表获取数据列）");
 
         // 查询包含非索引列，强制回表
         String sql = """
@@ -373,10 +373,10 @@ public class MySQLPerformanceOptimizationTest {
     }
 
     /**
-     * ✅ 测试使用覆盖索引性能
+     *  测试使用覆盖索引性能
      */
     private TestResult testWithCoveringIndex(String stock) {
-        log.info("   [对比B] 使用覆盖索引（所有查询列都在索引中，无需回表）");
+        log.info("___[对比B]_使用覆盖索引（所有查询列都在索引中，无需回表）");
 
         // 只查询索引列，不回表
         String sql = """
@@ -393,7 +393,7 @@ public class MySQLPerformanceOptimizationTest {
     }
 
     /**
-     * 🔍 执行 EXPLAIN 分析 (已修复补全)
+     *  执行 EXPLAIN 分析 (已修复补全)
      */
     private void explainQuery(String sql, String stock) {
         try {
@@ -401,7 +401,7 @@ public class MySQLPerformanceOptimizationTest {
             String explainSql = "EXPLAIN " + sql;
 
             jdbc.query(explainSql, rs -> {
-                log.info("   ├─ type={}, key={}, rows={}, Extra={}",
+                log.info("日志记录|Log_message,___├─_type={},_key={},_rows={},_Extra={}",
                         rs.getString("type"),
                         rs.getString("key"),
                         rs.getLong("rows"),
@@ -410,12 +410,12 @@ public class MySQLPerformanceOptimizationTest {
             }, stock, startDate, endDate); // 绑定参数：代码, 开始时间, 结束时间
 
         } catch (Exception e) {
-            log.warn("   ⚠️ EXPLAIN 失败: {}", e.getMessage());
+            log.warn("____EXPLAIN_失败:_{}", e.getMessage());
         }
     }
 
     /**
-     * 🔍 启用MySQL优化器追踪
+     *  启用MySQL优化器追踪
      */
     private void enableOptimizerTrace() {
         try {
@@ -423,12 +423,12 @@ public class MySQLPerformanceOptimizationTest {
             jdbc.execute("SET optimizer_trace_max_mem_size=1000000");
             jdbc.execute("SET end_markers_in_json=on");
         } catch (Exception e) {
-            log.warn("   ⚠️ 无法启用优化器追踪: {}", e.getMessage());
+            log.warn("____无法启用优化器追踪:_{}|Log_message", e.getMessage());
         }
     }
 
     /**
-     * 🔍 分析优化器追踪结果
+     *  分析优化器追踪结果
      */
     private void analyzeOptimizerTrace() {
         try {
@@ -437,22 +437,22 @@ public class MySQLPerformanceOptimizationTest {
                 String trace = rs.getString("TRACE");
                 // 提取关键信息：是否使用了索引，是否产生了物理读
                 if (trace.contains("\"range_access_plan\"")) {
-                    log.info("   ├─ 优化器选择: 范围扫描 (range access)");
+                    log.info("___├─_优化器选择:_范围扫描_(range_access)");
                 }
                 if (trace.contains("\"Using index\"")) {
-                    log.info("   ├─ 索引覆盖: 是（无需回表）");
+                    log.info("___├─_索引覆盖:_是（无需回表）|Log_message");
                 }
                 if (trace.contains("\"filesort\"")) {
-                    log.warn("   ⚠️ 需要排序（可能影响性能）");
+                    log.warn("____需要排序（可能影响性能）|Log_message");
                 }
             });
         } catch (Exception e) {
-            log.debug("   优化器追踪分析失败: {}", e.getMessage());
+            log.debug("___优化器追踪分析失败:_{}|Log_message", e.getMessage());
         }
     }
 
     /**
-     * 🔍 验证是否有磁盘IO（确保纯内存查询）
+     *  验证是否有磁盘IO（确保纯内存查询）
      */
     private void verifyNoDiskIO() {
         try {
@@ -480,23 +480,23 @@ public class MySQLPerformanceOptimizationTest {
 
             if (diskReads > 0 || dataReads > 0) {
                 double hitRate = (readRequests - diskReads) / (double) readRequests * 100;
-                log.info("   ├─ Buffer Pool命中率: {}%", String.format("%.2f", hitRate));
+                log.info("___├─_Buffer_Pool命中率:_{}%", String.format("%.2f", hitRate));
                 if (hitRate < 99.0) {
-                    log.warn("   ⚠️ 检测到磁盘IO！Buffer Pool命中率: {}%", String.format("%.2f", hitRate));
+                    log.warn("____检测到磁盘IO！Buffer_Pool命中率:_{}%", String.format("%.2f", hitRate));
                 } else {
-                    log.info("   ✅ 纯内存查询确认（命中率 > 99%）");
+                    log.info("____纯内存查询确认（命中率_>_99%）|Log_message");
                 }
             } else {
-                log.info("   ✅ 无磁盘IO，100%内存命中");
+                log.info("____无磁盘IO，100%内存命中");
             }
 
         } catch (Exception e) {
-            log.debug("   无法验证IO统计: {}", e.getMessage());
+            log.debug("___无法验证IO统计:_{}", e.getMessage());
         }
     }
 
     /**
-     * 🎯 通用测试执行器
+     *  通用测试执行器
      */
     private TestResult executeTest(String name, String sql, int rounds, StatementSetter setter) {
         List<Long> timings = new ArrayList<>();
@@ -545,7 +545,7 @@ public class MySQLPerformanceOptimizationTest {
             timings.add(cost);
             totalRows.set(roundRows.get());
 
-            log.info("   轮次 {}: {} 行, 耗时 {} ms",
+            log.info("___轮次_{}:_{}_行,_耗时_{}_ms",
                     i + 1, roundRows.get(), String.format("%.2f", cost / 1_000_000.0));
         }
 
@@ -553,33 +553,33 @@ public class MySQLPerformanceOptimizationTest {
     }
 
     /**
-     * 📄 生成简历报告
+     *  生成简历报告
      */
     private void generateResumeReport(
             TestResult coldStart, TestResult singleHot, TestResult batch, TestResult agg,
             TestResult noIndex, TestResult withIndex, long totalRows
     ) {
-        log.info("\n");
-        log.info("################################################################");
-        log.info("#           📄 MySQL 性能优化简历数据报告                      #");
-        log.info("################################################################");
-        log.info(" 测试环境: MySQL 8.0 + InnoDB + 分区表");
-        log.info(" 测试时间: {} 至 {}", startDate, endDate);
-        log.info(" 数据规模: {} 万行 (内存命中率 100%)", String.format("%.2f", totalRows / 10000.0));
-        log.info("================================================================");
+        log.info("日志记录|Log_message,\n");
+        log.info("日志记录|Log_message");
+        log.info("#____________MySQL_性能优化简历数据报告______________________#");
+        log.info("日志记录|Log_message");
+        log.info("_测试环境:_MySQL_8.0_+_InnoDB_+_分区表");
+        log.info("_测试时间:_{}_至_{}|Log_message", startDate, endDate);
+        log.info("_数据规模:_{}_万行_(内存命中率_100%)|Log_message", String.format("%.2f", totalRows / 10000.0));
+        log.info("日志记录|Log_message");
 
         // 优化1：Buffer Pool预热
         if (coldStart != null) {
             double improvement = coldStart.getAvg() / singleHot.getAvg();
-            log.info("\n【优化1：Buffer Pool 预热策略】");
-            log.info("  问题：冷启动查询涉及磁盘IO，响应时间慢");
-            log.info("  方案：预热高频查询数据到Buffer Pool");
-            log.info("  效果：");
-            log.info("    • 冷启动: {} ms", String.format("%.2f", coldStart.getAvg()));
-            log.info("    • 预热后: {} ms", String.format("%.2f", singleHot.getAvg()));
-            log.info("    • 提升: {}", String.format("%.1fx", improvement));
-            log.info("  ✍️ 简历话术:");
-            log.info("     「实施Buffer Pool预热，查询响应时间从{}ms降至{}ms」",
+            log.info("\n【优化1：Buffer_Pool_预热策略】");
+            log.info("__问题：冷启动查询涉及磁盘IO，响应时间慢");
+            log.info("__方案：预热高频查询数据到Buffer_Pool");
+            log.info("__效果：|Log_message");
+            log.info("____•_冷启动:_{}_ms", String.format("%.2f", coldStart.getAvg()));
+            log.info("____•_预热后:_{}_ms", String.format("%.2f", singleHot.getAvg()));
+            log.info("____•_提升:_{}|Log_message", String.format("%.1fx", improvement));
+            log.info("___简历话术:|Log_message");
+            log.info("_____「实施Buffer_Pool预热，查询响应时间从{}ms降至{}ms」",
                     String.format("%.0f", coldStart.getAvg()),
                     String.format("%.0f", singleHot.getAvg())
             );
@@ -589,56 +589,56 @@ public class MySQLPerformanceOptimizationTest {
         if (noIndex != null && withIndex != null) {
             double improvement = noIndex.getAvg() / withIndex.getAvg();
             log.info("\n【优化2：覆盖索引消除回表】");
-            log.info("  问题：查询需要回表读取数据页，产生随机IO");
-            log.info("  方案：设计覆盖索引包含所有查询列");
-            log.info("  效果：");
-            log.info("    • 无覆盖索引: {} ms (需回表)", String.format("%.2f", noIndex.getAvg()));
-            log.info("    • 有覆盖索引: {} ms (纯索引)", String.format("%.2f", withIndex.getAvg()));
-            log.info("    • 提升: {}", String.format("%.1fx", improvement));
-            log.info("  ✍️ 简历话术:");
-            log.info("     「设计覆盖索引，查询性能提升{}倍，延迟降至{}ms」",
+            log.info("__问题：查询需要回表读取数据页，产生随机IO");
+            log.info("__方案：设计覆盖索引包含所有查询列|Log_message");
+            log.info("__效果：|Log_message");
+            log.info("____•_无覆盖索引:_{}_ms_(需回表)", String.format("%.2f", noIndex.getAvg()));
+            log.info("____•_有覆盖索引:_{}_ms_(纯索引)", String.format("%.2f", withIndex.getAvg()));
+            log.info("____•_提升:_{}|Log_message", String.format("%.1fx", improvement));
+            log.info("___简历话术:|Log_message");
+            log.info("_____「设计覆盖索引，查询性能提升{}倍，延迟降至{}ms」",
                     String.format("%.1f", improvement),
                     String.format("%.0f", withIndex.getAvg())
             );
         }
 
         // 场景1：单股查询
-        log.info("\n【场景1：单股时间范围查询 - OLTP】");
-        log.info("  数据量: {} 行", singleHot.rows);
-        log.info("  P50延迟: {} ms", String.format("%.2f", singleHot.getP50()));
-        log.info("  P99延迟: {} ms", String.format("%.2f", singleHot.getP99()));
-        log.info("  吞吐量: {} 行/秒", String.format("%,.0f", singleHot.getThroughput()));
+        log.info("\n【场景1：单股时间范围查询_-_OLTP】");
+        log.info("__数据量:_{}_行|Log_message", singleHot.rows);
+        log.info("__P50延迟:_{}_ms", String.format("%.2f", singleHot.getP50()));
+        log.info("__P99延迟:_{}_ms", String.format("%.2f", singleHot.getP99()));
+        log.info("__吞吐量:_{}_行/秒|Log_message", String.format("%,.0f", singleHot.getThroughput()));
 
         // 场景2：批量查询
-        log.info("\n【场景2：批量导出 - 数据迁移】");
-        log.info("  数据量: {} 万行", batch.rows / 10000);
-        log.info("  平均耗时: {} 秒", String.format("%.2f", batch.getAvg() / 1000.0));
-        log.info("  吞吐量: {} 行/秒", String.format("%,.0f", batch.getThroughput()));
-        log.info("  ✍️ 简历话术:");
-        log.info("     「优化后批量导出{}万行数据仅需{}秒」",
+        log.info("\n【场景2：批量导出_-_数据迁移】");
+        log.info("__数据量:_{}_万行|Log_message", batch.rows / 10000);
+        log.info("__平均耗时:_{}_秒|Log_message", String.format("%.2f", batch.getAvg() / 1000.0));
+        log.info("__吞吐量:_{}_行/秒|Log_message", String.format("%,.0f", batch.getThroughput()));
+        log.info("___简历话术:|Log_message");
+        log.info("_____「优化后批量导出{}万行数据仅需{}秒」|Log_message",
                 String.format("%.0f", batch.rows / 10000.0),
                 String.format("%.1f", batch.getAvg() / 1000.0)
         );
 
         // 场景3：聚合查询
-        log.info("\n【场景3：聚合分析 - OLAP】");
-        log.info("  扫描行数: {} 万行", totalRows / 10000);
-        log.info("  平均耗时: {} ms", String.format("%.2f", agg.getAvg()));
-        log.info("  扫描速度: {} 万行/秒", String.format("%.0f", totalRows / (agg.getAvg() / 1000.0) / 10000));
+        log.info("\n【场景3：聚合分析_-_OLAP】");
+        log.info("__扫描行数:_{}_万行|Log_message", totalRows / 10000);
+        log.info("__平均耗时:_{}_ms", String.format("%.2f", agg.getAvg()));
+        log.info("__扫描速度:_{}_万行/秒|Log_message", String.format("%.0f", totalRows / (agg.getAvg() / 1000.0) / 10000));
 
-        log.info("\n================================================================");
-        log.info("💡 面试要点:");
-        log.info("   1. 强调「优化前后对比」- 这是最重要的");
-        log.info("   2. 展示EXPLAIN执行计划 - 证明索引生效");
-        log.info("   3. 说明分区剪枝 - 减少扫描范围");
-        log.info("   4. 提及实际测试数据量 - {}万行是真实测试的", String.format("%.0f", totalRows / 10000.0));
-        log.info("################################################################\n");
+        log.info("日志记录|Log_message,\n================================================================");
+        log.info("_面试要点:|Log_message");
+        log.info("___1._强调「优化前后对比」-_这是最重要的|Log_message");
+        log.info("___2._展示EXPLAIN执行计划_-_证明索引生效");
+        log.info("___3._说明分区剪枝_-_减少扫描范围|Log_message");
+        log.info("___4._提及实际测试数据量_-_{}万行是真实测试的|Log_message", String.format("%.0f", totalRows / 10000.0));
+        log.info("日志记录|Log_message,################################################################\n");
     }
 
     private void printHeader() {
-        log.info("===========================================================");
-        log.info("🚀 MySQL 性能优化完整验证测试");
-        log.info("===========================================================\n");
+        log.info("日志记录|Log_message");
+        log.info("_MySQL_性能优化完整验证测试");
+        log.info("日志记录|Log_message,===========================================================\n");
     }
 
     // ========================================================================

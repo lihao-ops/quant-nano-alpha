@@ -65,7 +65,7 @@
 //        // admin-server
 //        initRpcProvider();
 //
-//        logger.info(">>>>>>>>> init xxl-job admin success.");
+//        logger.info("日志记录|Log_message,>>>>>>>>>_init_xxl-job_admin_success.");
 //    }
 //
 //
@@ -188,7 +188,7 @@
 //            //String jobClass = jobDetail.getJobClass().getName();
 //
 //		} catch (SchedulerException e) {
-//			logger.error(e.getMessage(), e);
+//			logger.error("日志记录|Log_message,exception={}", e.getMessage(), e);
 //		}
 //	}
 //
@@ -228,7 +228,7 @@
 //        // 5、schedule job
 //        Date date = scheduler.scheduleJob(jobDetail, cronTrigger);
 //
-//        logger.info(">>>>>>>>>>> addJob success(quartz), jobDetail:{}, cronTrigger:{}, date:{}", jobDetail, cronTrigger, date);
+//        logger.info("日志记录|Log_message,>>>>>>>>>>>_addJob_success(quartz),_jobDetail:{},_cronTrigger:{},_date:{}", jobDetail, cronTrigger, date);
 //        return true;
 //    }
 //
@@ -250,7 +250,7 @@
 //            scheduler.unscheduleJob(triggerKey);    // trigger + job
 //        }*/
 //
-//        logger.info(">>>>>>>>>>> removeJob success(quartz), jobKey:{}", jobKey);
+//        logger.info("日志记录|Log_message,>>>>>>>>>>>_removeJob_success(quartz),_jobKey:{}", jobKey);
 //        return true;
 //    }
 //
@@ -300,7 +300,7 @@
 //        // cover trigger of job detail
 //        scheduler.scheduleJob(jobDetail, triggerSet, true);*/
 //
-//        logger.info(">>>>>>>>>>> resumeJob success, JobName:{}", jobName);
+//        logger.info("日志记录|Log_message,>>>>>>>>>>>_resumeJob_success,_JobName:{}", jobName);
 //        return true;
 //    }
 //
@@ -322,7 +322,7 @@
 //            result =  true;
 //        }
 //
-//        logger.info(">>>>>>>>>>> pauseJob {}, triggerKey:{}", (result?"success":"fail"),triggerKey);
+//        logger.info("日志记录|Log_message,>>>>>>>>>>>_pauseJob_{},_triggerKey:{}", (result?"success":"fail"),triggerKey);
 //        return result;
 //    }*/
 //
@@ -344,7 +344,7 @@
 //            result = true;
 //        }
 //
-//        logger.info(">>>>>>>>>>> resumeJob {}, triggerKey:{}", (result?"success":"fail"), triggerKey);
+//        logger.info("日志记录|Log_message,>>>>>>>>>>>_resumeJob_{},_triggerKey:{}", (result?"success":"fail"), triggerKey);
 //        return result;
 //    }*/
 //
@@ -365,9 +365,9 @@
 //        if (scheduler.checkExists(triggerKey)) {
 //            scheduler.triggerJob(jobKey);
 //            result = true;
-//            logger.info(">>>>>>>>>>> runJob success, jobKey:{}", jobKey);
+//            logger.info("日志记录|Log_message,>>>>>>>>>>>_runJob_success,_jobKey:{}", jobKey);
 //        } else {
-//        	logger.info(">>>>>>>>>>> runJob fail, jobKey:{}", jobKey);
+//        	logger.info("日志记录|Log_message,>>>>>>>>>>>_runJob_fail,_jobKey:{}", jobKey);
 //        }
 //        return result;
 //    }*/
@@ -404,7 +404,7 @@
 //            }
 //
 //        } catch (SchedulerException e) {
-//            logger.error(e.getMessage(), e);
+//            logger.error("日志记录|Log_message,exception={}", e.getMessage(), e);
 //            return null;
 //        }
 //        return jobList;

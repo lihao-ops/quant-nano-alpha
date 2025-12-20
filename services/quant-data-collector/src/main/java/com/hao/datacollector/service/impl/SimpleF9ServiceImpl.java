@@ -100,12 +100,12 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<CompanyProfileDTO>>() {
             });
         } catch (Exception e) {
-            log.error("getCompanyProfile_conversion_error!={}", e.getMessage());
+            log.error("日志记录|Log_message,getCompanyProfile_conversion_error!={}", e.getMessage(), e);
         }
         if (resultVO != null && resultVO.getCode() == 200 && resultVO.getData() != null) {
             return resultVO.getData();
         }
-        log.error("getCompanyProfile_error={}", JSON.toJSONString(responseEntity));
+        log.warn("日志记录|Log_message,getCompanyProfile_error,response={}", JSON.toJSONString(responseEntity));
         return null;
     }
 
@@ -125,12 +125,12 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<List<InformationOceanDTO>>>() {
             });
         } catch (Exception e) {
-            log.error("getInformation_conversion_error!={}", e.getMessage());
+            log.error("日志记录|Log_message,getInformation_conversion_error!={}", e.getMessage(), e);
         }
         if (resultVO != null && resultVO.getCode() == 200 && resultVO.getData() != null) {
             return resultVO.getData();
         }
-        log.error("getInformation_error={}", JSON.toJSONString(responseEntity));
+        log.warn("日志记录|Log_message,getInformation_error,response={}", JSON.toJSONString(responseEntity));
         return List.of();
     }
 
@@ -150,12 +150,12 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<KeyStatisticsDTO>>() {
             });
         } catch (Exception e) {
-            log.error("getKeyStatistics_conversion_error!={}", e.getMessage());
+            log.error("日志记录|Log_message,getKeyStatistics_conversion_error!={}", e.getMessage(), e);
         }
         if (resultVO != null && resultVO.getCode() == 200 && resultVO.getData() != null) {
             return resultVO.getData();
         }
-        log.error("getKeyStatistics_error={}", JSON.toJSONString(responseEntity));
+        log.warn("日志记录|Log_message,getKeyStatistics_error,response={}", JSON.toJSONString(responseEntity));
         return null;
     }
 
@@ -175,12 +175,12 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<CompanyInfo>>() {
             });
         } catch (Exception e) {
-            log.error("getCompanyInfo_conversion_error!={}", e.getMessage());
+            log.error("日志记录|Log_message,getCompanyInfo_conversion_error!={}", e.getMessage(), e);
         }
         if (resultVO != null && resultVO.getCode() == 200 && resultVO.getData() != null) {
             return resultVO.getData();
         }
-        log.error("getCompanyInfo_error={}", JSON.toJSONString(responseEntity));
+        log.warn("日志记录|Log_message,getCompanyInfo_error,response={}", JSON.toJSONString(responseEntity));
         return null;
     }
 
@@ -199,12 +199,12 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<List<NoticeDTO>>>() {
             });
         } catch (Exception e) {
-            log.error("getNotice_conversion_error!={}", e.getMessage());
+            log.error("日志记录|Log_message,getNotice_conversion_error!={}", e.getMessage(), e);
         }
         if (resultVO != null && resultVO.getCode() == 200 && resultVO.getData() != null) {
             return resultVO.getData();
         }
-        log.error("getNotice_error={}", JSON.toJSONString(responseEntity));
+        log.warn("日志记录|Log_message,getNotice_error,response={}", JSON.toJSONString(responseEntity));
         return List.of();
     }
 
@@ -224,12 +224,12 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<List<GreatEventDTO>>>() {
             });
         } catch (Exception e) {
-            log.error("getGreatEvent_conversion_error!={}", e.getMessage());
+            log.error("日志记录|Log_message,getGreatEvent_conversion_error!={}", e.getMessage(), e);
         }
         if (resultVO != null && resultVO.getCode() == 200 && resultVO.getData() != null) {
             return resultVO.getData();
         }
-        log.error("getGreatEvent_error={}", JSON.toJSONString(responseEntity));
+        log.warn("日志记录|Log_message,getGreatEvent_error,response={}", JSON.toJSONString(responseEntity));
         return List.of();
     }
 
@@ -249,12 +249,12 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<ProfitForecastDTO>>() {
             });
         } catch (Exception e) {
-            log.error("getProfitForecast_conversion_error!={}", e.getMessage());
+            log.error("日志记录|Log_message,getProfitForecast_conversion_error!={}", e.getMessage(), e);
         }
         if (resultVO != null && resultVO.getCode() == 200 && resultVO.getData() != null) {
             return resultVO.getData();
         }
-        log.error("getProfitForecast_error={}", JSON.toJSONString(responseEntity));
+        log.warn("日志记录|Log_message,getProfitForecast_error,response={}", JSON.toJSONString(responseEntity));
         return null;
     }
 
@@ -274,12 +274,12 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<MarketPerformanceDTO>>() {
             });
         } catch (Exception e) {
-            log.error("getMarketPerformance_conversion_error!={}", e.getMessage());
+            log.error("日志记录|Log_message,getMarketPerformance_conversion_error!={}", e.getMessage(), e);
         }
         if (resultVO != null && resultVO.getCode() == 200 && resultVO.getData() != null) {
             return resultVO.getData();
         }
-        log.error("getMarketPerformance_error={}", JSON.toJSONString(responseEntity));
+        log.warn("日志记录|Log_message,getMarketPerformance_error,response={}", JSON.toJSONString(responseEntity));
         return null;
     }
 
@@ -300,7 +300,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<List<List<Object>>>>() {
             });
         } catch (Exception e) {
-            log.error("getPeBand_conversion_error!={}", e.getMessage());
+            log.error("日志记录|Log_message,getPeBand_conversion_error!={}", e.getMessage(), e);
         }
         if (resultVO == null || resultVO.getCode() != 200 || resultVO.getData() == null) {
             return null;
@@ -321,7 +321,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
                 }
             }
         }
-        log.info("getPeBand.size={}", resultVOList.size());
+        log.info("日志记录|Log_message,getPeBand.size={}", resultVOList.size());
         return resultVOList;
     }
 
@@ -341,12 +341,12 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<List<ValuationIndexDTO>>>() {
             });
         } catch (Exception e) {
-            log.error("getSecurityMargin_conversion_error!={}", e.getMessage());
+            log.error("日志记录|Log_message,getSecurityMargin_conversion_error!={}", e.getMessage(), e);
         }
         if (resultVO != null && resultVO.getCode() == 200 && resultVO.getData() != null) {
             return resultVO.getData();
         }
-        log.error("getSecurityMargin_error={}", JSON.toJSONString(responseEntity));
+        log.warn("日志记录|Log_message,getSecurityMargin_error,response={}", JSON.toJSONString(responseEntity));
         return List.of();
     }
 
@@ -366,12 +366,12 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
             resultVO = JSON.parseObject(responseEntity.getBody(), new TypeReference<ResultVO<List<QuickViewGrowthDTO>>>() {
             });
         } catch (Exception e) {
-            log.error("quickViewGrowthCapability_conversion_error!={}", e.getMessage());
+            log.error("日志记录|Log_message,quickViewGrowthCapability_conversion_error!={}", e.getMessage(), e);
         }
         if (resultVO != null && resultVO.getCode() == 200 && resultVO.getData() != null) {
             return resultVO.getData();
         }
-        log.error("quickViewGrowthCapability_error={}", JSON.toJSONString(responseEntity));
+        log.warn("日志记录|Log_message,quickViewGrowthCapability_error,response={}", JSON.toJSONString(responseEntity));
         return List.of();
     }
 
@@ -400,7 +400,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
         insertList.add(insertCompanyProfileDTO);
         // Mapper 采用批量接口，尽管当前仅一条也保持统一入口
         int count = simpleF9Mapper.batchInsertCompanyProfileDataJob(insertList);
-        log.info("insertCompanyProfileDataJob.count={}", count);
+        log.info("日志记录|Log_message,insertCompanyProfileDataJob.count={}", count);
         return count >= 0;
     }
 

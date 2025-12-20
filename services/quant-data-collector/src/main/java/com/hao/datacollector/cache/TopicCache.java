@@ -13,6 +13,18 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 /**
+ * 题材相关缓存
+ *
+ * 设计目的：
+ * 1. 缓存题材与股票映射，提升题材查询性能。
+ * 2. 统一题材缓存入口，降低数据库查询压力。
+ *
+ * 为什么需要该类：
+ * - 题材信息常用于策略筛选，需要高效读取。
+ *
+ * 核心实现思路：
+ * - 启动时加载题材与股票映射并写入Redis。
+ *
  * @author hli
  * @program: datacollector
  * @Date 2025-08-03 22:09:00
@@ -37,8 +49,18 @@ public class TopicCache {
      */
     public static Map<Integer, Set<String>> topicMappingStockMap = new HashMap<>();
 
+    /**
+     * 初始化题材与股票映射缓存
+     *
+     * 实现逻辑：
+     * 1. 查询题材与股票关联列表。
+     * 2. 构建映射并写入Redis。
+     */
     @PostConstruct
     public void initTopicMappingStockCache() {
+        // 实现思路：
+        // 1. 构建题材ID到股票集合的映射。
+        // 2. 写入缓存并记录统计。
         List<TopicStockDTO> kplTopicAndStockList = topicMapper.getKplTopicAndStockList(null);
         Map<Integer, Set<String>> resultMap = new HashMap<>();
         for (TopicStockDTO dto : kplTopicAndStockList) {
@@ -49,6 +71,6 @@ public class TopicCache {
         }
         topicMappingStockMap = resultMap;
         redisClient.set(RedisKeyConstants.DATA_TOPIC_MAPPING_STOCK_MAP, JSON.toJSONString(topicMappingStockMap));
-        log.info("TopicCache_allTopicIdList.size={}", kplTopicAndStockList.size());
+        log.info("题材缓存完成|Topic_cache_loaded,topicStockSize={}", kplTopicAndStockList.size());
     }
 }

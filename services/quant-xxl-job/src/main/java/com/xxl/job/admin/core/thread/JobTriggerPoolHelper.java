@@ -40,7 +40,7 @@ public class JobTriggerPoolHelper {
                 new RejectedExecutionHandler() {
                     @Override
                     public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-                        logger.error(">>>>>>>>>>> xxl-job, admin JobTriggerPoolHelper-fastTriggerPool execute too fast, Runnable="+r.toString() );
+                        logger.error("日志记录|Log_message,>>>>>>>>>>>_xxl-job,_admin_JobTriggerPoolHelper-fastTriggerPool_execute_too_fast,_Runnable="+r.toString() );
                     }
                 });
 
@@ -59,7 +59,7 @@ public class JobTriggerPoolHelper {
                 new RejectedExecutionHandler() {
                     @Override
                     public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-                        logger.error(">>>>>>>>>>> xxl-job, admin JobTriggerPoolHelper-slowTriggerPool execute too fast, Runnable="+r.toString() );
+                        logger.error("日志记录|Log_message,>>>>>>>>>>>_xxl-job,_admin_JobTriggerPoolHelper-slowTriggerPool_execute_too_fast,_Runnable="+r.toString() );
                     }
                 });
     }
@@ -69,7 +69,7 @@ public class JobTriggerPoolHelper {
         //triggerPool.shutdown();
         fastTriggerPool.shutdownNow();
         slowTriggerPool.shutdownNow();
-        logger.info(">>>>>>>>> xxl-job trigger thread pool shutdown success.");
+        logger.info("日志记录|Log_message,>>>>>>>>>_xxl-job_trigger_thread_pool_shutdown_success.");
     }
 
 
@@ -106,7 +106,7 @@ public class JobTriggerPoolHelper {
                     // do trigger
                     XxlJobTrigger.trigger(jobId, triggerType, failRetryCount, executorShardingParam, executorParam, addressList);
                 } catch (Throwable e) {
-                    logger.error(e.getMessage(), e);
+                    logger.error("日志记录|Log_message,exception={}", e.getMessage(), e);
                 } finally {
 
                     // check timeout-count-map

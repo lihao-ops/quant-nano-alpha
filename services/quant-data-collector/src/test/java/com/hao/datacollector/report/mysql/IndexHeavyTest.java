@@ -73,14 +73,14 @@ public class IndexHeavyTest {
     @Test
     @DisplayName("深度压测：覆盖索引 vs 普通索引 (含完整 Trace)")
     public void runHeavyBenchmark() {
-        logger.info("========================================================================");
-        logger.info("  🚀 开始深度压测 (Index Range Scan Simulation)");
-        logger.info("  ⚠️ 包含完整 Optimizer Trace，控制台日志会很长");
-        logger.info("========================================================================");
+        logger.info("日志记录|Log_message,========================================================================");
+        logger.info("_开始深度压测_(Index_Range_Scan_Simulation)");
+        logger.info("__包含完整_Optimizer_Trace，控制台日志会很长");
+        logger.info("日志记录|Log_message,========================================================================");
 
         // Step 1: 准备数据
         List<String> allCodes = StockCache.allWindCode;
-        if (allCodes == null || allCodes.isEmpty()) throw new RuntimeException("❌ 无数据");
+        if (allCodes == null || allCodes.isEmpty()) throw new RuntimeException(" 无数据");
 
         // [Step 1] 动态数据准备
         // 目的：制造一个"既不能全表扫描，又不能只读几行"的尴尬区间(10%-15%)。
@@ -88,7 +88,7 @@ public class IndexHeavyTest {
         int limitSize = Math.max(1, (int) (allCodes.size() * TEST_DATA_RATIO));
         List<String> targetCodes = allCodes.subList(0, limitSize);
 
-        logger.info("✅ 样本总数: {} (比例: {}%)", targetCodes.size(), (int) (TEST_DATA_RATIO * 100));
+        logger.info("日志记录|Log_message,_样本总数:_{}_(比例:_{}%)", targetCodes.size(), (int) (TEST_DATA_RATIO * 100));
 
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("codes", targetCodes);
@@ -119,7 +119,7 @@ public class IndexHeavyTest {
 
         // 1.1 [验证阶段] 开启 Trace，询问 MySQL 优化器："你打算怎么查？"
         // 这一步只做 Explain，不产生真实数据 I/O，为了拿到 cost 和 index_only 状态。
-        logger.info("\n>>> [Round 1] 分析: tb_hot_test_base (普通索引)");
+        logger.info("\n>>>_[Round_1]_分析:_tb_hot_test_base_(普通索引)");
 
         // 1.1 深度追踪
         runOptimizerTrace(sqlBase, params, "tb_hot_test_base");
@@ -140,13 +140,13 @@ public class IndexHeavyTest {
         stopWatch.stop();
 
         long ioCostBase = getPhysicalReads() - startReadsBase;
-        logger.info("[Round 1 结果] 耗时: {} ms | I/O: {} | 行数: {}", stopWatch.getLastTaskTimeMillis(), ioCostBase, rowCountBase);
+        logger.info("[Round_1_结果]_耗时:_{}_ms_|_I/O:_{}_|_行数:_{}", stopWatch.getLastTaskTimeMillis(), ioCostBase, rowCountBase);
 
         // =======================================================================
         // [Round 2] 测试覆盖索引表 (tb_hot_test_cover)
         // 预期行为：二级索引直接提供所有数据 (零回表)
         // =======================================================================
-        logger.info("\n>>> [Round 2] 分析: tb_hot_test_cover (覆盖索引)");
+        logger.info("\n>>>_[Round_2]_分析:_tb_hot_test_cover_(覆盖索引)");
 
         // 2.1 深度追踪
         runOptimizerTrace(sqlCover, params, "tb_hot_test_cover");
@@ -167,13 +167,13 @@ public class IndexHeavyTest {
         stopWatch.stop();
 
         long ioCostCover = getPhysicalReads() - startReadsCover;
-        logger.info("[Round 2 结果] 耗时: {} ms | I/O: {} | 行数: {}", stopWatch.getLastTaskTimeMillis(), ioCostCover, rowCountCover);
+        logger.info("[Round_2_结果]_耗时:_{}_ms_|_I/O:_{}_|_行数:_{}", stopWatch.getLastTaskTimeMillis(), ioCostCover, rowCountCover);
 
         printReport(stopWatch, ioCostBase, ioCostCover, rowCountBase);
     }
 
     private void runOptimizerTrace(String sql, MapSqlParameterSource params, String tableName) {
-        logger.info("--- 正在生成 Optimizer Trace JSON (请查看下方日志) ---");
+        logger.info("---_正在生成_Optimizer_Trace_JSON_(请查看下方日志)_---");
         transactionTemplate.execute(status -> {
             try {
                 // 1. 开启 Trace
@@ -202,22 +202,22 @@ public class IndexHeavyTest {
                         Object jsonObject = objectMapper.readValue(rawJson, Object.class);
                         String prettyJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObject);
 
-                        logger.info("📊 [Trace 成本] Cost: {}", cost);
-                        logger.info("🔍 [Trace 详情] {}:\n{}", tableName, prettyJson);
+                        logger.info("_[Trace_成本]_Cost:_{}", cost);
+                        logger.info("_[Trace_详情]_{}:\n{}", tableName, prettyJson);
 
                     } catch (Exception e) {
-                        logger.warn("JSON 格式化失败，打印原始字符串: {}", rawJson);
+                        logger.warn("JSON_格式化失败，打印原始字符串:_{}", rawJson);
                     }
 
                     if (tableName.contains("cover") && (rawJson.contains("covering_index") || rawJson.contains("Using index"))) {
-                        logger.info("✅ 校验通过: 优化器确认使用了覆盖索引");
+                        logger.info("日志记录|Log_message,_校验通过:_优化器确认使用了覆盖索引");
                     }
                 }
 
                 // 6. 关闭
                 jdbcTemplate.execute("SET SESSION optimizer_trace='enabled=off'");
             } catch (Exception e) {
-                logger.error("❌ Trace 失败", e);
+                logger.error("_Trace_失败", e);
             }
             return null;
         });
@@ -235,16 +235,16 @@ public class IndexHeavyTest {
     }
 
     private void logSqlExecution(String sql, String start, String end, int count) {
-        logger.info("SQL预览: [Code数: {}, 日期: {} - {}]", count, start, end);
+        logger.info("SQL预览:_[Code数:_{},_日期:_{}_-_{}]", count, start, end);
     }
 
     private void printReport(StopWatch stopWatch, long ioBase, long ioCover, int rows) {
         long t1 = stopWatch.getTaskInfo()[0].getTimeMillis();
         long t2 = stopWatch.getTaskInfo()[1].getTimeMillis();
-        logger.info("\n==================== 最终报告 ====================");
-        logger.info("普通索引: {} ms (I/O: {})", t1, ioBase);
-        logger.info("覆盖索引: {} ms (I/O: {})", t2, ioCover);
-        if (t1 > t2) logger.info("🚀 覆盖索引快了 {}%", String.format("%.2f", (double) (t1 - t2) / t1 * 100));
-        logger.info("==================================================");
+        logger.info("\n====================_最终报告_====================");
+        logger.info("普通索引:_{}_ms_(I/O:_{})", t1, ioBase);
+        logger.info("覆盖索引:_{}_ms_(I/O:_{})", t2, ioCover);
+        if (t1 > t2) logger.info("日志记录|Log_message,_覆盖索引快了_{}%", String.format("%.2f", (double) (t1 - t2) / t1 * 100));
+        logger.info("日志记录|Log_message,==================================================");
     }
 }

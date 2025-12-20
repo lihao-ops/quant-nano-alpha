@@ -51,7 +51,7 @@ public class StablePicksMetrics implements MeterBinder {
                         var keys = redisTemplate.keys("stable:picks:*");
                         return keys != null ? keys.size() : 0;
                     } catch (Exception ex) {
-                        log.error("获取 Redis Key 失败", ex);
+                        log.error("获取RedisKey失败|Redis_key_fetch_failed", ex);
                         return 0;
                     }
                 })

@@ -104,23 +104,23 @@ public final class HttpUtil {
             HttpEntity<String> requestEntity = new HttpEntity<>(jsonBody, requestHeaders);
 
             // 发送请求并记录日志
-            log.debug("Sending POST request to: {}, body length: {}", url,
+            log.debug("发送POST请求|Send_post_request,url={},bodyLength={}", url,
                     jsonBody != null ? jsonBody.length() : 0);
 
             ResponseEntity<String> response = restTemplate.exchange(
                     url, HttpMethod.POST, requestEntity, String.class);
 
-            log.debug("Received response with status: {}, body length: {}",
+            log.debug("收到POST响应|Receive_post_response,status={},bodyLength={}",
                     response.getStatusCode(),
                     response.getBody() != null ? response.getBody().length() : 0);
 
             return response.getBody();
 
         } catch (RestClientException e) {
-            log.error("POST request failed for URL: {}", url, e);
+            log.error("POST请求失败|Post_request_failed,url={}", url, e);
             throw new HttpRequestException("POST request failed: " + e.getMessage(), e);
         } catch (Exception e) {
-            log.error("Unexpected error during POST request to: {}", url, e);
+            log.error("POST请求异常|Post_request_error,url={}", url, e);
             throw new HttpRequestException("Unexpected error: " + e.getMessage(), e);
         }
     }
@@ -162,17 +162,17 @@ public final class HttpUtil {
                     new HttpEntity<>(formData, requestHeaders);
 
             // 发送请求
-            log.debug("Sending form POST request to: {}, form data size: {}", url, formData.size());
+            log.debug("发送表单POST请求|Send_form_post,url={},formSize={}", url, formData.size());
 
             ResponseEntity<String> response = restTemplate.exchange(
                     url, HttpMethod.POST, requestEntity, String.class);
 
-            log.debug("Received form POST response with status: {}", response.getStatusCode());
+            log.debug("收到表单POST响应|Receive_form_post_response,status={}", response.getStatusCode());
 
             return response;
 
         } catch (RestClientException e) {
-            log.error("Form POST request failed for URL: {}", url, e);
+            log.error("表单POST请求失败|Form_post_request_failed,url={}", url, e);
             throw new HttpRequestException("Form POST request failed: " + e.getMessage(), e);
         }
     }
@@ -217,19 +217,19 @@ public final class HttpUtil {
             HttpEntity<Void> requestEntity = new HttpEntity<>(requestHeaders);
 
             // 发送请求
-            log.debug("Sending GET request to: {}", url);
+            log.debug("发送GET请求|Send_get_request,url={}", url);
 
             ResponseEntity<String> response = restTemplate.exchange(
                     url, HttpMethod.GET, requestEntity, String.class);
 
-            log.debug("Received GET response with status: {}, body length: {}",
+            log.debug("收到GET响应|Receive_get_response,status={},bodyLength={}",
                     response.getStatusCode(),
                     response.getBody() != null ? response.getBody().length() : 0);
 
             return response;
 
         } catch (RestClientException e) {
-            log.error("GET request failed for URL: {}", url, e);
+            log.error("GET请求失败|Get_request_failed,url={}", url, e);
             throw new HttpRequestException("GET request failed: " + e.getMessage(), e);
         }
     }
@@ -284,7 +284,7 @@ public final class HttpUtil {
         try {
             return OBJECT_MAPPER.writeValueAsString(object);
         } catch (JsonProcessingException e) {
-            log.error("Failed to convert object to JSON: {}", object.getClass().getSimpleName(), e);
+            log.error("JSON序列化失败|Json_serialize_failed,type={}", object.getClass().getSimpleName(), e);
             throw new HttpRequestException("JSON conversion failed: " + e.getMessage(), e);
         }
     }
@@ -310,7 +310,7 @@ public final class HttpUtil {
         try {
             return OBJECT_MAPPER.readValue(json, clazz);
         } catch (JsonProcessingException e) {
-            log.error("Failed to parse JSON to {}: {}", clazz.getSimpleName(), e.getMessage());
+            log.error("JSON解析失败|Json_parse_failed,targetClass={},error={}", clazz.getSimpleName(), e.getMessage(), e);
             throw new HttpRequestException("JSON parsing failed: " + e.getMessage(), e);
         }
     }
@@ -331,7 +331,7 @@ public final class HttpUtil {
         try {
             return OBJECT_MAPPER.readTree(json);
         } catch (JsonProcessingException e) {
-            log.error("Failed to parse JSON to JsonNode: {}", e.getMessage());
+            log.error("JSON解析失败|Json_parse_failed,error={}", e.getMessage(), e);
             throw new HttpRequestException("JSON parsing failed: " + e.getMessage(), e);
         }
     }

@@ -32,7 +32,7 @@ public class ThreadPoolMonitor {
     
     private void logThreadPoolStats(String type, ThreadPoolTaskExecutor executor) {
         ThreadPoolExecutor pool = executor.getThreadPoolExecutor();
-        log.info("{} ThreadPool - Active: {}, Pool: {}, Queue: {}, Completed: {}", 
+        log.info("线程池监控|Thread_pool_stats,type={},active={},poolSize={},queueSize={},completed={}",
                 type,
                 pool.getActiveCount(),
                 pool.getPoolSize(), 

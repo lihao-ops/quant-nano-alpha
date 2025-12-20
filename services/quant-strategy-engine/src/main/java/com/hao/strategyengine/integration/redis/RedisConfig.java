@@ -50,7 +50,7 @@ public class RedisConfig implements RedisClient<String>, InitializingBean {
     @Override
     public void afterPropertiesSet() {
         try {
-            log.info("Redis_config:host={},port={},password={}", redisHost, redisPort, redisPassword == null || redisPassword.isEmpty() ? "空" : "已配置");
+            log.info("日志记录|Log_message,Redis_config:host={},port={},password={}", redisHost, redisPort, redisPassword == null || redisPassword.isEmpty() ? "空" : "已配置");
             RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(redisHost, redisPort);
             if (redisPassword != null && !redisPassword.isEmpty()) {
                 config.setPassword(redisPassword);
@@ -62,14 +62,14 @@ public class RedisConfig implements RedisClient<String>, InitializingBean {
             redisTemplate.setConnectionFactory(factory);
             redisTemplate.afterPropertiesSet();
 
-            log.info("Redis 初始化成功，连接到 {}:{}", redisHost, redisPort);
+            log.info("Redis_初始化成功，连接到_{}:{}", redisHost, redisPort);
             // 测试连接
             String testResult = redisTemplate.opsForValue().get("test");
             redisTemplate.opsForValue().set("connection-test", "success", Duration.ofSeconds(10));
             log.info("Redis连接测试成功");
 
         } catch (Exception e) {
-            log.error("Redis连接测试失败: {}", e.getMessage(), e);
+            log.error("Redis连接测试失败:_{}", e.getMessage(), e);
         }
     }
 

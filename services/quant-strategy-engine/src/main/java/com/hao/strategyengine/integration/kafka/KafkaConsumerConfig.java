@@ -32,7 +32,7 @@ public class KafkaConsumerConfig {
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "strategy-service-group");
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false); // ⚠️ 关闭自动提交
+        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false); //  关闭自动提交
         return new DefaultKafkaConsumerFactory<>(props);
     }
 
@@ -43,7 +43,7 @@ public class KafkaConsumerConfig {
         factory.setConsumerFactory(consumerFactory());
         factory.getContainerProperties().setAckMode(
                 org.springframework.kafka.listener.ContainerProperties.AckMode.MANUAL_IMMEDIATE
-        ); // ⚠️ 设置手动提交模式
+        ); //  设置手动提交模式
         return factory;
     }
     private final KafkaTemplate<String, String> kafka;

@@ -171,7 +171,7 @@ public class JobLogController {
 
 			return logResult;
 		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
+			logger.error("日志记录|Log_message,exception={}", e.getMessage(), e);
 			return new ReturnT<LogResult>(ReturnT.FAIL_CODE, e.getMessage());
 		}
 	}
@@ -227,7 +227,7 @@ public class JobLogController {
 			ExecutorBiz executorBiz = XxlJobScheduler.getExecutorBiz(log.getExecutorAddress());
 			runResult = executorBiz.kill(new KillParam(jobInfo.getId()));
 		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
+			logger.error("日志记录|Log_message,exception={}", e.getMessage(), e);
 			runResult = new ReturnT<String>(500, e.getMessage());
 		}
 

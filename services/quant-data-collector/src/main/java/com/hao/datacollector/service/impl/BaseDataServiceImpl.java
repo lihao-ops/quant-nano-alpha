@@ -104,7 +104,7 @@ public class BaseDataServiceImpl implements BaseDataService {
         // 批量插入数据到数据库
         Boolean financialMetricsInsertResult = baseDataMapper.batchInsertStockFinancialMetrics(metricsList);
         Boolean basicInfoInsertResult = baseDataMapper.batchInsertStockBasicInfo(basicInfoList);
-        log.info("BaseDataServiceImpl_batchInsertStockBasicInfo_financialMetricsInsertResult={},basicInfoInsertResult={}", financialMetricsInsertResult, basicInfoInsertResult);
+        log.info("基础信息批量入库结果|Batch_insert_basic_info_result,financialMetricsInsertResult={},basicInfoInsertResult={}", financialMetricsInsertResult, basicInfoInsertResult);
         return financialMetricsInsertResult && basicInfoInsertResult;
     }
 
@@ -139,18 +139,18 @@ public class BaseDataServiceImpl implements BaseDataService {
             // 如果获取的数据连续三次为空，表示出现调用异常
             if (stockDailyMetricsList.isEmpty()) {
                 if (emptyStatus == 500) {
-                    log.error("已处理共计{}个代码数据", i);
+                    log.warn("已处理代码累计|Processed_code_total,count={}", i);
                     throw new RuntimeException("继续获取股票市场数据失败");
                 }
                 boolean insertAbnormalResult = baseDataMapper.insertAbnormalStock(allWindCode.get(i));
-                log.error("BaseDataServiceImpl_batchInsertStockMarketData_windCode={},insertAbnormalResult={}", allWindCode.get(i), insertAbnormalResult);
+                log.warn("插入异常标记|Insert_abnormal_mark,windCode={},insertResult={}", allWindCode.get(i), insertAbnormalResult);
                 emptyStatus += 1;
                 continue;
             }
             //日期去重
             // 使用 distinctByKey 按交易日去重后批量写库，避免重复数据
             Boolean insertStockMarketData = baseDataMapper.batchInsertStockMarketData(stockDailyMetricsList.stream().filter(distinctByKey(StockDailyMetricsDTO::getTradeDate)).collect(Collectors.toList()));
-            log.info("batchInsertStockMarketData_code={}!stockDailyMetricsList.size={},insertStockMarketData={}", allWindCode.get(i), stockDailyMetricsList.size(), insertStockMarketData);
+            log.info("行情入库结果|Market_data_insert_result,windCode={},metricsSize={},insertResult={}", allWindCode.get(i), stockDailyMetricsList.size(), insertStockMarketData);
         }
         return true;
     }
@@ -170,7 +170,7 @@ public class BaseDataServiceImpl implements BaseDataService {
 //        long start = W.start();
 //        //获取版本
 //        WindData version = W.getVersion();
-//        log.info("BaseDataServiceImpl_login_version={}", version);
+//        log.info("日志记录|Log_message,BaseDataServiceImpl_login_version={}", version);
         // 当前环境暂未接入 Wind SDK，保留占位逻辑以便后续补充
     }
 
@@ -233,9 +233,9 @@ public class BaseDataServiceImpl implements BaseDataService {
                     if (index == 0) {
                         // 在第188行附近，将JSON.toJSONString替换为Jackson
                         try {
-                            log.error("疑是新股数据,跳过={}", objectMapper.writeValueAsString(parts));
+                            log.warn("疑似新股数据跳过|New_stock_data_skipped,data={}", objectMapper.writeValueAsString(parts));
                         } catch (JsonProcessingException e) {
-                            log.error("疑是新股数据,跳过={}", java.util.Arrays.toString(parts));
+                            log.warn("疑似新股数据跳过|New_stock_data_skipped,data={}", java.util.Arrays.toString(parts));
                         }
                     }
                     continue;
@@ -286,11 +286,10 @@ public class BaseDataServiceImpl implements BaseDataService {
                 insertDataDTOList.add(dto);
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            log.error("CSV转换失败={}", e.getMessage());
+            log.error("CSV转换失败|Csv_convert_failed,csvLength={}", csvLine == null ? 0 : csvLine.length(), e);
             return null;
         }
-        log.info("BaseDataServiceImpl_convert_insertDataDTOList.size={}", insertDataDTOList.size());
+        log.info("CSV转换完成|Csv_convert_done,recordSize={}", insertDataDTOList.size());
         return insertDataDTOList;
     }
 
@@ -322,7 +321,7 @@ public class BaseDataServiceImpl implements BaseDataService {
             );
             tradeDateList = result.getData();
         } catch (Exception e) {
-            log.error("BaseDataServiceImpl_setTradeDateList_tradeDateList_parse_error,response={}", e.getMessage(), response);
+            log.error("交易日历解析失败|Trade_date_parse_failed,responseLength={}", response == null ? 0 : response.length(), e);
             throw new RuntimeException("BaseDataServiceImpl_setTradeDateList_tradeDateList_parse_error");
         }
         if (tradeDateList.isEmpty()) {
@@ -336,7 +335,7 @@ public class BaseDataServiceImpl implements BaseDataService {
                 .map(i -> LocalDate.parse(String.valueOf(i), DateTimeFormatter.ofPattern(DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT)))
                 .collect(Collectors.toList());
         Boolean insertTradeDateListResult = baseDataMapper.insertTradeDate(dateList);
-        log.info("BaseDataServiceImpl_setTradeDateList,tradeDateList.size={},clearTradeDateResult={},insertTradeDateListResult={}", tradeDateList.size(), clearTradeDateResult, insertTradeDateListResult);
+        log.info("交易日历落库结果|Trade_date_insert_result,tradeDateSize={},clearResult={},insertResult={}", tradeDateList.size(), clearTradeDateResult, insertTradeDateListResult);
         return clearTradeDateResult && insertTradeDateListResult;
     }
 
@@ -352,7 +351,7 @@ public class BaseDataServiceImpl implements BaseDataService {
 //    @Cacheable(cacheNames = "tradeDateListByTime", key = "#startTime + #endTime", cacheManager = "dateCaffeineCacheManager")
     public List<LocalDate> getTradeDateListByTime(String startTime, String endTime) {
         List<String> listByTime = baseDataMapper.getTradeDateListByTime(startTime, endTime);
-        log.info("getTradeDateListByTime,listByTime.size={}", listByTime.size());
+        log.info("交易日历查询结果|Trade_date_query_result,recordSize={}", listByTime.size());
         //转换为通用的LocalDate提供自由日期格式转换
         return listByTime.stream()
                 .map(LocalDate::parse) // 默认是 yyyy-MM-dd 格式
@@ -368,7 +367,7 @@ public class BaseDataServiceImpl implements BaseDataService {
      * @return 兜底内容
      */
     public List<LocalDate> getTradeDateListByTimeFallback(String startTime, String endTime, BlockException e) {
-        log.error("getTradeDateListByTimeFallback={},errorClass={}", ExceptionUtil.getStackTrace(e), e.getClass());
+        log.error("交易日历查询降级|Trade_date_query_fallback,errorClass={}", e.getClass().getSimpleName(), e);
         return new ArrayList<>();
     }
 
@@ -380,14 +379,14 @@ public class BaseDataServiceImpl implements BaseDataService {
      */
     @Override
     public List<StockBasicInfoQueryResultVO> queryStockBasicInfo(StockBasicInfoQueryParam queryParam) {
-        log.info("BaseDataServiceImpl_queryStockBasicInfo_start=queryParam={}", JSON.toJSONString(queryParam));
+        log.info("股票基础信息查询开始|Stock_basic_query_start,queryParam={}", JSON.toJSONString(queryParam));
         // 处理分页参数，将pageNo转换为offset
         if (queryParam.getPageNo() != null && queryParam.getPageSize() != null) {
             int offset = PageUtil.calculateOffset(queryParam.getPageNo(), queryParam.getPageSize());
             queryParam.setPageNo(offset);
         }
         List<StockBasicInfoQueryResultVO> result = baseDataMapper.queryStockBasicInfo(queryParam);
-        log.info("BaseDataServiceImpl_queryStockBasicInfo_success=result_count={}", result.size());
+        log.info("股票基础信息查询成功|Stock_basic_query_success,resultCount={}", result.size());
         return result;
     }
 
@@ -399,14 +398,14 @@ public class BaseDataServiceImpl implements BaseDataService {
      */
     @Override
     public List<StockMarketDataQueryResultVO> queryStockMarketData(StockMarketDataQueryParam queryParam) {
-        log.info("BaseDataServiceImpl_queryStockMarketData_start=queryParam={}", JSON.toJSONString(queryParam));
+        log.info("股票行情查询开始|Stock_market_query_start,queryParam={}", JSON.toJSONString(queryParam));
         // 处理分页参数，将pageNo转换为offset
         if (queryParam.getPageNo() != null && queryParam.getPageSize() != null) {
             int offset = PageUtil.calculateOffset(queryParam.getPageNo(), queryParam.getPageSize());
             queryParam.setPageNo(offset);
         }
         List<StockMarketDataQueryResultVO> result = baseDataMapper.queryStockMarketData(queryParam);
-        log.info("BaseDataServiceImpl_queryStockMarketData_success=result_count={}", result.size());
+        log.info("股票行情查询成功|Stock_market_query_success,resultCount={}", result.size());
         return result;
     }
 }

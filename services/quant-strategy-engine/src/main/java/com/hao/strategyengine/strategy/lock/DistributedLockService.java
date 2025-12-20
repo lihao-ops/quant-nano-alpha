@@ -28,7 +28,7 @@ import java.util.function.Supplier;
  * <p>
  * 【调用位置】：
  * ◉ Facade 层（StrategyEngineFacade） → Step 4 调用
- * Controller → Service → Facade → ✅ LockService → Dispatcher
+ * Controller → Service → Facade →  LockService → Dispatcher
  * <p>
  * 【执行流程】：
  * ┌────────────────────────────────────────┐
@@ -39,13 +39,13 @@ import java.util.function.Supplier;
  * └────────────────────────────────────────┘
  * <p>
  * 【优势】：
- * ✅ 防止同一策略组合被多节点重复计算（幂等保证）
- * ✅ 支持集群下锁自动过期释放（30秒 lease）
- * ✅ 轻量实现的 Future 等待机制，节省系统资源
+ *  防止同一策略组合被多节点重复计算（幂等保证）
+ *  支持集群下锁自动过期释放（30秒 lease）
+ *  轻量实现的 Future 等待机制，节省系统资源
  * <p>
  * 【局限性】：
- * ⚠️ 若计算耗时超过 30 秒，需要手动续期或调整 leaseTime；
- * ⚠️ 当前实现为非可重入锁（同线程重复获取需谨慎）。
+ *  若计算耗时超过 30 秒，需要手动续期或调整 leaseTime；
+ *  当前实现为非可重入锁（同线程重复获取需谨慎）。
  */
 @Slf4j
 @Service
@@ -87,20 +87,20 @@ public class DistributedLockService {
      *                 ④ 若等待超时：抛出 RuntimeException
      */
     public StrategyResultBundle acquireOrWait(String comboKey, Supplier<StrategyResultBundle> compute) {
-        // Step 1️⃣ 拼接分布式锁 key
+        // Step 1⃣ 拼接分布式锁 key
         String lockName = "lock:combo:" + comboKey;
         RLock lock = redisson.getLock(lockName);
         boolean acquired = false;
         try {
-            // Step 2️⃣ 尝试立即获取锁（非阻塞），自动过期 3 秒
+            // Step 2⃣ 尝试立即获取锁（非阻塞），自动过期 3 秒
             acquired = lock.tryLock(0, 1, TimeUnit.SECONDS);
 
             if (acquired) {
                 log.info("获取锁成功，Thread={}", Thread.currentThread().getName());
-                // Step 3️⃣ 当前线程成功获取锁 → 执行策略计算
+                // Step 3⃣ 当前线程成功获取锁 → 执行策略计算
                 StrategyResultBundle result = compute.get();
 
-                // Step 4️⃣ 唤醒等待中的任务（如果存在）
+                // Step 4⃣ 唤醒等待中的任务（如果存在）
                 //todo 在真正的分布式环境下，本地 pending 只对单机有效，可能让多实例高并发时出现重复计算或等待超时
                 CompletableFuture<StrategyResultBundle> waiting = pending.remove(comboKey);
                 if (waiting != null) {
@@ -109,13 +109,13 @@ public class DistributedLockService {
 
                 return result;
             } else {
-                log.info("获取锁失败，已有线程在计算 → 等待 pending future，Thread={}", Thread.currentThread().getName());
-                // Step 5️⃣ 已有线程在计算 → 等待 pending future
+                log.info("获取锁失败，已有线程在计算_→_等待_pending_future，Thread={}", Thread.currentThread().getName());
+                // Step 5⃣ 已有线程在计算 → 等待 pending future
                 CompletableFuture<StrategyResultBundle> future =
                         pending.computeIfAbsent(comboKey, k -> new CompletableFuture<>());
 
                 try {
-                    // Step 6️⃣ 等待计算结果（最多等待 5 秒）
+                    // Step 6⃣ 等待计算结果（最多等待 5 秒）
                     return future.get(5, TimeUnit.SECONDS);
                 } catch (TimeoutException te) {
                     throw new RuntimeException("等待计算超时：" + comboKey);
@@ -127,7 +127,7 @@ public class DistributedLockService {
             Thread.currentThread().interrupt();
             throw new RuntimeException("线程中断：" + comboKey, ie);
         } finally {
-            // Step 7️⃣ 若当前线程持有锁，释放锁
+            // Step 7⃣ 若当前线程持有锁，释放锁
             if (acquired) {
                 try {
                     lock.unlock();

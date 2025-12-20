@@ -78,7 +78,7 @@ public class DataProducerRunner implements CommandLineRunner {
             return;
         }
 
-        log.info("开始发送历史行情数据到 Kafka topic={}，总条数={}", topic, historyTrendDataByDate.size());
+        log.info("开始发送历史行情数据到_Kafka_topic={}，总条数={}", topic, historyTrendDataByDate.size());
 
         // ---------------- 批量发送逻辑 ----------------
 //        while (true){
@@ -114,10 +114,10 @@ public class DataProducerRunner implements CommandLineRunner {
     private void sendBatch(String topic, List<HistoryTrendDTO> batchData) {
         for (HistoryTrendDTO dto : batchData) {
             try {
-                log.info("批量发送数据: windCode={}, tradeDate={}", dto.getWindCode(), dto.getTradeDate());
+                log.info("批量发送数据:_windCode={},_tradeDate={}", dto.getWindCode(), dto.getTradeDate());
                 producerService.send(topic, dto.getWindCode(), dto);
             } catch (Exception e) {
-                log.error("批量发送失败: windCode={}, error={}", dto.getWindCode(), e.getMessage(), e);
+                log.error("批量发送失败:_windCode={},_error={}", dto.getWindCode(), e.getMessage(), e);
             }
         }
     }

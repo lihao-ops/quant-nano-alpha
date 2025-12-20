@@ -1,9 +1,9 @@
-package com.hao.datacollector.report.mysql; // ‼️ 确保包路径正确 (Ensure package path is correct)
+package com.hao.datacollector.report.mysql; // ‼ 确保包路径正确 (Ensure package path is correct)
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.*; // ‼️ 确保导入了 @TestInstance
+import org.junit.jupiter.api.*; // ‼ 确保导入了 @TestInstance
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +40,7 @@ import java.util.Map;
 @SpringBootTest
 @Slf4j
 @TestMethodOrder(OrderAnnotation.class) // 强制按顺序执行 (Force sequential execution)
-@TestInstance(Lifecycle.PER_CLASS) // 🔥 核心修复: 告诉 JUnit 5 对此类使用单个实例
+@TestInstance(Lifecycle.PER_CLASS) //  核心修复: 告诉 JUnit 5 对此类使用单个实例
 // (Core Fix: Tell JUnit 5 to use a single instance for this class)
 public class PerformanceOatTests {
 
@@ -57,7 +57,7 @@ public class PerformanceOatTests {
     private static final String TARGET_DATABASE = "a_share_quant"; // 你的数据库名 (Your Database Schema)
 
     // --- 报告元数据 (Report Metadata) ---
-    // ‼️ 移除了 'static'，因为它们现在是类实例的字段
+    // ‼ 移除了 'static'，因为它们现在是类实例的字段
     // (Removed 'static' as they are now fields of the class instance)
     private String mysqlVersion;
     private String mysqlHost;
@@ -91,19 +91,19 @@ public class PerformanceOatTests {
      * 实验目的 (Purpose):
      * 1. 打印配置信息 (Print configuration)。
      * 2. 查询数据库元数据 (Query database metadata) 以便写入报告。
-     * ‼️ 移除了 'static' (Removed 'static')
+     * ‼ 移除了 'static' (Removed 'static')
      */
     @BeforeAll
-    void setup() { // ‼️ 移除了 'static' (Removed 'static')
-        log.info("=== [OAT] 开始性能基准测试 (Warmup={}次, Benchmark={}次) ===", WARMUP_RUNS, BENCHMARK_RUNS);
-        log.info("=== [OAT] 标的 (Stock): {}, 数据库 (Database): {} ===", STOCK_CODE, TARGET_DATABASE);
+    void setup() { // ‼ 移除了 'static' (Removed 'static')
+        log.info("===_[OAT]_开始性能基准测试_(Warmup={}次,_Benchmark={}次)_===", WARMUP_RUNS, BENCHMARK_RUNS);
+        log.info("===_[OAT]_标的_(Stock):_{},_数据库_(Database):_{}_===", STOCK_CODE, TARGET_DATABASE);
         try {
             // jdbcTemplate 此时已注入 (jdbcTemplate is now injected)
             mysqlVersion = jdbcTemplate.queryForObject("SELECT VERSION()", String.class);
             mysqlHost = jdbcTemplate.queryForObject("SELECT @@hostname", String.class);
-            log.info("=== [OAT] MySQL Version: {}, Host: {} ===", mysqlVersion, mysqlHost);
+            log.info("日志记录|Log_message,===_[OAT]_MySQL_Version:_{},_Host:_{}_===", mysqlVersion, mysqlHost);
         } catch (Exception e) {
-            log.warn("=== [OAT] 无法获取 MySQL 元数据 (Failed to get MySQL metadata): {} ===", e.getMessage());
+            log.warn("===_[OAT]_无法获取_MySQL_元数据_(Failed_to_get_MySQL_metadata):_{}_===", e.getMessage());
             mysqlVersion = "N/A";
             mysqlHost = "N/A";
         }
@@ -113,11 +113,11 @@ public class PerformanceOatTests {
      * 核心方法: 在所有测试结束后运行 (Core method: Runs after all tests)
      * 实验目的 (Purpose):
      * 1. 调用报告生成器 (Call the report generator)。
-     * ‼️ 移除了 'static' (Removed 'static')
+     * ‼ 移除了 'static' (Removed 'static')
      */
     @AfterAll
-    void tearDown() { // ‼️ 移除了 'static' (Removed 'static')
-        log.info("=== [OAT] 所有基准测试已完成 (All benchmarks finished) ===");
+    void tearDown() { // ‼ 移除了 'static' (Removed 'static')
+        log.info("===_[OAT]_所有基准测试已完成_(All_benchmarks_finished)_===");
         writeMarkdownReport(); // 调用非静态方法 (Calling non-static method)
     }
 
@@ -139,7 +139,7 @@ public class PerformanceOatTests {
     @Order(1) // 1. 首先执行静态分析 (Run static analysis first)
     @DisplayName("实验 1: 静态验证 (分区剪枝与索引)")
     void test_A_ExecutionPlanVerification() {
-        log.info("--- 正在执行 [实验 1: 静态验证 (EXPLAIN)] ---");
+        log.info("---_正在执行_[实验_1:_静态验证_(EXPLAIN)]_---");
 
         Map<String, String> scenarios = new LinkedHashMap<>();
         scenarios.put("单日K线 (New)", "EXPLAIN FORMAT=JSON " + SQL_1B_NEW_DAY);
@@ -155,7 +155,7 @@ public class PerformanceOatTests {
             result.put("SQL 场景", scenarioName);
 
             try {
-                log.info("  [EXPLAIN] 正在分析 (Analyzing): {}", scenarioName);
+                log.info("__[EXPLAIN]_正在分析_(Analyzing):_{}", scenarioName);
                 String jsonPlan = jdbcTemplate.queryForObject(sql, String.class);
                 Map<String, Object> plan = objectMapper.readValue(jsonPlan, new TypeReference<>() {});
 
@@ -167,7 +167,7 @@ public class PerformanceOatTests {
                     String accessType = (String) table.get("access_type");
                     String key = (String) table.get("key");
 
-                    log.info("    -> 结果 (Result): 分区(Partitions)={}, 索引(Key)={}, 类型(Access)={}", partitions, key, accessType);
+                    log.info("____->_结果_(Result):_分区(Partitions)={},_索引(Key)={},_类型(Access)={}", partitions, key, accessType);
 
                     result.put("分区 (Partitions)", (partitions == null || partitions.isEmpty()) ? "NONE" : String.join(", ", partitions));
                     result.put("索引 (Index)", String.valueOf(key));
@@ -175,22 +175,22 @@ public class PerformanceOatTests {
 
                     // 验证逻辑 (Validation Logic)
                     if (partitions == null || partitions.isEmpty() || partitions.size() > 3) { // 允许Q1查3个分区 (Allow 3 partitions for Q1)
-                        log.error("    -> 失败 (FAILED)! 分区剪枝失效 (Partition pruning failed)!");
-                        result.put("结果 (Result)", "❌ FAIL (Pruning Failed)");
+                        log.error("____->_失败_(FAILED)!_分区剪枝失效_(Partition_pruning_failed)!");
+                        result.put("结果 (Result)", " FAIL (Pruning Failed)");
                         allPassed = false;
                     } else if (!("uniq_windcode_tradedate".equals(key))) {
-                        log.warn("    -> 警告 (WARNING)! 未命中预期索引 (Did not use expected index)!");
-                        result.put("结果 (Result)", "⚠️ WARN (Index Mismatch)");
+                        log.warn("____->_警告_(WARNING)!_未命中预期索引_(Did_not_use_expected_index)!");
+                        result.put("结果 (Result)", " WARN (Index Mismatch)");
                     } else {
-                        result.put("结果 (Result)", "✅ PASS");
+                        result.put("结果 (Result)", " PASS");
                     }
                 } else {
-                    result.put("结果 (Result)", "❌ FAIL (Plan Parse Error)");
+                    result.put("结果 (Result)", " FAIL (Plan Parse Error)");
                     allPassed = false;
                 }
             } catch (Exception e) {
-                log.error("  [EXPLAIN] SQL分析失败 (SQL analysis failed): {}", e.getMessage());
-                result.put("结果 (Result)", "❌ ERROR (" + e.getClass().getSimpleName() + ")");
+                log.error("__[EXPLAIN]_SQL分析失败_(SQL_analysis_failed):_{}", e.getMessage(), e);
+                result.put("结果 (Result)", " ERROR (" + e.getClass().getSimpleName() + ")");
                 allPassed = false;
             }
             planReport.add(result);
@@ -211,13 +211,13 @@ public class PerformanceOatTests {
      * - 场景1 (单日): 新表因 CPU 解压，耗时可能微幅高于旧表 (e.g., 5ms vs 3ms)。这是可接受的权衡。
      * - 场景3 (跨月): 新表因架构优势 (免去 UNION)，耗时应显著低于旧表。
      */
-    // ‼️ 暂时注释掉热读测试，防止它污染缓存
+    // ‼ 暂时注释掉热读测试，防止它污染缓存
     // (Temporarily comment out the hot read test to prevent cache pollution)
     // @Test
     @Order(2) // 2. 其次执行热读测试 (Run hot read test second)
     @DisplayName("实验 2: 热读 (内存命中) 延迟")
     void test_B_HotReadLatency() {
-        log.info("--- 正在执行 [实验 2: 热读 (Hot Read) 延迟测试] ---");
+        log.info("---_正在执行_[实验_2:_热读_(Hot_Read)_延迟测试]_---");
 
         // 场景 1: 单日 (Single Day)
         double oldDay = executeHotBenchmark("1A (旧表-单日)", SQL_1A_OLD_DAY);
@@ -252,7 +252,7 @@ public class PerformanceOatTests {
     @Order(3) // 3. 最后执行冷读测试 (Run cold read test last)
     @DisplayName("实验 3: 冷读 (磁盘命中) 延迟")
     void test_C_ColdReadLatency() {
-        log.info("--- 正在执行 [实验 3: 冷读 (Cold Read) 延迟测试] ---");
+        log.info("---_正在执行_[实验_3:_冷读_(Cold_Read)_延迟测试]_---");
 
         // 场景 1: 单日 (Single Day)
         double oldDay = executeColdReadBenchmark("1A (旧表-单日)", SQL_1A_OLD_DAY);
@@ -281,7 +281,7 @@ public class PerformanceOatTests {
      */
     private double executeHotBenchmark(String testName, String sql) {
         StopWatch sw = new StopWatch(testName);
-        log.info("  [Hot Read] 预热 (Warming up) {}...", testName);
+        log.info("__[Hot_Read]_预热_(Warming_up)_{}...", testName);
 
         // 1. 预热 (Warmup) - 确保 JIT 编译和 Buffer Pool 缓存命中
         // (Ensure JIT compilation and Buffer Pool cache hits)
@@ -290,7 +290,7 @@ public class PerformanceOatTests {
         }
 
         // 2. 压测 (Benchmark)
-        log.info("  [Hot Read] 测试 (Benchmarking) {}...", testName);
+        log.info("__[Hot_Read]_测试_(Benchmarking)_{}...", testName);
         long totalNanos = 0;
         for (int i = 0; i < BENCHMARK_RUNS; i++) {
             sw.start();
@@ -300,7 +300,7 @@ public class PerformanceOatTests {
         }
 
         double avgMillis = (totalNanos / 1_000_000.0) / BENCHMARK_RUNS;
-        log.info("  [Hot Read] 结果 (Result) {}: 平均耗时 {} ms", testName, String.format("%.3f", avgMillis));
+        log.info("__[Hot_Read]_结果_(Result)_{}:_平均耗时_{}_ms", testName, String.format("%.3f", avgMillis));
         return avgMillis;
     }
 
@@ -312,22 +312,22 @@ public class PerformanceOatTests {
         StopWatch sw = new StopWatch(testName);
 
         // 1. 强制清空缓存 (Force flush Buffer Pool)
-        log.info("  [Cold Read] 正在清空 Buffer Pool (Flushing Buffer Pool)...");
+        log.info("__[Cold_Read]_正在清空_Buffer_Pool_(Flushing_Buffer_Pool)...");
         if (!flushBufferPool()) {
             // 如果刷新失败 (例如权限不足)，则跳过此测试
             // (If flush fails (e.g., permissions), skip this test)
-            log.warn("  [Cold Read] 刷新 Buffer Pool 失败，跳过测试 (Flush failed, skipping test): {}", testName);
+            log.warn("__[Cold_Read]_刷新_Buffer_Pool_失败，跳过测试_(Flush_failed,_skipping_test):_{}", testName);
             return -1.0; // -1.0
         }
 
         // 2. 执行一次性冷读测试 (Execute one-shot cold read test)
-        log.info("  [Cold Read] 测试 (Testing) {}...", testName);
+        log.info("__[Cold_Read]_测试_(Testing)_{}...", testName);
         sw.start();
         jdbcTemplate.queryForObject(sql, BigDecimal.class);
         sw.stop();
 
         double totalMillis = sw.getTotalTimeMillis();
-        log.info("  [Cold Read] 结果 (Result) {}: 耗时 {} ms", testName, String.format("%.3f", totalMillis));
+        log.info("__[Cold_Read]_结果_(Result)_{}:_耗时_{}_ms", testName, String.format("%.3f", totalMillis));
         return totalMillis;
     }
 
@@ -345,15 +345,15 @@ public class PerformanceOatTests {
             // 1. 获取当前 Buffer Pool 大小 (Get current size)
             Long currentSize = jdbcTemplate.queryForObject("SELECT @@innodb_buffer_pool_size", Long.class);
 
-            // ‼️ 为本地小内存环境移除 500MB 保护锁 (Removing 500MB safety check for local low-mem env)
+            // ‼ 为本地小内存环境移除 500MB 保护锁 (Removing 500MB safety check for local low-mem env)
             // if (currentSize == null || currentSize <= 1024 * 1024 * 500) {
-            //     log.warn("  [Cold Read] Buffer Pool 太小或无法获取，跳过刷新 (Too small or unreadable, skipping flush)");
+            //     log.warn("_[Cold_Read]_Buffer_Pool_太小或无法获取，跳过刷新_(Too_small_or_unreadable,_skipping_flush)");
             //     return false;
             // }
 
-            // ‼️ 增加一个最小的 null 检查 (Add a minimal null check)
+            // ‼ 增加一个最小的 null 检查 (Add a minimal null check)
             if (currentSize == null) {
-                log.warn("  [Cold Read] 无法获取 innodb_buffer_pool_size, 跳过刷新 (Cannot get buffer pool size, skipping flush)");
+                log.warn("__[Cold_Read]_无法获取_innodb_buffer_pool_size,_跳过刷新_(Cannot_get_buffer_pool_size,_skipping_flush)");
                 return false;
             }
 
@@ -364,14 +364,14 @@ public class PerformanceOatTests {
             // 3. 恢复原大小 (Restore original size)
             jdbcTemplate.execute(String.format("SET GLOBAL innodb_buffer_pool_size = %d", currentSize));
 
-            log.info("  [Cold Read] Buffer Pool 已刷新 (flushed)。");
+            log.info("__[Cold_Read]_Buffer_Pool_已刷新_(flushed)。");
             return true;
 
         } catch (DataAccessException e) {
-            log.error("--- 刷新 BUFFER POOL 失败! (FLUSH FAILED!) ---");
-            log.error("冷读 (Cold Read) 测试结果将不准确 (invalid)!");
-            log.error("请确保数据库用户拥有 SYSTEM_VARIABLES_ADMIN (MySQL 8.0+) 或 SUPER (MySQL 5.7) 权限。");
-            log.error("GRANT SYSTEM_VARIABLES_ADMIN ON *.* TO 'your_user'@'your_host';");
+            log.error("---_刷新_BUFFER_POOL_失败!_(FLUSH_FAILED!)_---");
+            log.error("冷读_(Cold_Read)_测试结果将不准确_(invalid)!");
+            log.error("请确保数据库用户拥有_SYSTEM_VARIABLES_ADMIN_(MySQL_8.0+)_或_SUPER_(MySQL_5.7)_权限。");
+            log.error("日志记录|Log_message,GRANT_SYSTEM_VARIABLES_ADMIN_ON_*.*_TO_'your_user'@'your_host';");
             return false;
         }
     }
@@ -382,14 +382,14 @@ public class PerformanceOatTests {
      * 将所有测试结果固化为可归档的 Markdown 产出物。
      * (To persist all test results into an archivable Markdown artifact.)
      */
-    private void writeMarkdownReport() { // ‼️ 移除了 'static' (Removed 'static')
+    private void writeMarkdownReport() { // ‼ 移除了 'static' (Removed 'static')
         StringBuilder sb = new StringBuilder();
         String now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         String fileName = String.format("migration-performance-report-%s.md", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")));
 
         // --- 1. 元数据 (Metadata) ---
-        sb.append("# 📈 迁移性能验收 (OAT) 报告 (Migration Performance OAT Report)\n\n");
-        sb.append("## 🌍 元数据 (Metadata)\n\n");
+        sb.append("#  迁移性能验收 (OAT) 报告 (Migration Performance OAT Report)\n\n");
+        sb.append("##  元数据 (Metadata)\n\n");
         sb.append(String.format("- **环境 (Environment)**: %s\n", "Production/Staging (本地测试 Local Test)"));
         sb.append(String.format("- **运行时间 (Run Time)**: %s\n", now));
         sb.append(String.format("- **测试标的 (Test Target)**: %s\n", STOCK_CODE));
@@ -398,18 +398,18 @@ public class PerformanceOatTests {
         sb.append("---\n");
 
         // --- 2. 执行计划 (Execution Plan) ---
-        sb.append("## 📌 静态执行计划验证 (Execution Plan Validation)\n\n");
+        sb.append("##  静态执行计划验证 (Execution Plan Validation)\n\n");
         sb.append(buildMarkdownTable(planReport));
         sb.append("\n---\n");
 
         // --- 3. 热读 (Hot Read) ---
-        sb.append("## ⚡ 热读 (内存命中) 结果 (Hot Read (RAM) Results)\n\n");
+        sb.append("##  热读 (内存命中) 结果 (Hot Read (RAM) Results)\n\n");
         sb.append("> 模拟数据已在 Buffer Pool 缓存中的高频访问，主要考验 **CPU 解压性能**。\n\n");
         sb.append(buildMarkdownTable(hotReadReport));
         sb.append("\n---\n");
 
         // --- 4. 冷读 (Cold Read) ---
-        sb.append("## ❄️ 冷读 (磁盘命中) 结果 (Cold Read (Disk) Results)\n\n");
+        sb.append("##  冷读 (磁盘命中) 结果 (Cold Read (Disk) Results)\n\n");
         sb.append("> 模拟数据不在缓存中、必须从磁盘读取的“温数据”访问，主要考验 **I/O 性能**。\n\n");
         sb.append(buildMarkdownTable(coldReadReport));
         sb.append("\n");
@@ -417,15 +417,15 @@ public class PerformanceOatTests {
         // --- 写入文件 (Write to File) ---
         try {
             Files.writeString(Paths.get(fileName), sb.toString());
-            log.info("=== [OAT] 成功生成性能验收报告 (Successfully generated OAT report): {} ===", fileName);
+            log.info("===_[OAT]_成功生成性能验收报告_(Successfully_generated_OAT_report):_{}_===", fileName);
         } catch (IOException e) {
-            log.error("=== [OAT] 写入报告文件失败 (Failed to write report file)! ===", e);
+            log.error("===_[OAT]_写入报告文件失败_(Failed_to_write_report_file)!_===", e);
         }
     }
 
     /**
      * 辅助方法: 添加结果到报告列表 (Helper: Add result to report list)
-     * ‼️ 移除了 'static' (Removed 'static')
+     * ‼ 移除了 'static' (Removed 'static')
      */
     private void addFileReportResult(List<Map<String, String>> reportList, String scenario, double oldTime, double newTime) {
         // 自动处理冷读跳过的情况 (Auto-handle cold read skips)
@@ -458,7 +458,7 @@ public class PerformanceOatTests {
 
     /**
      * 辅助方法: 动态构建 Markdown 表格 (Helper: Dynamically build Markdown table)
-     * ‼️ 移除了 'static' (Removed 'static')
+     * ‼ 移除了 'static' (Removed 'static')
      */
     private String buildMarkdownTable(List<Map<String, String>> data) {
         if (data.isEmpty()) {
@@ -495,7 +495,7 @@ public class PerformanceOatTests {
     /**
      * 辅助方法: 递归查找 EXPLAIN JSON 中的 'table' 节点
      * (Helper: Recursively find the 'table' node in EXPLAIN JSON)
-     * ‼️ 移除了 'static' (Removed 'static')
+     * ‼ 移除了 'static' (Removed 'static')
      */
     @SuppressWarnings("unchecked")
     private Map<String, Object> findTableNode(Map<String, Object> node) {

@@ -84,7 +84,7 @@ public class DistributedLockTest {
         int concurrentCount = 20; // 并发数
         CountDownLatch latch = new CountDownLatch(concurrentCount);
 
-        log.info("开始测试：{}个并发请求同时执行任务 {}", concurrentCount, taskId);
+        log.info("开始测试：{}个并发请求同时执行任务_{}|Log_message", concurrentCount, taskId);
 
         // 模拟并发请求
         for (int i = 0; i < concurrentCount; i++) {
@@ -102,12 +102,12 @@ public class DistributedLockTest {
         latch.await(120, TimeUnit.SECONDS);
 
         // 输出统计结果
-        log.info("========== 测试结果 ==========");
-        log.info("并发请求数: {}", concurrentCount);
-        log.info("成功获取锁次数: {}", lockSuccessCount.get());
-        log.info("实际执行回测次数: {}", actualExecuteCount.get());
-        log.info("数据库写入次数: {}", dbWriteCount.get());
-        log.info("资源节约率: {}%", (concurrentCount - actualExecuteCount.get()) * 100.0 / concurrentCount);
+        log.info("==========_测试结果_==========|Log_message");
+        log.info("并发请求数:_{}|Log_message", concurrentCount);
+        log.info("成功获取锁次数:_{}|Log_message", lockSuccessCount.get());
+        log.info("实际执行回测次数:_{}|Log_message", actualExecuteCount.get());
+        log.info("数据库写入次数:_{}|Log_message", dbWriteCount.get());
+        log.info("资源节约率:_{}%|Log_message", (concurrentCount - actualExecuteCount.get()) * 100.0 / concurrentCount);
     }
 
     /**
@@ -118,24 +118,24 @@ public class DistributedLockTest {
         String lockValue = "request-" + requestId + "-" + UUID.randomUUID();
         int lockTTL = 60; // 60秒
 
-        log.info("请求{} 尝试获取锁: {}", requestId, lockKey);
+        log.info("请求{}_尝试获取锁:_{}|Log_message", requestId, lockKey);
 
         // 1. 尝试获取分布式锁
         boolean lockAcquired = lockService.tryLock(lockKey, lockValue, lockTTL);
         if (!lockAcquired) {
-            log.info("请求{} 获取锁失败，任务已在运行", requestId);
+            log.info("请求{}_获取锁失败，任务已在运行|Log_message", requestId);
             return;
         }
 
         lockSuccessCount.incrementAndGet();
-        log.info("请求{} 成功获取锁，开始执行任务", requestId);
+        log.info("请求{}_成功获取锁，开始执行任务|Log_message", requestId);
 
         try {
             // 2. 启动心跳续租
             ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
             ScheduledFuture<?> heartbeat = scheduler.scheduleAtFixedRate(() -> {
                 boolean renewed = renewLock(lockKey, lockValue, lockTTL);
-                log.debug("请求{} 续租{}", requestId, renewed ? "成功" : "失败");
+                log.debug("请求{}_续租{}|Log_message", requestId, renewed ? "成功" : "失败");
             }, 20, 20, TimeUnit.SECONDS);
 
             try {
@@ -153,7 +153,7 @@ public class DistributedLockTest {
         } finally {
             // 5. 释放锁
             boolean released = lockService.releaseLock(lockKey, lockValue);
-            log.info("请求{} 释放锁{}", requestId, released ? "成功" : "失败");
+            log.info("请求{}_释放锁{}|Log_message", requestId, released ? "成功" : "失败");
         }
     }
 
@@ -162,14 +162,14 @@ public class DistributedLockTest {
      */
     private void executeBacktest(String taskId, int requestId) {
         actualExecuteCount.incrementAndGet();
-        log.info("请求{} 开始执行回测任务: {}", requestId, taskId);
+        log.info("请求{}_开始执行回测任务:_{}|Log_message", requestId, taskId);
 
         try {
             // 模拟耗时计算
             Thread.sleep(30_000); // 30秒
-            log.info("请求{} 回测计算完成", requestId);
+            log.info("请求{}_回测计算完成|Log_message", requestId);
         } catch (InterruptedException e) {
-            log.warn("请求{} 回测被中断", requestId);
+            log.warn("请求{}_回测被中断|Log_message", requestId);
             Thread.currentThread().interrupt();
         }
     }
@@ -189,12 +189,12 @@ public class DistributedLockTest {
             try {
                 lockService.set(resultKey, resultValue, 3600); // 1小时过期
                 dbWriteCount.incrementAndGet();
-                log.info("请求{} 写入结果成功", requestId);
+                log.info("请求{}_写入结果成功|Log_message", requestId);
             } catch (Exception e) {
-                log.info("请求{} 结果已存在，跳过写入", requestId);
+                log.info("请求{}_结果已存在，跳过写入|Log_message", requestId);
             }
         } else {
-            log.info("请求{} 结果已存在，跳过写入", requestId);
+            log.info("请求{}_结果已存在，跳过写入|Log_message", requestId);
         }
     }
 
@@ -221,7 +221,7 @@ public class DistributedLockTest {
             Object result = lockService.getRedisTemplate().execute(callback);
             return Long.valueOf(1).equals(result);
         } catch (Exception e) {
-            log.error("续租异常", e);
+            log.error("续租异常|Log_message", e);
             return false;
         }
     }

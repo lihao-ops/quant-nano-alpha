@@ -43,7 +43,7 @@ public class StablePicksCacheRepository {
         try {
             return Optional.of((CacheWrapper<T>) value);
         } catch (ClassCastException ex) {
-            log.warn("缓存类型不匹配,删除Redis Key: {}", cacheKey);
+            log.warn("缓存类型不匹配|Cache_type_mismatch,cacheKey={}", cacheKey);
             redisTemplate.delete(cacheKey);
             return Optional.empty();
         }

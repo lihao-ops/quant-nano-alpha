@@ -82,7 +82,7 @@ public class StablePicksServiceImpl implements StablePicksService {
 
         // 使用布隆过滤器阻挡明显无效的交易日请求,减少回源
         if (!bloomFilter.mightContainTradeDate(tradeDate)) {
-            log.warn("布隆过滤器拦截非法交易日: {}", tradeDate);
+            log.warn("布隆过滤器拦截|Bloom_filter_blocked,tradeDate={}", tradeDate);
             return PageResult.empty(pageNum, pageSize);
         }
 
@@ -144,7 +144,7 @@ public class StablePicksServiceImpl implements StablePicksService {
      */
     @Override
     public void manualRefreshCache(LocalDate tradeDate, String strategyId) {
-        log.info("手动刷新缓存: tradeDate={}, strategyId={}", tradeDate, strategyId);
+        log.info("手动刷新缓存|Manual_cache_refresh,tradeDate={},strategyId={}", tradeDate, strategyId);
         if (tradeDate == null) {
             throw new BusinessException("交易日期不能为空");
         }
@@ -269,7 +269,7 @@ public class StablePicksServiceImpl implements StablePicksService {
             try {
                 loader.get();
             } catch (Exception ex) {
-                log.error("异步刷新缓存失败, cacheKey={}", cacheKey, ex);
+                log.error("异步刷新缓存失败|Async_cache_refresh_failed,cacheKey={}", cacheKey, ex);
             }
         }, java.time.Instant.now().plusMillis(asyncRefreshDelayMillis()));
     }

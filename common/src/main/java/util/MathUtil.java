@@ -1,23 +1,50 @@
 package util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 /**
+ * 数学计算工具类
+ *
+ * 职责：提供数值位移与精度格式化等基础数学处理能力。
+ *
+ * 设计目的：
+ * 1. 统一数值精度处理，避免业务侧重复实现导致口径不一致。
+ * 2. 将常用的小数位移与舍入逻辑封装为可复用工具。
+ *
+ * 为什么需要该类：
+ * - 业务中存在大量数值缩放与舍入场景，需要统一规则。
+ *
+ * 核心实现思路：
+ * - 以BigDecimal为核心，按指定小数位和舍入策略计算。
+ *
  * @author hli
  * @program: datacollector
  * @Date 2025-07-04 23:29:08
- * @description: 数学计算相关Util
+ * @description: 数学计算工具类
  */
 public class MathUtil {
+    private static final Logger LOG = LoggerFactory.getLogger(MathUtil.class);
+
     /**
      * 截取小数点后N位
+     *
+     * 实现逻辑：
+     * 1. 将字符串转换为BigDecimal。
+     * 2. 根据位移方向选择除法或乘法。
+     * 3. 按统一舍入规则返回结果。
      *
      * @param valueStr 待截取的数字字符串
      * @param digits   n位
      * @return 移动后N位数字
      */
     public static BigDecimal shiftDecimal(String valueStr, int digits) {
+        // 实现思路：
+        // 1. 按位数正负选择缩放方向。
+        // 2. 统一使用BigDecimal避免精度丢失。
         BigDecimal raw = new BigDecimal(valueStr);
 
         if (digits >= 0) {
@@ -37,12 +64,20 @@ public class MathUtil {
      * formatDecimal(123456789, 5, true); // 输出：1235.0 (缩放后向上舍入)
      * formatDecimal(123456789, 5, false); // 输出：1234.56789 (缩放后向下截断)
      *
+     * 实现逻辑：
+     * 1. 使用BigDecimal对输入进行缩放。
+     * 2. 按roundUp决定舍入方向。
+     * 3. 返回最终精度结果。
+     *
      * @param originalValue 原始值
      * @param decimalPlaces 保留小数位数
      * @param roundUp       是否向上舍入，true为向上舍入，false为向下截断
      * @return 格式化后的数值
      */
     public static double formatDecimal(Number originalValue, int decimalPlaces, boolean roundUp) {
+        // 实现思路：
+        // 1. 先缩放到目标小数位范围。
+        // 2. 再根据舍入策略处理整数位与小数位。
         if (originalValue == null) return 0.0;
         BigDecimal value = new BigDecimal(originalValue.toString());
 
@@ -64,10 +99,13 @@ public class MathUtil {
 
 
     public static void main(String[] args) {
-        System.out.println(formatDecimal(1453.5, 2, true));     // 应为 1424.0
-        System.out.println(formatDecimal(1453.5, 2, false));    // 应为 1423.5
-        System.out.println(formatDecimal(123456789, 5, true)); // 应为 1234.56790
-        System.out.println(formatDecimal(123456789, 5, false));// 应为 1234.56789
+        // 实现思路：
+        // 1. 构造不同输入验证舍入策略。
+        // 2. 记录输出便于人工核对。
+        LOG.info("格式化结果示例|Format_decimal_example,value={}", formatDecimal(1453.5, 2, true));     // 应为 1424.0
+        LOG.info("格式化结果示例|Format_decimal_example,value={}", formatDecimal(1453.5, 2, false));    // 应为 1423.5
+        LOG.info("格式化结果示例|Format_decimal_example,value={}", formatDecimal(123456789, 5, true)); // 应为 1234.56790
+        LOG.info("格式化结果示例|Format_decimal_example,value={}", formatDecimal(123456789, 5, false));// 应为 1234.56789
     }
 
 }

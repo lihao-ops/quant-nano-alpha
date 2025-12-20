@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * ==========================================================
- * 🧩 MySQL负载监控器 (MySQL Load Monitor)
+ *  MySQL负载监控器 (MySQL Load Monitor)
  * ==========================================================
  * 【设计目的 / Purpose】
  * 该组件用于周期性监控 MySQL 数据库的连接与线程运行状态，
@@ -32,34 +32,34 @@ import java.util.concurrent.atomic.AtomicLong;
  * - Aborted_connects  : 连接中断次数 (Failed connection attempts)
  * <p>
  * 【判定规则 / Health Rules】
- * ✅ Threads_connected / max_connections < 0.7       → 稳定 / Stable
- * ⚠️ Threads_running / CPU核心数 在 [2, 3] 之间      → 高负载 / High Load
- * ❌ Threads_running > CPU核心数 × 3                → 过载 / Overloaded
+ *  Threads_connected / max_connections < 0.7       → 稳定 / Stable
+ *  Threads_running / CPU核心数 在 [2, 3] 之间      → 高负载 / High Load
+ *  Threads_running > CPU核心数 × 3                → 过载 / Overloaded
  * <p>
  * 【执行频率 / Frequency】
  * 默认每 30 秒执行一次，可根据需求调整。
  * <p>
  * 【优化亮点 / Optimization Highlights】
- * ✨ 资源隔离：使用独立连接避免影响业务连接池
- * ✨ 异常容错：监控失败不影响应用运行，支持降级
- * ✨ 指标缓存：减少重复查询，提升性能
- * ✨ 阈值可配：支持通过配置文件动态调整告警阈值
- * ✨ 监控统计：记录监控失败次数，便于排查问题
+ *  资源隔离：使用独立连接避免影响业务连接池
+ *  异常容错：监控失败不影响应用运行，支持降级
+ *  指标缓存：减少重复查询，提升性能
+ *  阈值可配：支持通过配置文件动态调整告警阈值
+ *  监控统计：记录监控失败次数，便于排查问题
  */
 
 /**
  * ==========================================================
- * ⚙️ MySQL连接数设置原则 (How to Determine max_connections)
+ *  MySQL连接数设置原则 (How to Determine max_connections)
  * ==========================================================
  * <p>
- * 【1️⃣ 基本概念】
+ * 【1⃣ 基本概念】
  * MySQL 的每个连接对应一个独立线程（Thread-per-Connection 模型）。
  * 因此连接数并不是越多越好，过多会导致：
  * - CPU 上下文切换频繁 (Context Switch)
  * - 内存消耗激增 (Memory Overhead)
  * - InnoDB 全局锁竞争 (Global Lock Contention)
  * <p>
- * 【2️⃣ 设置方法】
+ * 【2⃣ 设置方法】
  * 参数名：max_connections
  * 示例配置：my.cnf
  * --------------------------------------------------------
@@ -67,7 +67,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * max_connections = 600
  * --------------------------------------------------------
  * <p>
- * 【3️⃣ 理论估算公式】
+ * 【3⃣ 理论估算公式】
  * 推荐范围：100 ～ 1000（视业务规模而定）
  * <p>
  * max_connections ≈ 可分配内存(MB) / 单连接平均占用(MB)
@@ -81,20 +81,20 @@ import java.util.concurrent.atomic.AtomicLong;
  * - 单连接约占 1.5 MB
  * → 12GB / 1.5MB ≈ 800  → 建议设置 max_connections = 600~800
  * <p>
- * 【4️⃣ CPU 并发上限考虑】
+ * 【4⃣ CPU 并发上限考虑】
  * MySQL 属于线程驱动型系统：
  * - 并发执行线程数建议 ≤ CPU核心数 × 2
  * - 其余线程会被挂起，频繁调度会拖慢整体性能。
  * 示例：
  * CPU 16 核 → 推荐活跃线程 32 以内，连接总数 ≤ 600。
  * <p>
- * 【5️⃣ 与连接池协同设置】
+ * 【5⃣ 与连接池协同设置】
  * 应用层连接池 (如 HikariCP) 推荐：
  * - 每个微服务连接池大小：50~100
  * - 多实例部署时：max_connections ≥ 连接池总和 × 1.2
  * 例：6 个服务 × 50 = 300 → max_connections = 360~400
  * <p>
- * 【6️⃣ 运行期动态观测】
+ * 【6⃣ 运行期动态观测】
  * 使用以下SQL观测当前连接负载：
  * SHOW GLOBAL STATUS LIKE 'Threads_connected';
  * SHOW GLOBAL STATUS LIKE 'Threads_running';
@@ -105,12 +105,12 @@ import java.util.concurrent.atomic.AtomicLong;
  * - Threads_running / CPU核数 < 2            → 健康
  * - Threads_running > CPU核数 × 3             → 过载
  * <p>
- * 【7️⃣ 最佳实践】
- * ✅ 保持连接池重用（不要频繁创建/销毁连接）
- * ✅ 定期监控连接增长趋势（通过本监控类）
- * ✅ 避免在同一MySQL上堆多个高QPS微服务
- * ✅ 配合慢查询日志分析，优化SQL性能
- * ✅ 使用连接池监控工具（如HikariCP Metrics）
+ * 【7⃣ 最佳实践】
+ *  保持连接池重用（不要频繁创建/销毁连接）
+ *  定期监控连接增长趋势（通过本监控类）
+ *  避免在同一MySQL上堆多个高QPS微服务
+ *  配合慢查询日志分析，优化SQL性能
+ *  使用连接池监控工具（如HikariCP Metrics）
  * <p>
  * ==========================================================
  */
@@ -198,14 +198,14 @@ public class MysqlLoadMonitor {
             // 预加载 max_connections（首次查询可能较慢）
             this.maxConnectionsCache = queryMetricValue("max_connections");
 
-            log.info("✅ MySQL监控器初始化成功 / MySQL Monitor initialized successfully");
-            log.info("CPU核心数 (CPU Cores): {}", cpuCores);
-            log.info("最大连接数 (max_connections): {}", maxConnectionsCache);
-            log.info("连接使用率阈值 (Connection Usage Threshold): {}%", connectionUsageThreshold * 100);
-            log.info("线程压力阈值 (Thread Pressure Thresholds): High={}, Overload={}",
+            log.info("_MySQL监控器初始化成功_/_MySQL_Monitor_initialized_successfully");
+            log.info("CPU核心数_(CPU_Cores):_{}", cpuCores);
+            log.info("最大连接数_(max_connections):_{}", maxConnectionsCache);
+            log.info("连接使用率阈值_(Connection_Usage_Threshold):_{}%", connectionUsageThreshold * 100);
+            log.info("线程压力阈值_(Thread_Pressure_Thresholds):_High={},_Overload={}",
                     threadPressureHigh, threadPressureOverload);
         } catch (Exception e) {
-            log.error("⚠️ MySQL监控器初始化失败，将在运行时重试 / Monitor initialization failed, will retry at runtime", e);
+            log.error("_MySQL监控器初始化失败，将在运行时重试_/_Monitor_initialization_failed,_will_retry_at_runtime", e);
         }
     }
 
@@ -230,46 +230,46 @@ public class MysqlLoadMonitor {
         // 使用 try-with-resources 自动关闭连接，防止资源泄漏
         try (Connection conn = sqlSessionFactory.openSession().getConnection()) {
 
-            // 1️⃣ 获取核心指标
+            // 1⃣ 获取核心指标
             MetricsSnapshot metrics = collectMetrics(conn);
 
-            // 2️⃣ 计算连接使用率与线程压力比
+            // 2⃣ 计算连接使用率与线程压力比
             double connectionUsage = (double) metrics.threadsConnected / metrics.maxConnections;
             double threadPressure = (double) metrics.threadsRunning / cpuCores;
 
-            // 3️⃣ 输出监控日志
+            // 3⃣ 输出监控日志
             if (verboseLogging) {
                 logDetailedMetrics(metrics, connectionUsage, threadPressure);
             } else {
                 logSimpleMetrics(metrics, connectionUsage, threadPressure);
             }
 
-            // 4️⃣ 健康度判定逻辑（Health Status Evaluation）
+            // 4⃣ 健康度判定逻辑（Health Status Evaluation）
             evaluateHealthStatus(connectionUsage, threadPressure, metrics);
 
-            // 5️⃣ 定期输出连接数分析（每5分钟一次，避免日志过多）
+            // 5⃣ 定期输出连接数分析（每5分钟一次，避免日志过多）
             if (shouldAnalyzeConnectionRange(startTime)) {
                 analyzeOptimalConnectionRange();
             }
 
-            // 6️⃣ 记录监控成功
+            // 6⃣ 记录监控成功
             monitorSuccessCount.incrementAndGet();
             lastMonitorTime = startTime;
 
         } catch (SQLException e) {
             // SQL异常通常表示数据库连接问题，需要特别关注
             long failureCount = monitorFailureCount.incrementAndGet();
-            log.error("❌ 监控任务执行失败 (SQL异常) / Monitor task failed (SQL exception), 失败次数: {}", failureCount, e);
+            log.error("_监控任务执行失败_(SQL异常)_/_Monitor_task_failed_(SQL_exception),_失败次数:_{}", failureCount, e);
 
             // 连续失败告警（连续3次失败时输出警告）
             if (failureCount % 3 == 0) {
-                log.error("⚠️ MySQL监控器连续失败{}次，请检查数据库连接 / Monitor failed {} times consecutively",
+                log.error("_MySQL监控器连续失败{}次，请检查数据库连接_/_Monitor_failed_{}_times_consecutively",
                         failureCount, failureCount);
             }
         } catch (Exception e) {
             // 其他异常（通常为代码bug）
             long failureCount = monitorFailureCount.incrementAndGet();
-            log.error("❌ 监控任务执行失败 (未知异常) / Monitor task failed (unknown exception), 失败次数: {}", failureCount, e);
+            log.error("_监控任务执行失败_(未知异常)_/_Monitor_task_failed_(unknown_exception),_失败次数:_{}", failureCount, e);
         }
     }
 
@@ -312,16 +312,16 @@ public class MysqlLoadMonitor {
      * 包含所有指标和计算结果，适用于问题排查场景。
      */
     private void logDetailedMetrics(MetricsSnapshot metrics, double connectionUsage, double threadPressure) {
-        log.info("========================================");
-        log.info("【MySQL实时监控 | Real-Time MySQL Monitor】");
-        log.info("当前连接数 (Threads_connected): {}", metrics.threadsConnected);
-        log.info("当前运行线程数 (Threads_running): {}", metrics.threadsRunning);
-        log.info("最大连接数 (max_connections): {}", metrics.maxConnections);
-        log.info("CPU核心数 (CPU Cores): {}", metrics.cpuCores);
-        log.info("连接使用率 (Connection Usage): {}%", String.format("%.2f", connectionUsage * 100));
-        log.info("线程压力比 (Thread Pressure): {}", String.format("%.2f", threadPressure));
-        log.info("监控成功次数: {}, 失败次数: {}", monitorSuccessCount.get(), monitorFailureCount.get());
-        log.info("========================================");
+        log.info("日志记录|Log_message");
+        log.info("【MySQL实时监控_|_Real-Time_MySQL_Monitor】");
+        log.info("当前连接数_(Threads_connected):_{}", metrics.threadsConnected);
+        log.info("当前运行线程数_(Threads_running):_{}", metrics.threadsRunning);
+        log.info("最大连接数_(max_connections):_{}", metrics.maxConnections);
+        log.info("CPU核心数_(CPU_Cores):_{}", metrics.cpuCores);
+        log.info("连接使用率_(Connection_Usage):_{}%", String.format("%.2f", connectionUsage * 100));
+        log.info("线程压力比_(Thread_Pressure):_{}", String.format("%.2f", threadPressure));
+        log.info("监控成功次数:_{},_失败次数:_{}|Log_message", monitorSuccessCount.get(), monitorFailureCount.get());
+        log.info("日志记录|Log_message");
     }
 
     /**
@@ -330,7 +330,7 @@ public class MysqlLoadMonitor {
      * 仅输出关键指标，避免日志过多影响性能和可读性。
      */
     private void logSimpleMetrics(MetricsSnapshot metrics, double connectionUsage, double threadPressure) {
-        log.info("MySQL监控 | Connections: {}/{} ({}%), Running: {} (Pressure: {})",
+        log.info("MySQL监控_|_Connections:_{}/{}_({}%),_Running:_{}_(Pressure:_{})",
                 metrics.threadsConnected,
                 metrics.maxConnections,
                 String.format("%.1f", connectionUsage * 100),
@@ -354,29 +354,29 @@ public class MysqlLoadMonitor {
         boolean threadHealthy = threadPressure < threadPressureHigh;
 
         if (connectionHealthy && threadHealthy) {
-            log.info("✅ 数据库状态稳定 / Database Status: STABLE");
+            log.info("_数据库状态稳定_/_Database_Status:_STABLE");
         } else if (threadPressure >= threadPressureHigh && threadPressure <= threadPressureOverload) {
-            log.warn("⚠️ 数据库处于高负载 / Database under HIGH LOAD (Thread Pressure: {})",
+            log.warn("_数据库处于高负载_/_Database_under_HIGH_LOAD_(Thread_Pressure:_{})",
                     String.format("%.2f", threadPressure));
         } else if (threadPressure > threadPressureOverload) {
-            log.error("❌ 数据库过载 / Database OVERLOADED (Thread Pressure: {})",
+            log.error("_数据库过载_/_Database_OVERLOADED_(Thread_Pressure:_{})",
                     String.format("%.2f", threadPressure));
-            log.error("建议操作 / Recommendations:");
-            log.error("  1. 检查慢查询日志 (Check slow query log)");
-            log.error("  2. 分析连接池配置 (Review connection pool settings)");
-            log.error("  3. 考虑数据库读写分离 (Consider read-write splitting)");
+            log.error("建议操作_/_Recommendations:");
+            log.error("__1._检查慢查询日志_(Check_slow_query_log)");
+            log.error("__2._分析连接池配置_(Review_connection_pool_settings)");
+            log.error("__3._考虑数据库读写分离_(Consider_read-write_splitting)");
         }
 
         // 连接数告警
         if (!connectionHealthy) {
-            log.warn("⚠️ 连接使用率过高 / High connection usage: {}% (阈值: {}%)",
+            log.warn("_连接使用率过高_/_High_connection_usage:_{}%_(阈值:_{}%)",
                     String.format("%.1f", connectionUsage * 100),
                     String.format("%.0f", connectionUsageThreshold * 100));
         }
 
         // 极端情况：连接数即将耗尽
         if (connectionUsage > 0.9) {
-            log.error("🚨 连接数即将耗尽 / Connections nearly exhausted: {}/{}",
+            log.error("_连接数即将耗尽_/_Connections_nearly_exhausted:_{}/{}",
                     metrics.threadsConnected, metrics.maxConnections);
         }
     }
@@ -466,19 +466,19 @@ public class MysqlLoadMonitor {
             if (rs.next()) {
                 String valueStr = rs.getString("Value");
                 if (valueStr == null || valueStr.isEmpty()) {
-                    log.warn("⚠️ 指标值为空 / Metric value is empty for: {}", metricName);
+                    log.warn("_指标值为空_/_Metric_value_is_empty_for:_{}", metricName);
                     return 0L;
                 }
                 // 解析第二列的Value字段为数值型
                 return Long.parseLong(valueStr);
             }
         } catch (NumberFormatException e) {
-            log.error("❌ 指标值解析失败 / Failed to parse metric value for: {}", metricName, e);
+            log.error("_指标值解析失败_/_Failed_to_parse_metric_value_for:_{}", metricName, e);
             throw new SQLException("Failed to parse metric value", e);
         }
 
         // 未查询到结果返回0，保证方法健壮性
-        log.warn("⚠️ 未查询到指标 / Metric not found: {}", metricName);
+        log.warn("_未查询到指标_/_Metric_not_found:_{}", metricName);
         return 0L;
     }
 
@@ -552,7 +552,7 @@ public class MysqlLoadMonitor {
                     threadsConnected, maxConnections, usageRatio, recommendedMin, recommendedMax);
 
             String msg = String.format(
-                    "\n🔎【MySQL连接数分析 | MySQL Connection Range Analysis】\n" +
+                    "\n【MySQL连接数分析 | MySQL Connection Range Analysis】\n" +
                             "CPU核心数 (CPU Cores): %d\n" +
                             "当前连接数 (Threads_connected): %d\n" +
                             "最大连接数 (max_connections): %d\n" +
@@ -560,16 +560,17 @@ public class MysqlLoadMonitor {
                             "建议最小连接数 (Recommended Min): %d\n" +
                             "建议最大连接数 (Recommended Max): %d\n" +
                             "%s\n" +
-                            "📈 建议保持 Threads_connected / max_connections < 70%%，在此区间内压测最为稳定。\n",
+                            " 建议保持 Threads_connected / max_connections < 70%%，在此区间内压测最为稳定。\n",
                     cpuCores, threadsConnected, maxConnections, usageRatio,
                     recommendedMin, recommendedMax, recommendation
             );
 
-            log.info(msg);
+            String logMsg = msg.replace(" ", "_").replace("\n", "\\n");
+            log.info("连接数分析结果|Connection_range_analysis,result={}", logMsg);
             return msg;
 
         } catch (Exception e) {
-            log.error("❌ 无法计算最优连接范围 / Failed to calculate optimal connection range", e);
+            log.error("_无法计算最优连接范围_/_Failed_to_calculate_optimal_connection_range", e);
             return "Failed to analyze optimal connection range: " + e.getMessage();
         }
     }
@@ -589,28 +590,28 @@ public class MysqlLoadMonitor {
     private String generateConnectionRecommendation(long current, long max, double usageRatio,
                                                     long recommendedMin, long recommendedMax) {
         StringBuilder sb = new StringBuilder();
-        sb.append("💡 优化建议 (Recommendations):\n");
+        sb.append(" 优化建议 (Recommendations):\n");
 
         if (usageRatio < 30) {
-            sb.append("   ✅ 连接数使用率较低，资源充足\n");
-            sb.append("   ✅ Connection usage is low, resources are sufficient\n");
+            sb.append("    连接数使用率较低，资源充足\n");
+            sb.append("    Connection usage is low, resources are sufficient\n");
         } else if (usageRatio >= 30 && usageRatio < 70) {
-            sb.append("   ✅ 连接数使用率正常，运行稳定\n");
-            sb.append("   ✅ Connection usage is normal, running stable\n");
+            sb.append("    连接数使用率正常，运行稳定\n");
+            sb.append("    Connection usage is normal, running stable\n");
         } else if (usageRatio >= 70 && usageRatio < 85) {
-            sb.append("   ⚠️ 连接数使用率偏高，建议关注\n");
-            sb.append("   ⚠️ Connection usage is high, monitoring recommended\n");
+            sb.append("    连接数使用率偏高，建议关注\n");
+            sb.append("    Connection usage is high, monitoring recommended\n");
             sb.append("   建议：检查连接池配置，确保连接及时释放\n");
         } else if (usageRatio >= 85 && usageRatio < 95) {
-            sb.append("   🚨 连接数接近上限，需要优化\n");
-            sb.append("   🚨 Connections approaching limit, optimization needed\n");
+            sb.append("    连接数接近上限，需要优化\n");
+            sb.append("    Connections approaching limit, optimization needed\n");
             sb.append("   建议：\n");
             sb.append("   1. 检查是否存在连接泄漏 (Check for connection leaks)\n");
             sb.append("   2. 考虑增加 max_connections 到 ").append(recommendedMax).append("\n");
             sb.append("   3. 优化长连接使用，避免占用过多资源\n");
         } else {
-            sb.append("   ❌ 连接数即将耗尽，紧急处理\n");
-            sb.append("   ❌ Connections nearly exhausted, urgent action required\n");
+            sb.append("    连接数即将耗尽，紧急处理\n");
+            sb.append("    Connections nearly exhausted, urgent action required\n");
             sb.append("   建议：\n");
             sb.append("   1. 立即检查慢查询和锁等待 (Check slow queries and locks immediately)\n");
             sb.append("   2. 紧急扩容 max_connections\n");
@@ -619,7 +620,7 @@ public class MysqlLoadMonitor {
 
         // 额外建议
         if (current < recommendedMin) {
-            sb.append("   💡 当前连接数偏少，考虑预热连接池以提升响应速度\n");
+            sb.append("    当前连接数偏少，考虑预热连接池以提升响应速度\n");
         }
 
         return sb.toString();
@@ -666,7 +667,7 @@ public class MysqlLoadMonitor {
     public void resetMonitorStatistics() {
         monitorSuccessCount.set(0);
         monitorFailureCount.set(0);
-        log.info("✅ 监控统计已重置 / Monitor statistics reset");
+        log.info("_监控统计已重置_/_Monitor_statistics_reset");
     }
 
     // ==================== 内部类定义 ====================

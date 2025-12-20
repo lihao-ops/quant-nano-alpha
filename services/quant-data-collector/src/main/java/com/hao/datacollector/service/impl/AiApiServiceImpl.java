@@ -36,21 +36,21 @@ public class AiApiServiceImpl implements AiApiService {
      */
     public String openAiChat(String input) {
         try {
-            log.info("Calling OpenAI chat | 调用OpenAI聊天接口, model={}, input={}", defaultModel, input);
+            log.info("Calling_OpenAI_chat_|_调用OpenAI聊天接口,_model={},_input={}", defaultModel, input);
             ResponseCreateParams params = ResponseCreateParams.builder()
                     .input(input)
                     .model(defaultModel)
                     .build();
 
             Response response = openAIClient.responses().create(params);
-            log.info("OpenAI chat success | 调用成功, output={}", response.output());
+            log.info("OpenAI_chat_success_|_调用成功,_output={}", response.output());
             return response.output().toString();
 
         } catch (RateLimitException e) {
-            log.warn("OpenAI rate limit hit | 触发OpenAI限流: {}", e.getMessage());
+            log.warn("OpenAI_rate_limit_hit_|_触发OpenAI限流:_{}", e.getMessage());
             return "Rate limit reached, retry later.";
         } catch (Exception e) {
-            log.error("OpenAI request failed | OpenAI请求失败", e);
+            log.error("OpenAI_request_failed_|_OpenAI请求失败", e);
             return "Error while contacting OpenAI.";
         }
     }

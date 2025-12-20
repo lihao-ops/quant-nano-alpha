@@ -41,7 +41,7 @@ class LimitUpServiceTest {
         yearTradeDateList.forEach(date -> {
             Boolean success = limitUpService.transferLimitUpDataToDatabase(date);
             if (!success) {
-                log.error("Date={} 转档失败", date);
+                log.error("Date={}_转档失败", date);
             }
         });
     }
@@ -63,7 +63,7 @@ class LimitUpServiceTest {
                 int total = topicMappingStockMap.getValue().size();
                 double percent = total == 0 ? 0.0 : (containNum * 100.0) / total;
                 if (percent >= 30) {
-                    log.info("limit_Date={},topicId={},containNum={},percent={}", limit.getKey(), topicMappingStockMap.getKey(), containNum, percent);
+                    log.info("日志记录|Log_message,limit_Date={},topicId={},containNum={},percent={}", limit.getKey(), topicMappingStockMap.getKey(), containNum, percent);
                 }
             }
         }

@@ -21,13 +21,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 /**
  * ==========================================================
- * 🧩 MySQL监控单元测试 (MySQL Load Monitor Integration Test)
+ *  MySQL监控单元测试 (MySQL Load Monitor Integration Test)
  * ==========================================================
  * 【测试目标 / Purpose】
- * ✅ 验证 MysqlLoadMonitor 监控组件的执行逻辑是否稳定
- * ✅ 检查核心指标：Threads_connected / Threads_running / max_connections
- * ✅ 验证连接使用率、线程压力与健康区间判断逻辑
- * ✅ 输出带中英文提示的日志，便于团队协作与调优
+ *  验证 MysqlLoadMonitor 监控组件的执行逻辑是否稳定
+ *  检查核心指标：Threads_connected / Threads_running / max_connections
+ *  验证连接使用率、线程压力与健康区间判断逻辑
+ *  输出带中英文提示的日志，便于团队协作与调优
  * <p>
  * 【执行说明 / Instructions】
  * - 建议在 dev 或 test 环境执行，不影响生产数据库。
@@ -47,7 +47,7 @@ public class MysqlLoadMonitorTest {
     private MysqlLoadMonitor monitor;
 
     /**
-     * 【1️⃣ 基础执行验证】
+     * 【1⃣ 基础执行验证】
      * ----------------------------------------------------------
      * 确认 monitor.monitor() 方法能顺利运行且无异常抛出。
      */
@@ -70,20 +70,20 @@ public class MysqlLoadMonitorTest {
     void testMonitorExecution() {
         // 中文：启动监控执行并观察是否出现异常
         // English: Start monitor execution and observe for exceptions
-        log.info("🚀 启动 MySQL 监控执行测试 / Start MySQL Monitor Execution Test");
+        log.info("_启动_MySQL_监控执行测试_/_Start_MySQL_Monitor_Execution_Test");
         try {
             // 中文：调用监控入口以触发指标采集
             // English: Invoke monitor entry to collect metrics
             monitor.monitor();
-            log.info("✅ 监控任务执行成功，无异常抛出 / Monitor executed successfully without exceptions.");
+            log.info("_监控任务执行成功，无异常抛出_/_Monitor_executed_successfully_without_exceptions.");
         } catch (Exception e) {
-            log.error("❌ 监控执行过程中发生异常 / Exception occurred during monitoring", e);
+            log.error("_监控执行过程中发生异常_/_Exception_occurred_during_monitoring", e);
             Assertions.fail("监控任务执行失败 / Monitoring task failed: " + e.getMessage());
         }
     }
 
     /**
-     * 【2️⃣ 指标完整性校验】
+     * 【2⃣ 指标完整性校验】
      * ----------------------------------------------------------
      * 验证 Threads_connected / Threads_running / max_connections 的取值合理性。
      */
@@ -106,15 +106,15 @@ public class MysqlLoadMonitorTest {
     void testMetricsValidation() {
         // 中文：采集指标并进行范围与关系校验
         // English: Collect metrics and validate ranges and relationships
-        log.info("🔍 开始 MySQL 指标校验 / Start MySQL Metrics Validation");
+        log.info("_开始_MySQL_指标校验_/_Start_MySQL_Metrics_Validation");
         try {
             long threadsConnected = monitor.queryMetricValue("Threads_connected");
             long threadsRunning = monitor.queryMetricValue("Threads_running");
             long maxConnections = monitor.queryMetricValue("max_connections");
 
-            log.info("当前连接数 (Threads_connected): {}", threadsConnected);
-            log.info("当前运行线程数 (Threads_running): {}", threadsRunning);
-            log.info("最大连接数 (max_connections): {}", maxConnections);
+            log.info("当前连接数_(Threads_connected):_{}", threadsConnected);
+            log.info("当前运行线程数_(Threads_running):_{}", threadsRunning);
+            log.info("最大连接数_(max_connections):_{}", maxConnections);
 
             Assertions.assertTrue(maxConnections > 0, "max_connections must be > 0");
             Assertions.assertTrue(threadsConnected >= 0, "Threads_connected should be non-negative");
@@ -122,24 +122,24 @@ public class MysqlLoadMonitorTest {
                     "Threads_connected should not exceed max_connections");
 
             double usage = (double) threadsConnected / maxConnections * 100;
-            log.info("当前连接使用率 (Connection Usage): {}%", String.format("%.2f", usage));
+            log.info("当前连接使用率_(Connection_Usage):_{}%", String.format("%.2f", usage));
 
             if (usage < 70) {
-                log.info("✅ 连接使用率健康 / Connection usage within healthy range (<70%)");
+                log.info("_连接使用率健康_/_Connection_usage_within_healthy_range_(<70%)");
             } else if (usage < 90) {
-                log.warn("⚠️ 连接使用率较高 / Connection usage high ({}%)", String.format("%.2f", usage));
+                log.warn("_连接使用率较高_/_Connection_usage_high_({}%)", String.format("%.2f", usage));
             } else {
-                log.error("🚨 连接数接近上限 / Connections nearly exhausted ({}%)", String.format("%.2f", usage));
+                log.error("_连接数接近上限_/_Connections_nearly_exhausted_({}%)", String.format("%.2f", usage));
             }
 
         } catch (Exception e) {
-            log.error("⚠️ 无法验证监控指标，可能测试环境未连接真实数据库 / Failed to validate metrics", e);
+            log.error("_无法验证监控指标，可能测试环境未连接真实数据库_/_Failed_to_validate_metrics", e);
             Assumptions.abort("跳过：测试环境未连接数据库 / Skipped due to missing DB connection");
         }
     }
 
     /**
-     * 【3️⃣ 连接区间分析验证】
+     * 【3⃣ 连接区间分析验证】
      * ----------------------------------------------------------
      * 调用 analyzeOptimalConnectionRange() 输出推荐区间与优化建议。
      * 用于确认算法逻辑正确且日志输出清晰。
@@ -163,19 +163,19 @@ public class MysqlLoadMonitorTest {
     void testAnalyzeConnectionRange() {
         // 中文：执行连接区间分析以输出优化建议
         // English: Execute connection range analysis to output optimization advice
-        log.info("📊 开始 MySQL 连接区间分析测试 / Start MySQL Connection Range Analysis Test");
+        log.info("_开始_MySQL_连接区间分析测试_/_Start_MySQL_Connection_Range_Analysis_Test");
         try {
             String result = monitor.analyzeOptimalConnectionRange();
             Assertions.assertNotNull(result, "连接区间分析结果不应为空 / Result should not be null");
-            log.info("✅ 分析结果输出成功：\n{}", result);
+            log.info("_分析结果输出成功：\n{}", result);
         } catch (Exception e) {
-            log.error("❌ 连接区间分析失败 / Connection range analysis failed", e);
+            log.error("_连接区间分析失败_/_Connection_range_analysis_failed", e);
             Assertions.fail("分析执行异常: " + e.getMessage());
         }
     }
 
     /**
-     * 【4️⃣ 监控器健康状态验证】
+     * 【4⃣ 监控器健康状态验证】
      * ----------------------------------------------------------
      * 测试 getMonitorHealth() 输出是否合理，包括成功率、健康等级等。
      */
@@ -198,23 +198,23 @@ public class MysqlLoadMonitorTest {
     void testMonitorHealth() {
         // 中文：获取健康状态对象并检查指标合理性
         // English: Fetch health status object and check metric reasonableness
-        log.info("🧩 开始监控器健康状态验证 / Start Monitor Health Check");
+        log.info("_开始监控器健康状态验证_/_Start_Monitor_Health_Check");
         MysqlLoadMonitor.MonitorHealthStatus health = monitor.getMonitorHealth();
 
-        log.info("健康状态报告 / Health Report: {}", health);
+        log.info("健康状态报告_/_Health_Report:_{}", health);
         Assertions.assertNotNull(health, "健康状态不应为空 / Health status should not be null");
         Assertions.assertTrue(health.getCpuCores() > 0, "CPU核心数应大于0 / CPU cores must be > 0");
 
         switch (health.getHealthLevel()) {
-            case "HEALTHY" -> log.info("✅ 监控器状态良好 / Monitor is healthy");
-            case "WARNING" -> log.warn("⚠️ 监控器状态告警 / Monitor warning state");
-            case "CRITICAL" -> log.error("🚨 监控器状态严重异常 / Monitor critical state");
-            default -> log.info("ℹ️ 未知状态 / Unknown health level");
+            case "HEALTHY" -> log.info("_监控器状态良好_/_Monitor_is_healthy");
+            case "WARNING" -> log.warn("_监控器状态告警_/_Monitor_warning_state");
+            case "CRITICAL" -> log.error("_监控器状态严重异常_/_Monitor_critical_state");
+            default -> log.info("ℹ_未知状态_/_Unknown_health_level");
         }
     }
 
     /**
-     * 【5️⃣ 监控统计重置验证】
+     * 【5⃣ 监控统计重置验证】
      * ----------------------------------------------------------
      * 测试 resetMonitorStatistics() 能否正确清理统计数据。
      */
@@ -237,11 +237,11 @@ public class MysqlLoadMonitorTest {
     void testResetStatistics() {
         // 中文：执行重置并验证计数器归零
         // English: Execute reset and verify counters zeroed
-        log.info("🧹 测试监控统计重置 / Test Monitor Statistics Reset");
+        log.info("_测试监控统计重置_/_Test_Monitor_Statistics_Reset");
         monitor.resetMonitorStatistics();
         MysqlLoadMonitor.MonitorHealthStatus health = monitor.getMonitorHealth();
         Assertions.assertEquals(0, health.getSuccessCount(), "重置后成功次数应为0");
         Assertions.assertEquals(0, health.getFailureCount(), "重置后失败次数应为0");
-        log.info("✅ 重置测试通过 / Statistics reset verified");
+        log.info("_重置测试通过_/_Statistics_reset_verified");
     }
 }

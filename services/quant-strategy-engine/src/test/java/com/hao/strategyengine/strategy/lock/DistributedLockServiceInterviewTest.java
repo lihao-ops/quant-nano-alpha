@@ -75,19 +75,19 @@ public class DistributedLockServiceInterviewTest {
      */
     @Test
     void shouldComputeOnceWhenLockIsAcquired() throws InterruptedException {
-        // Step 1️⃣ 模拟分布式锁成功获取
+        // Step 1⃣ 模拟分布式锁成功获取
         when(rLock.tryLock(eq(0L), eq(1L), eq(TimeUnit.SECONDS))).thenReturn(true);
 
         AtomicInteger computeTimes = new AtomicInteger();
         StrategyResultBundle expected = new StrategyResultBundle("combo-A", Collections.emptyList());
 
         StrategyResultBundle actual = lockService.acquireOrWait("combo-A", () -> {
-            // Step 2️⃣ Supplier 是真正的重活，计数器帮助我们证明只执行一次
+            // Step 2⃣ Supplier 是真正的重活，计数器帮助我们证明只执行一次
             computeTimes.incrementAndGet();
             return expected;
         });
 
-        // Step 3️⃣ 验证 Supplier 被调用一次，锁释放一次，返回值正确
+        // Step 3⃣ 验证 Supplier 被调用一次，锁释放一次，返回值正确
         assertThat(computeTimes.get()).isEqualTo(1);
         verify(rLock).unlock();
         assertThat(actual).isSameAs(expected);
@@ -105,12 +105,12 @@ public class DistributedLockServiceInterviewTest {
      * 2. 通过反射拿到 pending map，模拟远端线程完成计算后填充结果；
      * 3. 验证本线程确实拿到已有结果，且不会二次执行 Supplier。
      * <p>
-     * ⚠️ 反射只是为了测试可控性，同时也凸显一个优化点：生产环境应考虑把 pending 状态共享到 Redis/消息总线，
+     *  反射只是为了测试可控性，同时也凸显一个优化点：生产环境应考虑把 pending 状态共享到 Redis/消息总线，
      * 让其他节点也能第一时间复用结果，减少超时风险。
      */
     @Test
     void shouldWaitForExistingResultWhenLockIsHeldByOtherInstance() throws Exception {
-        // Step 1️⃣ 锁竞争失败，模拟其它实例已经持有锁
+        // Step 1⃣ 锁竞争失败，模拟其它实例已经持有锁
         when(rLock.tryLock(eq(0L), eq(1L), eq(TimeUnit.SECONDS))).thenReturn(false);
 
         AtomicReference<StrategyResultBundle> resultRef = new AtomicReference<>();
@@ -118,7 +118,7 @@ public class DistributedLockServiceInterviewTest {
 
         Thread waitingThread = new Thread(() -> {
             StrategyResultBundle actual = lockService.acquireOrWait("combo-B", () -> {
-                // Step 2️⃣ 如果 Supplier 被执行，说明幂等失效 -> 直接失败，暴露问题
+                // Step 2⃣ 如果 Supplier 被执行，说明幂等失效 -> 直接失败，暴露问题
                 fail("锁已被占用时不应重复执行计算逻辑");
                 return expected;
             });
@@ -126,7 +126,7 @@ public class DistributedLockServiceInterviewTest {
         });
         waitingThread.start();
 
-        // Step 3️⃣ 通过反射拿到 pending 映射，模拟远端节点完成计算
+        // Step 3⃣ 通过反射拿到 pending 映射，模拟远端节点完成计算
         Field pendingField = DistributedLockService.class.getDeclaredField("pending");
         pendingField.setAccessible(true);
         @SuppressWarnings("unchecked")
@@ -134,7 +134,7 @@ public class DistributedLockServiceInterviewTest {
                 (Map<String, CompletableFuture<StrategyResultBundle>>) pendingField.get(lockService);
 
         CompletableFuture<StrategyResultBundle> future;
-        // Step 4️⃣ 自旋等待 pending future 被创建，体现「等待已有任务」的核心设计
+        // Step 4⃣ 自旋等待 pending future 被创建，体现「等待已有任务」的核心设计
         int spin = 0;
         while ((future = pendingMap.get("combo-B")) == null && spin++ < 50) {
             Thread.sleep(10);
@@ -143,12 +143,12 @@ public class DistributedLockServiceInterviewTest {
             fail("未能在预期时间内创建 pending future，说明等待逻辑存在缺陷");
         }
 
-        // Step 5️⃣ 模拟远端线程把结果广播给等待者
+        // Step 5⃣ 模拟远端线程把结果广播给等待者
         future.complete(expected);
 
         waitingThread.join();
 
-        // Step 6️⃣ 验证未触发本地重复计算，且成功拿到现有结果
+        // Step 6⃣ 验证未触发本地重复计算，且成功拿到现有结果
         assertThat(resultRef.get()).isSameAs(expected);
         verify(rLock, never()).unlock();
     }

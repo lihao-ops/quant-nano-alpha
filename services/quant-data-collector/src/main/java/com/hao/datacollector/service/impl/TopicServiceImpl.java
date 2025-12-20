@@ -89,18 +89,18 @@ public class TopicServiceImpl implements TopicService {
                 // ObjectMapper 用于将原始 JSON 映射成领域对象，便于后续拆分
                 hotTopic = objectMapper.readValue(kplTopicDataStr, HotTopicKpl.class);
             } catch (Exception e) {
-                log.error("setKplTopicInfoJob_convertData_error,id={},result={}", id, kplTopicDataStr);
+                log.error("日志记录|Log_message,setKplTopicInfoJob_convertData_error,id={},result={}", id, kplTopicDataStr, e);
                 continue;
 //                throw new RuntimeException("setKplTopicInfoJob_convertData_error!");
             }
             if (hotTopic == null || !StringUtils.hasLength(hotTopic.getId())) {
-                log.error("setKplTopicInfoJob_getKplTopicData_data_error,id={},result={}", id, kplTopicDataStr);
+                log.warn("日志记录|Log_message,setKplTopicInfoJob_getKplTopicData_data_error,id={},result={}", id, kplTopicDataStr);
                 continue;
             }
             //转换插入
             // 将题材实体拆分为多张表的插入 DTO 并写入数据库
             Boolean insertResult = insertKplTopicInsertData(hotTopic);
-            log.info("setKplTopicInfoJob_ID={},result={}", id, insertResult);
+            log.info("日志记录|Log_message,setKplTopicInfoJob_ID={},result={}", id, insertResult);
         }
         return true;
     }
@@ -141,7 +141,7 @@ public class TopicServiceImpl implements TopicService {
             throw new RuntimeException("setKplTopicInfoJob_getRequestKplTopicData_error,result=" + response.getStatusCode());
         }
         // 记录响应数据大小
-        log.info("setKplTopicInfoJob_response.size={}", response.getBody().length());
+        log.info("日志记录|Log_message,setKplTopicInfoJob_response.size={}", response.getBody().length());
         return response.getBody();
     }
 
@@ -152,7 +152,7 @@ public class TopicServiceImpl implements TopicService {
      * @return 插入结果
      */
     private Boolean insertKplTopicInsertData(HotTopicKpl hotTopic) {
-        log.info("insertKplTopicInsertData_start_processing_topic_data,topicId={}", hotTopic.getId());
+        log.info("日志记录|Log_message,insertKplTopicInsertData_start_processing_topic_data,topicId={}", hotTopic.getId());
         //先转换
         // 统一把外部字段复制到信息表 DTO，降低手工映射出错概率
         InsertTopicInfoDTO insertTopicInfoDTO = new InsertTopicInfoDTO();
@@ -173,10 +173,10 @@ public class TopicServiceImpl implements TopicService {
         List<InsertStockCategoryMappingDTO> insertStockCategoryMappingList = new ArrayList<>();
         List<TopicTable> categoryList = hotTopic.getTable();
         if (categoryList == null || categoryList.isEmpty()) {
-            log.warn("insertKplTopicInsertData_category_list_is_empty,_topicId={}", hotTopic.getId());
+            log.warn("日志记录|Log_message,insertKplTopicInsertData_category_list_is_empty,_topicId={}", hotTopic.getId());
             return false;
         }
-        log.info("insertKplTopicInsertData_start_processing_categories,topicId={},category_count={}", hotTopic.getId(), categoryList.size());
+        log.info("日志记录|Log_message,insertKplTopicInsertData_start_processing_categories,topicId={},category_count={}", hotTopic.getId(), categoryList.size());
         for (TopicTable category : categoryList) {
             InsertTopicCategoryDTO insertCategoryLevel1 = new InsertTopicCategoryDTO();
             CategoryLevel level1 = category.getLevel1();
@@ -255,7 +255,7 @@ public class TopicServiceImpl implements TopicService {
                 }
             }
         }
-        log.info("insertKplTopicInsertData_data_processing_completed,topicId={},_total_categories={},total_stock_mappings={}", hotTopic.getId(), insertCategoryList.size(), insertStockCategoryMappingList.size());
+        log.info("日志记录|Log_message,insertKplTopicInsertData_data_processing_completed,topicId={},_total_categories={},total_stock_mappings={}", hotTopic.getId(), insertCategoryList.size(), insertStockCategoryMappingList.size());
         List<InsertTopicInfoDTO> insertTopicInfoList = new ArrayList();
         insertTopicInfoList.add(insertTopicInfoDTO);
         // 最终调用统一的批量写入方法，确保三张表的操作在同一处维护
@@ -285,7 +285,7 @@ public class TopicServiceImpl implements TopicService {
             // 股票映射写入后即可被上层服务复用
             insertStockNum = topicMapper.insertStockCategoryMappingList(insertStockCategoryMappingList);
         }
-        log.info("insertTopicInfo_insertTopicNum={},insertCategoryNum={},insertStockNum={}", insertTopicNum, insertCategoryNum, insertStockNum);
+        log.info("日志记录|Log_message,insertTopicInfo_insertTopicNum={},insertCategoryNum={},insertStockNum={}", insertTopicNum, insertCategoryNum, insertStockNum);
         return insertTopicNum + insertCategoryNum + insertStockNum > 0;
     }
 
@@ -325,7 +325,7 @@ public class TopicServiceImpl implements TopicService {
         if (searchKeyBoard != null && searchKeyBoard.size() > 0) {
             return searchKeyBoard.get(0).getName();
         }
-        log.error("getWindName_error!_windCode={},windName={}", windCode, windName);
+        log.warn("日志记录|Log_message,getWindName_error!_windCode={},windName={}", windCode, windName);
         return Strings.EMPTY;
     }
 

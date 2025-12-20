@@ -28,7 +28,7 @@ public class KafkaConsumerService {
             groupId = "strategy-service-group",
             containerFactory = "kafkaListenerContainerFactory"
     )
-    public void consume(String message, Acknowledgment ack) {  // ⚠️ 注意这里加了 Acknowledgment
+    public void consume(String message, Acknowledgment ack) {  //  注意这里加了 Acknowledgment
         try {
             long now = System.currentTimeMillis();
             // 记录第一条消息
@@ -41,7 +41,7 @@ public class KafkaConsumerService {
             int count = counter.incrementAndGet();
             // 每秒输出一次统计
             if (now - windowStart >= 1000) {
-                log.info("Thread_name={}, 消息处理量={}条/s, 本秒第一条消息={}, 最后一条消息={}",
+                log.info("Thread_name={},_消息处理量={}条/s,_本秒第一条消息={},_最后一条消息={}",
                         Thread.currentThread().getName(),
                         count,
                         firstMessage,
@@ -55,7 +55,7 @@ public class KafkaConsumerService {
             // 手动提交 offset
             ack.acknowledge();
         } catch (Exception e) {
-            log.error("消息处理异常", e);
+            log.error("消息处理异常|Log_message", e);
             // 不提交 offset，消息会重试
         }
 //         TODO: 这里可以根据 wind_code 解析消息 JSON，然后处理策略

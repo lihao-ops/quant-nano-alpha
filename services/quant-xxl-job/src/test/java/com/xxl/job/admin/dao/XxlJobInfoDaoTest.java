@@ -24,8 +24,8 @@ public class XxlJobInfoDaoTest {
 		List<XxlJobInfo> list = xxlJobInfoDao.pageList(0, 20, 0, -1, null, null, null);
 		int list_count = xxlJobInfoDao.pageListCount(0, 20, 0, -1, null, null, null);
 
-		logger.info("", list);
-		logger.info("", list_count);
+		logger.info("日志记录|Log_message", list);
+		logger.info("日志记录|Log_message", list_count);
 
 		List<XxlJobInfo> list2 = xxlJobInfoDao.getJobsByGroup(1);
 	}

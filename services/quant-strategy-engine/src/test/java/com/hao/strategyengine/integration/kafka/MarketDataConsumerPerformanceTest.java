@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * 🧠 说明：
+ *  说明：
  * 模拟策略微服务侧的Kafka消费者性能测试。
  * 功能包括：
  * - 实时统计消费速率QPS
@@ -51,8 +51,8 @@ public class MarketDataConsumerPerformanceTest {
      */
     @Test
     void testMarketDataConsumerPerformance() throws Exception {
-        log.info("🚀 启动行情消费者性能测试");
-        log.info("Topic: {}, 持续时间: {}s, 计算延迟: {}, 检查丢失: {}",
+        log.info("_启动行情消费者性能测试|Log_message");
+        log.info("Topic:_{},_持续时间:_{}s,_计算延迟:_{},_检查丢失:_{}",
                 TOPIC, TEST_SECONDS, VERIFY_LATENCY, ENABLE_LOSS_CHECK);
 
         // 定时输出性能指标
@@ -60,7 +60,7 @@ public class MarketDataConsumerPerformanceTest {
             long count = consumeCount.get();
             double avgLatency = VERIFY_LATENCY && count > 0
                     ? totalLatency.get() * 1.0 / count : 0;
-            log.info("📈 当前统计 -> 已消费: {}, 平均延迟: {} ms, 估算QPS: {}",
+            log.info("_当前统计_->_已消费:_{},_平均延迟:_{}_ms,_估算QPS:_{}",
                     count, String.format("%.2f", avgLatency), count / (double) TEST_SECONDS);
         }, 1, 2, TimeUnit.SECONDS);
 
@@ -68,12 +68,12 @@ public class MarketDataConsumerPerformanceTest {
         TimeUnit.SECONDS.sleep(TEST_SECONDS);
 
         metricsScheduler.shutdownNow();
-        log.info("📊 消费性能测试完成 =============================");
-        log.info("总消费消息数: {}", consumeCount.get());
-        log.info("总丢失消息数: {}", lossCount.get());
-        log.info("平均延迟: {} ms", String.format("%.2f",
+        log.info("_消费性能测试完成_=============================|Log_message");
+        log.info("总消费消息数:_{}|Log_message", consumeCount.get());
+        log.info("总丢失消息数:_{}|Log_message", lossCount.get());
+        log.info("平均延迟:_{}_ms", String.format("%.2f",
                 totalLatency.get() * 1.0 / Math.max(1, consumeCount.get())));
-        log.info("===============================================");
+        log.info("日志记录|Log_message");
     }
 
     /**
@@ -94,14 +94,14 @@ public class MarketDataConsumerPerformanceTest {
                 long prev = lastTimestamp.getAndSet(ts);
                 if (prev > 0 && ts - prev > 200) { // 超过200ms认为可能丢消息
                     lossCount.incrementAndGet();
-                    log.warn("⚠️ 可能丢失消息, 上条时间戳={}, 当前={}", prev, ts);
+                    log.warn("_可能丢失消息,_上条时间戳={},_当前={}|Log_message", prev, ts);
                 }
             }
 
             consumeCount.incrementAndGet();
 
         } catch (Exception e) {
-            log.error("❌ 消息消费异常: {}", e.getMessage(), e);
+            log.error("_消息消费异常:_{}|Log_message", e.getMessage(), e);
         }
     }
 }

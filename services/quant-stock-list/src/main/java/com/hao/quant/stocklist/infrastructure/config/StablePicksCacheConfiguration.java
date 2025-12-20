@@ -48,7 +48,7 @@ public class StablePicksCacheConfiguration {
                 .maximumSize(1000)
                 .expireAfterWrite(Duration.ofMinutes(5))
                 .recordStats()
-                .removalListener((key, value, cause) -> log.debug("Caffeine淘汰: key={}, cause={}", key, cause))
+                .removalListener((key, value, cause) -> log.debug("Caffeine淘汰|Caffeine_eviction,key={},cause={}", key, cause))
                 .build();
     }
 

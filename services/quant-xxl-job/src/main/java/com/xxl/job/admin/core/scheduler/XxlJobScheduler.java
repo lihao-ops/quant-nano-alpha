@@ -42,7 +42,7 @@ public class XxlJobScheduler  {
         // start-schedule  ( depend on JobTriggerPoolHelper )
         JobScheduleHelper.getInstance().start();
 
-        logger.info(">>>>>>>>> init xxl-job admin success.");
+        logger.info("日志记录|Log_message,>>>>>>>>>_init_xxl-job_admin_success.");
     }
 
     

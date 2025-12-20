@@ -348,7 +348,7 @@ public class XxlJobServiceImpl implements XxlJobService {
 				}
 				nextTriggerTime = nextValidTime.getTime();
 			} catch (Exception e) {
-				logger.error(e.getMessage(), e);
+				logger.error("日志记录|Log_message,exception={}", e.getMessage(), e);
 				return new ReturnT<String>(ReturnT.FAIL_CODE, (I18nUtil.getString("schedule_type")+I18nUtil.getString("system_unvalid")) );
 			}
 		}
@@ -412,7 +412,7 @@ public class XxlJobServiceImpl implements XxlJobService {
 			}
 			nextTriggerTime = nextValidTime.getTime();
 		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
+			logger.error("日志记录|Log_message,exception={}", e.getMessage(), e);
 			return new ReturnT<String>(ReturnT.FAIL_CODE, (I18nUtil.getString("schedule_type")+I18nUtil.getString("system_unvalid")) );
 		}
 

@@ -151,20 +151,20 @@ public class RateLimitHandler implements StrategyHandler {
         localGlobalLimiter = RateLimiter.create(globalQps);
         localUserLimiter = RateLimiter.create(userQps);
 
-        log.info("✅ 分布式限流处理器初始化完成: distributedEnabled={}, globalQps={}, userQps={}", distributedEnabled, globalQps, userQps);
+        log.info("分布式限流初始化完成|Rate_limit_init_done,distributedEnabled={},globalQps={},userQps={}", distributedEnabled, globalQps, userQps);
     }
 
     @Override
     public void handle(StrategyContext ctx) throws Exception {
         long start = System.currentTimeMillis();
         if (!rateLimitEnabled) {
-            log.info("🚫 限流功能已关闭，直接放行: userId={}", ctx.getUserId());
+            log.info("限流关闭直接放行|Rate_limit_disabled,userId={}", ctx.getUserId());
             return;
         }
         Integer userId = ctx.getUserId();
 //        String strategyType = ctx.getExtra().get("strategyType").toString();
         String strategyType = "test";
-        log.info("🔍 限流检查开始: userId={}, mode={}", userId, strategyType, distributedEnabled ? "分布式" : "单机");
+        log.info("限流检查开始|Rate_limit_check_start,userId={},strategyType={},mode={}", userId, strategyType, distributedEnabled ? "分布式" : "单机");
 
         try {
             // 第一层: 全局限流
@@ -176,11 +176,11 @@ public class RateLimitHandler implements StrategyHandler {
             // 第三层: 策略类型限流
             checkStrategyTypeRateLimit(strategyType);
 
-            log.info("✅ 限流检查通过: userId={}, strategyType={}", userId, strategyType);
+            log.info("限流检查通过|Rate_limit_check_passed,userId={},strategyType={}", userId, strategyType);
 //            boolean acquired = localUserLimiter.tryAcquire(100, TimeUnit.MILLISECONDS);
             rateLimitMetrics.recordWaitTime("checkHandleRateLimit_USER", System.currentTimeMillis() - start);
         } catch (RateLimitException e) {
-            log.warn("⛔ 限流拒绝: userId={}, strategyType={}, reason={}", userId, strategyType, e.getMessage());
+            log.warn("限流拒绝|Rate_limit_rejected,userId={},strategyType={},reason={}", userId, strategyType, e.getMessage());
             //监控
             rateLimitMetrics.recordRateLimitReject(e.getLimitType(), ctx.getUserId().toString(), strategyType);
             throw e;
@@ -293,7 +293,7 @@ public class RateLimitHandler implements StrategyHandler {
             return result != null && result == 1;
 
         } catch (Exception e) {
-            log.error("Redis限流异常,降级到单机限流: key={}", key, e);
+            log.error("Redis限流异常降级|Redis_rate_limit_error_fallback,key={}", key, e);
             // Redis异常时降级到单机限流
             return localGlobalLimiter.tryAcquire(100, TimeUnit.MILLISECONDS);
         }

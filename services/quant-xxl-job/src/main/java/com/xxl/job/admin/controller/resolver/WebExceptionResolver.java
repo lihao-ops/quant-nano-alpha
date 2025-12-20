@@ -58,7 +58,7 @@ public class WebExceptionResolver implements HandlerExceptionResolver {
 	public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
 
 		if (!(ex instanceof XxlJobException)) {
-			logger.error("WebExceptionResolver:{}", ex);
+			logger.error("日志记录|Log_message,WebExceptionResolver:{}", ex);
 		}
 
 		// if json
@@ -87,7 +87,7 @@ public class WebExceptionResolver implements HandlerExceptionResolver {
 				response.setContentType("application/json;charset=utf-8");
 				response.getWriter().print(JacksonUtil.writeValueAsString(errorResult));
 			} catch (IOException e) {
-				logger.error(e.getMessage(), e);
+				logger.error("日志记录|Log_message,exception={}", e.getMessage(), e);
 			}
 			return mv;
 		} else {

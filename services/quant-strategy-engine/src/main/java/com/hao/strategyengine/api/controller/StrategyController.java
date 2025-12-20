@@ -50,7 +50,7 @@ import java.util.concurrent.CompletableFuture;
  * - SSE 适合策略计算类长耗时接口。
  * <p>
  * 【执行链位置】：
- * ✅ 属于系统调用链的「第 1 层」：
+ *  属于系统调用链的「第 1 层」：
  * Controller(第1层) → Service/Facade(第2~3层) → Lock(第4层)
  * → Dispatcher(第5层) → Strategy(第6层)
  * <p>
@@ -126,17 +126,17 @@ public class StrategyController {
     public SseEmitter execute(@RequestBody StrategyRequest req) {
         // 中文：创建SSE通道，设置超时保证连接释放
         // English: Create SSE channel and set timeout to ensure connection release
-        // Step 1️⃣ 创建 SSE 流，允许 30 秒超时
+        // Step 1⃣ 创建 SSE 流，允许 30 秒超时
         SseEmitter emitter = new SseEmitter(30_000L);
 
         // 中文：以异步方式执行，避免阻塞控制器线程，提高并发能力
         // English: Run asynchronously to avoid blocking controller thread and improve concurrency
-        // Step 2️⃣ 异步执行任务，防止 Controller 阻塞
+        // Step 2⃣ 异步执行任务，防止 Controller 阻塞
         CompletableFuture.runAsync(() -> {
             try {
                 // 中文：构建领域上下文，封装用户、标的、扩展参数与请求时间
                 // English: Build domain context encapsulating user, symbol, extra params, and request timestamp
-                // Step 3️⃣ 构建策略上下文对象（封装调用环境）
+                // Step 3⃣ 构建策略上下文对象（封装调用环境）
                 StrategyContext ctx = StrategyContext.builder()
                         .userId(req.getUserId())
                         .symbol(req.getSymbol())
@@ -146,28 +146,28 @@ public class StrategyController {
 
                 // 中文：通过外观统一调度策略执行，内部含并发与锁控制以保障幂等
                 // English: Delegate strategy execution to facade with concurrency and lock control to ensure idempotency
-                // Step 4️⃣ 调用 Facade 执行策略组合（内部含锁/并发控制）
+                // Step 4⃣ 调用 Facade 执行策略组合（内部含锁/并发控制）
                 StrategyResultBundle bundle = engine.executeAll(req.getUserId(), req.getStrategyIds(), ctx);
 
                 // 中文：结果异步广播到消息系统，解耦后续消费方
                 // English: Broadcast results asynchronously to message system to decouple downstream consumers
-                // Step 5️⃣ 异步发布 Kafka 消息（非阻塞）
+                // Step 5⃣ 异步发布 Kafka 消息（非阻塞）
                 kafkaPublisher.publish("quant-strategy-result", bundle);
 
                 // 中文：通过SSE向前端推送聚合结果，实现流式响应
                 // English: Push aggregated result to frontend via SSE to provide a streaming response
-                // Step 6️⃣ SSE 推送执行结果给前端
+                // Step 6⃣ SSE 推送执行结果给前端
                 emitter.send(bundle);
 
                 // 中文：显式完成事件流，释放连接资源
                 // English: Explicitly complete the event stream to release connection resources
-                // Step 7️⃣ 完成推送并关闭连接
+                // Step 7⃣ 完成推送并关闭连接
                 emitter.complete();
 
             } catch (Exception e) {
                 // 中文：捕获所有异常并以错误事件通知客户端，保证协议一致性
                 // English: Catch all exceptions and notify client via error event to preserve protocol consistency
-                // Step 8️⃣ 异常处理，推送错误并结束 SSE
+                // Step 8⃣ 异常处理，推送错误并结束 SSE
                 try {
                     emitter.send(SseEmitter.event()
                             .name("error")
@@ -198,12 +198,12 @@ public class StrategyController {
     public StrategyResultBundle execute1(@RequestBody StrategyRequest req) {
         // 中文：异步执行以避免阻塞，提高接口吞吐
         // English: Execute asynchronously to avoid blocking and increase endpoint throughput
-        // Step 2️⃣ 异步执行任务，防止 Controller 阻塞
+        // Step 2⃣ 异步执行任务，防止 Controller 阻塞
         CompletableFuture.runAsync(() -> {
             try {
                 // 中文：构建策略上下文以传递必要的领域信息
                 // English: Build strategy context to carry necessary domain information
-                // Step 3️⃣ 构建策略上下文对象（封装调用环境）
+                // Step 3⃣ 构建策略上下文对象（封装调用环境）
                 StrategyContext ctx = StrategyContext.builder()
                         .userId(req.getUserId())
                         .symbol(req.getSymbol())
@@ -213,18 +213,18 @@ public class StrategyController {
 
                 // 中文：调用外观执行策略集合，内部含并行与锁控
                 // English: Invoke facade to execute strategy set with internal parallelism and locking
-                // Step 4️⃣ 调用 Facade 执行策略组合（内部含锁/并发控制）
+                // Step 4⃣ 调用 Facade 执行策略组合（内部含锁/并发控制）
                 StrategyResultBundle bundle = engine.executeAll(req.getUserId(), req.getStrategyIds(), ctx);
 
                 // 中文：异步发布结果到Kafka，便于下游消费
                 // English: Asynchronously publish results to Kafka for downstream consumption
-                // Step 5️⃣ 异步发布 Kafka 消息（非阻塞）
+                // Step 5⃣ 异步发布 Kafka 消息（非阻塞）
                 kafkaPublisher.publish("quant-strategy-result", bundle);
 
             } catch (Exception e) {
                 // 中文：统一记录异常便于问题定位与审计
                 // English: Log exceptions uniformly for troubleshooting and auditing
-                log.error("执行异常：{}", e.getMessage());
+                log.error("执行异常：{}|Log_message", e.getMessage(), e);
             }
         });
         return null;

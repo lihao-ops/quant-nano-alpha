@@ -38,7 +38,7 @@ import org.springframework.stereotype.Component;
  *     .build();
  * MovingAverageStrategy strategy = new MovingAverageStrategy();
  * StrategyResult result = strategy.execute(ctx);
- * System.out.println(result.getData());
+ * log.info("策略结果|Strategy_result,data={}", result.getData());
  * }</pre>
  * <p>
  * Lombok/注解说明：
@@ -74,7 +74,7 @@ public class MovingAverageStrategy implements QuantStrategy {
         double value = Math.random() * 100; // 模拟计算结果
         try {
             Thread.sleep(3000);
-            log.info("Thread={},execute={}", Thread.currentThread().getName(), StrategyMetaEnum.SIG_MOVING_AVERAGE.getId());
+            log.info("策略执行线程|Strategy_execute_thread,thread={},strategyId={}", Thread.currentThread().getName(), StrategyMetaEnum.SIG_MOVING_AVERAGE.getId());
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }

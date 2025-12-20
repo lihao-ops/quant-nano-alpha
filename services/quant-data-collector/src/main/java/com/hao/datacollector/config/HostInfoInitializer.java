@@ -13,14 +13,25 @@ import java.util.Enumeration;
 
 /**
  * 主机信息初始化器
- * 
+ *
+ * 设计目的：
+ * 1. 启动时初始化主机信息并写入系统属性。
+ * 2. 统一生成实例标识，便于日志与监控聚合。
+ *
+ * 为什么需要该类：
+ * - 多实例部署需要统一的实例标识与主机信息采集。
+ *
+ * 核心实现思路：
+ * - 先读取环境变量，失败则通过网络接口扫描获取最佳IP。
+ * - 构建实例ID后写入系统属性供日志系统使用。
+ *
  * <p>功能：
  * 1. 在应用启动时获取并设置主机信息系统属性
- * 2. 支持 IP、主机名、端口、实例ID 等完整实例标识
- * 3. 提供网络接口检测和最佳 IP 选择策略
- * 
+ * 2. 支持IP、主机名、端口、实例ID等完整实例标识
+ * 3. 提供网络接口检测和最佳IP选择策略
+ *
  * <p>设计思路（大厂面试官视角）：
- * - 实例唯一性：通过 IP+端口+服务名确保实例在集群中的唯一标识
+ * - 实例唯一性：通过IP+端口+服务名确保实例在集群中的唯一标识
  * - 网络适配：智能选择最佳网络接口，避免回环地址和虚拟网卡
  * - 容错处理：网络异常时提供默认值，确保应用正常启动
  * - 日志友好：详细记录主机信息获取过程，便于运维排查
@@ -39,10 +50,23 @@ public class HostInfoInitializer {
     @Value("${spring.profiles.active:dev}")
     private String activeProfile;
 
+    /**
+     * 主机信息初始化Runner
+     *
+     * 实现逻辑：
+     * 1. 获取主机名与IP并生成实例ID。
+     * 2. 写入系统属性并记录日志。
+     * 3. 异常时设置默认值兜底。
+     *
+     * @return ApplicationRunner回调
+     */
     @Bean
     public ApplicationRunner hostInfoInitializerRunner() {
         return args -> {
-            log.info("=== 主机信息初始化开始 ===");
+            // 实现思路：
+            // 1. 获取主机信息并写入系统属性。
+            // 2. 异常时使用默认值。
+            log.info("主机信息初始化开始|Host_info_init_start");
             
             try {
                 // 获取主机信息
@@ -60,17 +84,17 @@ public class HostInfoInitializer {
                 System.setProperty("ACTIVE_PROFILE", activeProfile);
                 
                 // 记录主机信息
-                log.info("主机信息获取成功:");
-                log.info("  - 主机名: {}", hostName);
-                log.info("  - IP地址: {}", hostIp);
-                log.info("  - 端口: {}", serverPort);
-                log.info("  - 实例ID: {}", instanceId);
-                log.info("  - 服务名: {}", applicationName);
-                log.info("  - 环境: {}", activeProfile);
-                log.info("  - 日志主题: {}", KafkaTopics.LOG_QUANT_DATA_COLLECTOR.code());
+                log.info("主机信息获取成功|Host_info_loaded");
+                log.info("主机名|Host_name,name={}", hostName);
+                log.info("主机IP|Host_ip,ip={}", hostIp);
+                log.info("服务端口|Service_port,port={}", serverPort);
+                log.info("实例ID|Instance_id,instanceId={}", instanceId);
+                log.info("服务名|Service_name,name={}", applicationName);
+                log.info("运行环境|Active_profile,profile={}", activeProfile);
+                log.info("日志主题|Log_topic,topic={}", KafkaTopics.LOG_QUANT_DATA_COLLECTOR.code());
                 
             } catch (Exception e) {
-                log.error("主机信息获取失败，使用默认值", e);
+                log.error("主机信息获取失败|Host_info_load_failed", e);
                 
                 // 设置默认值
                 System.setProperty("LOG_TOPIC", KafkaTopics.LOG_QUANT_DATA_COLLECTOR.code());
@@ -81,32 +105,41 @@ public class HostInfoInitializer {
                 System.setProperty("SERVICE_NAME", applicationName);
                 System.setProperty("ACTIVE_PROFILE", activeProfile);
                 
-                log.warn("已设置默认主机信息，服务可正常启动");
+                log.warn("已设置默认主机信息|Default_host_info_applied");
             }
             
-            log.info("=== 主机信息初始化完成 ===");
+            log.info("主机信息初始化完成|Host_info_init_done");
         };
     }
 
     /**
      * 获取主机名
+     *
+     * 实现逻辑：
+     * 1. 优先读取环境变量HOSTNAME。
+     * 2. 回退到JavaAPI获取。
+     *
+     * @return 主机名
      */
     private String getHostName() {
+        // 实现思路：
+        // 1. 优先使用环境变量。
+        // 2. 失败时回退到JavaAPI。
         try {
             // 优先使用环境变量
             String envHostName = System.getenv("HOSTNAME");
             if (envHostName != null && !envHostName.trim().isEmpty()) {
-                log.debug("使用环境变量 HOSTNAME: {}", envHostName);
+                log.debug("使用环境变量HOSTNAME|Use_env_hostname,hostname={}", envHostName);
                 return envHostName.trim();
             }
             
             // 使用 Java API 获取
             String javaHostName = InetAddress.getLocalHost().getHostName();
-            log.debug("使用 Java API 获取主机名: {}", javaHostName);
+            log.debug("使用JavaAPI获取主机名|Use_java_api_hostname,hostname={}", javaHostName);
             return javaHostName;
             
         } catch (Exception e) {
-            log.warn("获取主机名失败: {}", e.getMessage());
+            log.warn("获取主机名失败|Host_name_load_failed,error={}", e.getMessage(), e);
             return "unknown";
         }
     }
@@ -114,13 +147,22 @@ public class HostInfoInitializer {
     /**
      * 获取最佳主机 IP 地址
      * 优先级：非回环 > 非虚拟网卡 > IPv4 > 可达性
+     *
+     * 实现逻辑：
+     * 1. 读取环境变量HOST_IP优先返回。
+     * 2. 遍历网卡并按评分选择最佳IP。
+     *
+     * @return 主机IP
      */
     private String getBestHostIp() {
+        // 实现思路：
+        // 1. 优先使用环境变量IP。
+        // 2. 通过评分选择最佳网卡IP。
         try {
             // 优先使用环境变量
             String envHostIp = System.getenv("HOST_IP");
             if (envHostIp != null && !envHostIp.trim().isEmpty()) {
-                log.debug("使用环境变量 HOST_IP: {}", envHostIp);
+                log.debug("使用环境变量HOST_IP|Use_env_host_ip,ip={}", envHostIp);
                 return envHostIp.trim();
             }
             
@@ -151,34 +193,45 @@ public class HostInfoInitializer {
                     if (score > bestScore) {
                         bestScore = score;
                         bestIp = ip;
-                        log.debug("发现更优 IP: {} (网卡: {}, 评分: {})", ip, networkInterface.getName(), score);
+                        log.debug("发现更优IP|Better_ip_found,ip={},interface={},score={}",
+                                ip, networkInterface.getName(), score);
                     }
                 }
             }
             
             if (bestIp != null) {
-                log.debug("选择最佳 IP: {} (评分: {})", bestIp, bestScore);
+                log.debug("选择最佳IP|Best_ip_selected,ip={},score={}", bestIp, bestScore);
                 return bestIp;
             }
             
             // 兜底方案：使用默认方法
             String fallbackIp = InetAddress.getLocalHost().getHostAddress();
-            log.debug("使用兜底 IP: {}", fallbackIp);
+            log.debug("使用兜底IP|Fallback_ip_used,ip={}", fallbackIp);
             return fallbackIp;
             
         } catch (Exception e) {
-            log.warn("获取主机 IP 失败: {}", e.getMessage());
+            log.warn("获取主机IP失败|Host_ip_load_failed,error={}", e.getMessage(), e);
             return "unknown";
         }
     }
 
     /**
-     * 计算 IP 地址评分（分数越高越优）
+     * 计算IP地址评分（分数越高越优）
+     *
+     * 实现逻辑：
+     * 1. IPv4优先加分。
+     * 2. 私网段与物理网卡优先加分。
+     *
+     * @param ip IP地址
+     * @param interfaceName 网卡名称
+     * @return 评分
      */
     private int calculateIpScore(String ip, String interfaceName) {
+        // 实现思路：
+        // 1. 以IP类型与网卡类型进行打分。
         int score = 0;
         
-        // IPv4 优于 IPv6
+        // IPv4优于IPv6
         if (ip.contains(".")) {
             score += 10;
         }
@@ -206,8 +259,18 @@ public class HostInfoInitializer {
 
     /**
      * 生成实例唯一标识
+     *
+     * 实现逻辑：
+     * 1. 使用服务名、IP与端口拼接实例ID。
+     *
+     * @param ip 主机IP
+     * @param port 端口
+     * @param serviceName 服务名
+     * @return 实例ID
      */
     private String generateInstanceId(String ip, String port, String serviceName) {
+        // 实现思路：
+        // 1. 拼接服务名、IP与端口。
         return String.format("%s-%s-%s", serviceName, ip, port);
     }
 }

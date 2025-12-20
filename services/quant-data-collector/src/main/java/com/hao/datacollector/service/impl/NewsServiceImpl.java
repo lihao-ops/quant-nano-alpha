@@ -76,7 +76,7 @@ public class NewsServiceImpl implements NewsService {
         String bodyStr = HttpUtil.sendPostRequestTimeOut(url, JSON.toJSONString(params), 10000, header);
         JSONArray jsonArray = JSON.parseArray(bodyStr);
         if (jsonArray == null || !CommonConstants.successCode.equals(jsonArray.get(0))) {
-            log.error("NewsServiceImpl_transferNewsStockData_error=windCode={}", windCode);
+            log.warn("日志记录|Log_message,NewsServiceImpl_transferNewsStockData_error=windCode={}", windCode);
             throw new RuntimeException("数据异常");
         }
         // Wind 返回的数组中，下标 3 为具体数据，先取出再解析
@@ -84,7 +84,7 @@ public class NewsServiceImpl implements NewsService {
         List<NewsInfoVO> newInfoVOList = JSON.parseArray(newsArray.toJSONString(), NewsInfoVO.class);
         if (newInfoVOList.isEmpty()) {
             boolean insertAbnormalResult = baseDataMapper.insertAbnormalStock(windCode);
-            log.error("transferNewsStockData_error,windCode={},insertAbnormalResult={}", windCode, insertAbnormalResult);
+            log.warn("日志记录|Log_message,transferNewsStockData_error,windCode={},insertAbnormalResult={}", windCode, insertAbnormalResult);
             return false;
         }
         // 新闻正文与股票关系分两张表存储
@@ -94,7 +94,7 @@ public class NewsServiceImpl implements NewsService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
         int relationResultCount = newsMapper.insertNewsStockRelation(newsIdList, params.getWindCode());
-        log.info("NewsServiceImpl_transferNewsStockData_result=newsInfoResultCount={}_relationResultCount={}", newsInfoResultCount, relationResultCount);
+        log.info("日志记录|Log_message,NewsServiceImpl_transferNewsStockData_result=newsInfoResultCount={}_relationResultCount={}", newsInfoResultCount, relationResultCount);
         return newsInfoResultCount >= 0;
     }
 
@@ -106,7 +106,7 @@ public class NewsServiceImpl implements NewsService {
      */
     @Override
     public List<NewsQueryResultVO> queryNewsBaseData(NewsQueryParam queryParam) {
-        log.info("NewsServiceImpl_queryNewsBaseData_start=queryParam={}", JSON.toJSONString(queryParam));
+        log.info("日志记录|Log_message,NewsServiceImpl_queryNewsBaseData_start=queryParam={}", JSON.toJSONString(queryParam));
         // 处理分页参数，将pageNo转换为offset
         if (queryParam.getPageNo() != null && queryParam.getPageSize() != null) {
             int offset = PageUtil.calculateOffset(queryParam.getPageNo(), queryParam.getPageSize());
@@ -114,7 +114,7 @@ public class NewsServiceImpl implements NewsService {
         }
         // Mapper 根据分页条件查询基础新闻列表
         List<NewsQueryResultVO> result = newsMapper.queryNewsBaseData(queryParam);
-        log.info("NewsServiceImpl_queryNewsBaseData_success=result_count={}", result.size());
+        log.info("日志记录|Log_message,NewsServiceImpl_queryNewsBaseData_success=result_count={}", result.size());
         return result;
     }
 }

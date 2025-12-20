@@ -115,7 +115,7 @@ public class ThreadPoolConfig implements AsyncConfigurer {
         executor.initialize();
         // 添加到管理列表
         executors.add(executor);
-        log.info("IO密集型线程池初始化完成 - 核心线程数：{}，最大线程数：{}，队列容量：{}",
+        log.info("IO密集型线程池初始化完成_-_核心线程数：{}，最大线程数：{}，队列容量：{}",
                 corePoolSize, maxPoolSize, queueCapacity * 5);
         return executor;
     }
@@ -159,7 +159,7 @@ public class ThreadPoolConfig implements AsyncConfigurer {
         executor.setAwaitTerminationSeconds(30);
         executor.initialize();
         executors.add(executor);
-        log.info("CPU密集型线程池初始化完成 - 核心线程数：{}，最大线程数：{}，队列容量：{}",
+        log.info("CPU密集型线程池初始化完成_-_核心线程数：{}，最大线程数：{}，队列容量：{}",
                 corePoolSize, maxPoolSize, queueCapacity / 2);
         return executor;
     }
@@ -178,7 +178,7 @@ public class ThreadPoolConfig implements AsyncConfigurer {
      */
     @Bean("mixedTaskExecutor")
     public ThreadPoolTaskExecutor mixedTaskExecutor() {
-        log.info("初始化混合型线程池");
+        log.info("初始化混合型线程池|Log_message");
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         // 核心线程数：CPU核数 × 2，平衡IO和CPU需求
         int corePoolSize = CPU_CORES * 2;
@@ -198,7 +198,7 @@ public class ThreadPoolConfig implements AsyncConfigurer {
         executor.setAwaitTerminationSeconds(45);
         executor.initialize();
         executors.add(executor);
-        log.info("混合型线程池初始化完成 - 核心线程数：{}，最大线程数：{}，队列容量：{}",
+        log.info("混合型线程池初始化完成_-_核心线程数：{}，最大线程数：{}，队列容量：{}|Log_message",
                 corePoolSize, maxPoolSize, queueCapacity * 2);
         return executor;
     }
@@ -220,11 +220,11 @@ public class ThreadPoolConfig implements AsyncConfigurer {
      */
     @Bean("virtualThreadExecutor")
     public Executor virtualThreadExecutor() {
-        log.info("初始化虚拟线程执行器（需要Java 21+）");
+        log.info("初始化虚拟线程执行器（需要Java_21+）");
         try {
             // 创建虚拟线程执行器
             Executor executor = Executors.newVirtualThreadPerTaskExecutor();
-            log.info("虚拟线程执行器初始化成功");
+            log.info("虚拟线程执行器初始化成功|Log_message");
             return executor;
         } catch (Exception e) {
             log.warn("虚拟线程执行器初始化失败，可能是Java版本不支持：{}", e.getMessage());
@@ -256,7 +256,7 @@ public class ThreadPoolConfig implements AsyncConfigurer {
     public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
         return (ex, method, params) -> {
             // 记录异常信息
-            log.error("异步方法执行异常 - 方法：{}，参数：{}，异常：{}",
+            log.error("异步方法执行异常_-_方法：{}，参数：{}，异常：{}|Log_message",
                     method.getName(), params, ex.getMessage(), ex);
             // 可以在这里添加告警通知、邮件发送等逻辑
             // 例如：alertService.sendAlert("异步任务执行失败", ex);
@@ -276,7 +276,7 @@ public class ThreadPoolConfig implements AsyncConfigurer {
      */
     @Bean("quantTaskExecutor")
     public ThreadPoolTaskExecutor quantTaskExecutor() {
-        log.info("初始化量化交易专用线程池");
+        log.info("初始化量化交易专用线程池|Log_message");
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         // 基于实测数据优化：24核CPU最优配置约为102线程
         int corePoolSize = (int) (CPU_CORES * 4.25); // 102 for 24 cores
@@ -298,7 +298,7 @@ public class ThreadPoolConfig implements AsyncConfigurer {
         executor.setAwaitTerminationSeconds(180); // 3分钟等待时间
         executor.initialize();
         executors.add(executor);
-        log.info("量化交易专用线程池初始化完成 - 核心线程数：{}，最大线程数：{}，队列容量：{}",
+        log.info("量化交易专用线程池初始化完成_-_核心线程数：{}，最大线程数：{}，队列容量：{}|Log_message",
                 corePoolSize, maxPoolSize, queueCapacity);
         return executor;
     }
@@ -309,24 +309,24 @@ public class ThreadPoolConfig implements AsyncConfigurer {
      */
     @PreDestroy
     public void destroy() {
-        log.info("开始关闭所有线程池，总数：{}", executors.size());
+        log.info("开始关闭所有线程池，总数：{}|Log_message", executors.size());
         for (ThreadPoolTaskExecutor executor : executors) {
             try {
                 String threadNamePrefix = executor.getThreadNamePrefix();
-                log.info("正在关闭线程池：{}", threadNamePrefix);
+                log.info("正在关闭线程池：{}|Log_message", threadNamePrefix);
                 // 停止接收新任务
                 executor.shutdown();
                 // 等待现有任务完成
                 if (!executor.getThreadPoolExecutor().awaitTermination(30, TimeUnit.SECONDS)) {
-                    log.warn("线程池 {} 在30秒内未能正常关闭，强制关闭", threadNamePrefix);
+                    log.warn("线程池_{}_在30秒内未能正常关闭，强制关闭|Log_message", threadNamePrefix);
                     executor.getThreadPoolExecutor().shutdownNow();
                 }
-                log.info("线程池 {} 已成功关闭", threadNamePrefix);
+                log.info("线程池_{}_已成功关闭|Log_message", threadNamePrefix);
             } catch (Exception e) {
-                log.error("关闭线程池时发生异常：{}", e.getMessage(), e);
+                log.error("关闭线程池时发生异常：{}|Log_message", e.getMessage(), e);
             }
         }
-        log.info("所有线程池关闭完成");
+        log.info("所有线程池关闭完成|Log_message");
     }
 
     /**

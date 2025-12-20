@@ -57,7 +57,7 @@ public class KafkaLogbackConfig implements ApplicationListener<ApplicationReadyE
 
     @Override
     public void onApplicationEvent(ApplicationReadyEvent event) {
-        log.info("=== 应用启动完成，开始更新 Kafka Logback 配置 ===");
+        log.info("应用启动完成开始更新Kafka配置|App_ready_update_kafka_logback");
         updateKafkaConfig();
     }
 
@@ -78,7 +78,7 @@ public class KafkaLogbackConfig implements ApplicationListener<ApplicationReadyE
             KafkaAppender kafkaAppender = (KafkaAppender) loggerContext.getLogger("ROOT").getAppender("kafkaAppender");
 
             if (kafkaAppender != null) {
-                log.info("找到 Kafka Appender，开始更新配置");
+                log.info("找到KafkaAppender开始更新配置|Kafka_appender_found_update_start");
                 
                 // 停止 appender
                 kafkaAppender.stop();
@@ -97,33 +97,33 @@ public class KafkaLogbackConfig implements ApplicationListener<ApplicationReadyE
                 // 重新启动 appender
                 kafkaAppender.start();
                 
-                log.info("Kafka Logback 配置更新成功:");
-                log.info("  - Kafka 集群: {}", kafkaBootstrap);
-                log.info("  - 主机名: {}", hostName);
-                log.info("  - IP地址: {}", hostIp);
-                log.info("  - 端口: {}", serverPort);
-                log.info("  - 服务名: {}", serviceName);
-                log.info("  - 环境: {}", env);
-                log.info("  - 日志主题: log-{}", serviceName);
-                log.info("  - 实例ID: {}-{}-{}", serviceName, hostIp, serverPort);
-                log.info("Kafka 日志推送已恢复正常，字段完整性已修复");
+                log.info("Kafka配置更新成功|Kafka_logback_update_done");
+                log.info("Kafka集群|Kafka_bootstrap,bootstrap={}", kafkaBootstrap);
+                log.info("主机名|Host_name,name={}", hostName);
+                log.info("主机IP|Host_ip,ip={}", hostIp);
+                log.info("服务端口|Service_port,port={}", serverPort);
+                log.info("服务名|Service_name,name={}", serviceName);
+                log.info("运行环境|Active_profile,profile={}", env);
+                log.info("日志主题|Log_topic,topic=log-{}", serviceName);
+                log.info("实例ID|Instance_id,instanceId={}-{}-{}", serviceName, hostIp, serverPort);
+                log.info("Kafka日志推送恢复|Kafka_log_push_recovered");
                 
             } else {
-                log.warn("未找到名为 'kafkaAppender' 的 Appender，请检查 kafka-appender.xml 配置");
+                log.warn("未找到KafkaAppender|Kafka_appender_not_found,appenderName=kafkaAppender");
                 
                 // 列出所有可用的 Appender
-                log.info("当前可用的 Appender 列表:");
+                log.info("当前可用Appender列表|Available_appender_list");
                 loggerContext.getLoggerList().forEach(logger -> {
                     logger.iteratorForAppenders().forEachRemaining(appender -> {
-                        log.info("  - Logger: {}, Appender: {} ({})", 
+                        log.info("Appender信息|Appender_info,logger={},appender={},type={}",
                             logger.getName(), appender.getName(), appender.getClass().getSimpleName());
                     });
                 });
             }
             
         } catch (Exception e) {
-            log.error("更新 Kafka Logback 配置失败: {}", e.getMessage(), e);
-            log.warn("Kafka 日志推送可能无法正常工作，但不影响应用运行");
+            log.error("更新Kafka配置失败|Kafka_logback_update_failed,error={}", e.getMessage(), e);
+            log.warn("Kafka日志推送异常|Kafka_log_push_unstable");
         }
     }
 
@@ -142,7 +142,7 @@ public class KafkaLogbackConfig implements ApplicationListener<ApplicationReadyE
             return InetAddress.getLocalHost().getHostName();
             
         } catch (Exception e) {
-            log.debug("获取主机名失败: {}", e.getMessage());
+            log.debug("获取主机名失败|Host_name_load_failed,error={}", e.getMessage());
             return "unknown";
         }
     }
@@ -197,7 +197,7 @@ public class KafkaLogbackConfig implements ApplicationListener<ApplicationReadyE
             return InetAddress.getLocalHost().getHostAddress();
             
         } catch (Exception e) {
-            log.debug("获取主机 IP 失败: {}", e.getMessage());
+            log.debug("获取主机IP失败|Host_ip_load_failed,error={}", e.getMessage());
             return "unknown";
         }
     }
@@ -238,7 +238,7 @@ public class KafkaLogbackConfig implements ApplicationListener<ApplicationReadyE
      * 手动刷新配置（支持配置中心动态更新）
      */
     public void refreshKafkaConfig() {
-        log.info("手动刷新 Kafka Logback 配置");
+        log.info("手动刷新Kafka配置|Manual_refresh_kafka_logback");
         updateKafkaConfig();
     }
 

@@ -79,7 +79,7 @@ public class DragonTwoServiceImpl implements DragonTwoService {
                 // && intersection.size() / topicStockList.size() > HOT_TOPIC_FLAG_NUM
                 if (!intersection.isEmpty()) {
                     // 当前实现仅记录候选题材，后续可在此处增加通知或入库逻辑
-                    log.info("tradeDate:{},topicId:{},intersection.size={},topicStockList.size={},intersection:{}", tradeDate, topicId, intersection.size(), topicStockList.size(), intersection);
+                    log.info("日志记录|Log_message,tradeDate:{},topicId:{},intersection.size={},topicStockList.size={},intersection:{}", tradeDate, topicId, intersection.size(), topicStockList.size(), intersection);
                 }
             }
         }

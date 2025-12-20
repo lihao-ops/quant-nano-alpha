@@ -9,43 +9,45 @@ import com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule;
 import com.alibaba.csp.sentinel.slots.block.degrade.DegradeRuleManager;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRule;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRuleManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-/*
-实现思路概述（Sentinel FlowRule + DegradeRule 极简演示）
-
-背景：用 Sentinel 在单进程里为一个资源设置“限流”和“熔断降级”，并通过简单的随机慢调用/异常来触发观察效果。
-资源定义：用字符串 RESOURCE 代表受控的接口/方法。
-限流（FlowRule）：
-维度：QPS（每秒请求数）。
-阈值：count=10，超过后直接拒绝（默认快速失败）。
-目的：在正常场景下控速，保护系统不被瞬时流量压垮。
-熔断降级（DegradeRule）：
-策略1：慢调用比例（RT）。当统计窗口内请求量达到 minRequestAmount，且“慢调用比例”超过 slowRatioThreshold，就熔断 timeWindow 秒。
-慢调用的定义通过 count（RT阈值，毫秒）确定。
-策略2：异常比例。异常占比超过阈值 count 时熔断。
-目的：在下游变慢或错误率升高时，快速自我保护并降级。
-运行流程：
-启动时初始化并加载 FlowRule 与 DegradeRule。
-主循环中用 SphU.entry(RESOURCE) 进入受控资源：
-成功进入：执行“模拟业务逻辑”，用随机数制造 5% 异常、20% 慢调用，其余正常。
-被拦截：抛 BlockException，说明被限流或熔断，走降级输出。
-业务异常：用 Tracer.trace 上报，参与异常比例熔断统计。
-观测点：
-正常输出“ok”。
-超过限流阈值或处于熔断状态时输出“blocked: xxx”。
-业务异常输出“biz error: ...”，并可能触发异常比例熔断。
-参数选择原则（示例值，需按业务微调）：
-限流 QPS 选系统可承受的稳定值；RT慢阈值选关键依赖的SLA边界；minRequestAmount与statIntervalMs防止低流量误判；timeWindow不宜过长，便于恢复。
-*/
+/**
+ * Sentinel限流与熔断演示
+ *
+ * 职责：演示单进程内为资源配置限流与熔断规则，并输出触发效果。
+ *
+ * 设计目的：
+ * 1. 说明FlowRule与DegradeRule的组合使用方式。
+ * 2. 展示慢调用与异常比例触发效果。
+ *
+ * 为什么需要该类：
+ * - 作为限流与熔断规则的可运行示例，便于验证配置。
+ *
+ * 核心实现思路：
+ * - 初始化限流与熔断规则，循环进入受控资源并模拟慢调用/异常。
+ */
 public class SentinelDemo {
+    private static final Logger LOG = LoggerFactory.getLogger(SentinelDemo.class);
 
     private static final String RESOURCE = "demo:api";
 
+    /**
+     * 演示入口
+     *
+     * 实现逻辑：
+     * 1. 初始化限流与熔断规则。
+     * 2. 循环访问资源并模拟慢调用与异常。
+     *
+     * @param args 启动参数
+     * @throws Exception 异常
+     */
     public static void main(String[] args) throws Exception {
+        // 实现思路：规则初始化后执行受控请求循环
         initFlowRules();
         initDegradeRules();
 
@@ -56,28 +58,34 @@ public class SentinelDemo {
                 // 随机制造慢请求或异常，用于观察熔断触发
                 int r = ThreadLocalRandom.current().nextInt(100);
                 if (r < 5) { // 5% 概率抛异常
-                    throw new RuntimeException("mock error");
+                    throw new RuntimeException("mock_error");
                 }
                 if (r < 20) { // 20% 概率变慢，sleep 300ms
                     Thread.sleep(300);
                 } else {
                     Thread.sleep(50);
                 }
-                System.out.println("ok " + i);
+                LOG.info("请求通过|Request_pass,index={}", i);
             } catch (BlockException ex) {
                 // 被限流或熔断时的降级逻辑
-                System.out.println("blocked: " + ex.getClass().getSimpleName());
+                LOG.warn("请求被拦截|Request_blocked,reason={}", ex.getClass().getSimpleName());
             } catch (Exception bizEx) {
                 // 记录业务异常，便于异常比例熔断统计
                 Tracer.trace(bizEx);
-                System.out.println("biz error: " + bizEx.getMessage());
+                LOG.error("业务异常|Business_error,error={}", bizEx.getMessage(), bizEx);
             }
         }
     }
 
+    /**
+     * 初始化限流规则
+     *
+     * 实现逻辑：
+     * 1. 构建QPS限流规则。
+     * 2. 加载至规则管理器。
+     */
     private static void initFlowRules() {
-        StringBuilder sb = new StringBuilder();
-        sb.deleteCharAt(sb.length() - 1);
+        // 实现思路：设置资源QPS阈值并加载
         List<FlowRule> rules = new ArrayList<>();
         FlowRule rule = new FlowRule();
         rule.setResource(RESOURCE);
@@ -88,7 +96,15 @@ public class SentinelDemo {
         FlowRuleManager.loadRules(rules);
     }
 
+    /**
+     * 初始化熔断规则
+     *
+     * 实现逻辑：
+     * 1. 配置慢调用比例熔断。
+     * 2. 配置异常比例熔断。
+     */
     private static void initDegradeRules() {
+        // 实现思路：配置RT与异常比例熔断规则
         List<DegradeRule> rules = new ArrayList<>();
 
         // 策略一：慢调用比例熔断（RT）
