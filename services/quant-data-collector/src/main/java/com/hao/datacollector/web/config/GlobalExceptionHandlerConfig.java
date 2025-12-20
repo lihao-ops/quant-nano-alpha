@@ -10,6 +10,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
@@ -37,6 +38,35 @@ import java.util.Map;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandlerConfig {
+
+    /**
+     * 处理资源未找到异常 (404)
+     *
+     * 实现逻辑：
+     * 1. 捕获 NoResourceFoundException。
+     * 2. 返回 404 状态码和友好的错误信息。
+     *
+     * @param ex 资源未找到异常
+     * @param request HTTP请求
+     * @return 错误响应
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNoResourceFoundException(
+            NoResourceFoundException ex, HttpServletRequest request) {
+        // 实现思路：
+        // 1. 记录警告日志（可选，避免刷屏）。
+        // 2. 返回标准 404 响应。
+        log.warn("资源未找到|Resource_not_found,path={}", request.getRequestURI());
+
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("status", HttpStatus.NOT_FOUND.value());
+        errorResponse.put("error", "资源不存在");
+        errorResponse.put("message", "请求的资源不存在: " + request.getRequestURI());
+        errorResponse.put("path", request.getRequestURI());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
 
     /**
      * 处理参数校验异常

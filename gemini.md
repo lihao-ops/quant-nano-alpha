@@ -264,52 +264,123 @@ Redis / MySQL / MQ
 
 十一、项目当前结构快照（AI 记忆区）
 
-> 说明：此区域用于记录项目核心文件位置，确保 AI 在后续对话中准确索引文件。已排除 `.git`、`target` 等无效/编译产物。
+> 说明：此区域用于记录项目核心文件位置，确保 AI 在后续对话中准确索引文件。已排除 `.git`、`target`、`logs` 等无效/编译产物。
 
-**项目根目录**: `e:\project\RedisStudy`
+**项目根目录**: `e:\project\quant-nano-alpha`
 
 1. **根目录**
-   - `gemini.md`: 项目规范与记忆文件
+   - `gemini.md`: 项目规范与 AI 记忆
    - `README.md`: 项目说明
-   - `pom.xml`: Maven 依赖构建配置
-   - `目录结构图.md`: 目录快照
-   - `RedisApplication.java`: 根级示例入口
-   - `RedisRateLimiter.java`: 根级空占位
-   - `SimpleRateLimitTest.java`: 根级空占位
+   - `pom.xml`: 父级聚合 POM
+   - `project-structure.txt`: 目录快照
+   - `common/`: 公共模块
+   - `services/`: 微服务聚合模块
+   - `docs/`: 项目文档
 
-2. **主程序源码 (`src/main/java/com/hao/redis`)**
-   - `RedisApplication.java`: [Boot] 应用启动入口
-   - `config/RedisConfig.java`: [Config] RedisTemplate 序列化配置
-   - `config/ThreadPoolConfig.java`: [Config] 自定义线程池
-   - `config/WebMvcConfig.java`: [Config] MVC 拦截器配置
-   - `controller/WeiboController.java`: [Web] 微博场景接口
-   - `common/aspect/SimpleRateLimit.java`: [Annotation] 单机限流注解
-   - `common/aspect/SimpleRateLimitAspect.java`: [Aspect] 单机限流切面
-   - `common/demo/RedisSampleRunner.java`: [Demo] Redis 读写示例
-   - `common/enums/RedisKeysEnum.java`: [Enum] Redis Key 规范
-   - `common/exception/GlobalExceptionHandler.java`: [Advice] 全局异常处理
-   - `common/exception/RateLimitException.java`: [Exception] 限流业务异常
-   - `common/interceptor/SimpleRateLimiter.java`: [Component] Guava 令牌桶实现
-   - `common/interceptor/VisitInterceptor.java`: [Interceptor] 访问拦截器
-   - `common/util/RedisRateLimiter.java`: [Util] Redis 分布式限流
-   - `dal/dao/mapper/WeiboMapper.java`: [DAO] 微博数据访问接口
-   - `dal/model/WeiboPost.java`: [Model] 微博实体
-   - `integration/redis/RedisClient.java`: [SPI] Redis 客户端接口
-   - `integration/redis/RedisClientImpl.java`: [Impl] Redis 客户端实现
-   - `service/WeiboService.java`: [Service] 微博业务接口
-   - `service/impl/WeiboServiceImpl.java`: [Impl] 微博业务实现
+2. **公共模块 `common`**
+   - `common/pom.xml`: 公共依赖定义
+   - `common/src/main/java/constants/`: `CommonConstants.java`, `DateTimeFormatConstants.java`, `RedisKeyConstants.java`
+   - `common/src/main/java/dto/`: `HistoryTrendDTO.java`, `PageNumDTO.java`
+   - `common/src/main/java/enums/`: `SectorEnum.java`, `SpeedIndicatorEnum.java`, `enums/market/*`, `enums/strategy/*`
+   - `common/src/main/java/exception/BusinessException.java`
+   - `common/src/main/java/integration/kafka/`: `KafkaConstants.java`, `KafkaTopics.java`
+   - `common/src/main/java/util/`: `DateUtil.java`, `MathUtil.java`, `PageUtil.java`, `AesEncryptUtil.java`
 
-3. **资源文件 (`src/main/resources`)**
-   - `application.yml`: Spring Boot 配置
-   - `banner.txt`: 启动横幅
-   - `mapper/weibo/WeiboMapper.xml`: MyBatis 映射
+3. **微服务聚合 `services`**
+   - `services/pom.xml`: 微服务父级 POM
+   - `services/quant-data-collector/`: 数据采集服务
+   - `services/quant-data-archive/`: 数据归档服务
+   - `services/quant-risk-control/`: 风控服务
+   - `services/quant-stock-list/`: 股票列表服务
+   - `services/quant-strategy-engine/`: 策略引擎服务
+   - `services/quant-xxl-job/`: 任务调度管理端
 
-4. **测试代码 (`src/test/java/com/hao/redis`)**
-   - `common/aspect/SimpleRateLimitTest.java`: [Test] 单机限流切面测试
-   - `redis/RedisClientImplTest.java`: [Test] Redis 客户端实现测试
-   - `report/InventoryCheck/VirtualThreadSeckillTest.java`: [Report] 虚拟线程秒杀实验
-   - `report/limit/GuavaRateLimiterTest.java`: [Report] Guava 限流实验
-   - `report/RedisClusterPerformanceTest.java`: [Report] Redis 集群性能实验
-   - `WeiboSystemIntegrationTest.java`: [IT] 微博系统集成测试
+4. **quant-data-collector**
+   - `services/quant-data-collector/src/main/java/com/hao/datacollector/DataCollectorApplication.java`: 应用入口
+   - `services/quant-data-collector/src/main/java/com/hao/datacollector/service/`: 采集服务接口
+   - `services/quant-data-collector/src/main/java/com/hao/datacollector/service/impl/QuotationServiceImpl.java`
+   - `services/quant-data-collector/src/main/java/com/hao/datacollector/service/impl/AnnouncementServiceImpl.java`
+   - `services/quant-data-collector/src/main/java/com/hao/datacollector/service/job/`: 任务调度入口
+   - `services/quant-data-collector/src/main/java/com/hao/datacollector/dal/dao/`: MyBatis Mapper
+   - `services/quant-data-collector/src/main/java/com/hao/datacollector/integration/`: AI/Kafka/Redis/Feign/Sentinel 集成
+   - `services/quant-data-collector/src/main/java/com/hao/datacollector/web/controller/`: 采集 API
+   - `services/quant-data-collector/src/main/java/com/hao/datacollector/web/config/`: Web/线程池/MyBatis 等配置
+   - `services/quant-data-collector/src/main/resources/application.yml`
+   - `services/quant-data-collector/src/main/resources/application-dev.yml`
+   - `services/quant-data-collector/src/main/resources/mapper/*.xml`
+   - `services/quant-data-collector/src/main/resources/logback-spring.xml`
 
-**注意**：生成代码时必须严格匹配上述包路径，禁止在 `src/main` 下生成 `Test` 结尾的测试类。
+5. **quant-data-archive**
+   - `services/quant-data-archive/src/main/java/com/quant/data/archive/DataArchiveApplication.java`: 应用入口
+   - `services/quant-data-archive/src/main/java/com/quant/data/archive/service/`: 归档服务
+   - `services/quant-data-archive/src/main/java/com/quant/data/archive/integration/kafka/`: Kafka 消费与归档
+   - `services/quant-data-archive/src/main/java/com/quant/data/archive/mapper/`: MyBatis Mapper
+   - `services/quant-data-archive/src/main/java/com/quant/data/archive/model/`: 归档实体
+   - `services/quant-data-archive/src/main/resources/application.yml`
+   - `services/quant-data-archive/src/main/resources/mapper/*.xml`
+
+6. **quant-risk-control**
+   - `services/quant-risk-control/src/main/java/com/hao/riskcontrol/RiskControlApplication.java`: 应用入口
+   - `services/quant-risk-control/src/main/java/com/hao/riskcontrol/web/controller/MarketIndexController.java`
+   - `services/quant-risk-control/src/main/java/com/hao/riskcontrol/integration/feign/QuotationClient.java`
+   - `services/quant-risk-control/src/main/resources/application.yml`
+   - `services/quant-risk-control/src/main/resources/application-dev.yml`
+
+7. **quant-stock-list**
+   - `services/quant-stock-list/src/main/java/com/hao/quant/stocklist/StockListApplication.java`: 应用入口
+   - `services/quant-stock-list/src/main/java/com/hao/quant/stocklist/application/`: Controller/DTO/VO/Assembler
+   - `services/quant-stock-list/src/main/java/com/hao/quant/stocklist/domain/`: 领域模型与服务
+   - `services/quant-stock-list/src/main/java/com/hao/quant/stocklist/infrastructure/`: 持久化/缓存/事件/任务
+   - `services/quant-stock-list/src/main/resources/application.yml`
+   - `services/quant-stock-list/src/main/resources/mapper/StablePicksMapper.xml`
+   - `services/quant-stock-list/src/main/resources/schema/strategy_daily_picks.sql`
+
+8. **quant-strategy-engine**
+   - `services/quant-strategy-engine/src/main/java/com/hao/strategyengine/StrategyEngineApplication.java`: 应用入口
+   - `services/quant-strategy-engine/src/main/java/com/hao/strategyengine/api/controller/`: 对外策略接口
+   - `services/quant-strategy-engine/src/main/java/com/hao/strategyengine/chain/StrategyChain.java`
+   - `services/quant-strategy-engine/src/main/java/com/hao/strategyengine/core/`: 调度/注册/分发核心
+   - `services/quant-strategy-engine/src/main/java/com/hao/strategyengine/integration/`: Feign/Kafka/Redis/Nacos/DB
+   - `services/quant-strategy-engine/src/main/java/com/hao/strategyengine/strategy/`: 策略定义与实现
+   - `services/quant-strategy-engine/src/main/resources/application.yml`
+   - `services/quant-strategy-engine/src/main/resources/application-dev.yml`
+
+9. **quant-xxl-job**
+   - `services/quant-xxl-job/src/main/java/com/xxl/job/admin/XxlJobAdminApplication.java`: 管理端入口
+   - `services/quant-xxl-job/src/main/java/com/xxl/job/admin/controller/`: 管理台接口
+   - `services/quant-xxl-job/src/main/java/com/xxl/job/admin/core/`: 调度核心
+   - `services/quant-xxl-job/src/main/java/com/xxl/job/admin/dao/`: MyBatis DAO
+   - `services/quant-xxl-job/src/main/java/com/xxl/job/admin/service/`: 任务管理服务
+   - `services/quant-xxl-job/src/main/resources/application.yml`
+   - `services/quant-xxl-job/src/main/resources/application-dev.yml`
+   - `services/quant-xxl-job/src/main/resources/mybatis-mapper/*.xml`
+   - `services/quant-xxl-job/src/main/resources/templates/`
+   - `services/quant-xxl-job/src/main/resources/static/`
+
+
+
+十二、 高级工程进阶规范（P6+ 必选）
+
+对象生命周期管理：
+
+严格区分 DO (DB层)、DTO (传输层)、VO (展示层)。
+
+Controller 禁止直接返回 DO，必须经过 Converter 转换。
+
+配置管理：
+
+禁止散落在各处的 @Value，必须使用 @ConfigurationProperties 进行集中式、类型安全的配置管理。
+
+事务安全：
+
+@Transactional 注解的方法内，禁止包含 Redis、RPC、HTTP 等网络请求，防止长事务。
+
+如需混合操作，必须通过编程式事务 TransactionTemplate 控制 DB 操作范围。
+
+可观测性增强：
+
+所有日志必须通过 MDC 注入 TraceId。
+
+日志格式推荐键值对风格：key=value，便于机器解析。
+
+核心业务必须预留 Metrics 埋点位置（注释说明即可）。

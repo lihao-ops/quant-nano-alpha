@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.info.License;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.PostConstruct;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,6 +38,15 @@ import org.springframework.context.annotation.Configuration;
 )
 @Configuration
 public class OpenApiConfig {
+
+    /**
+     * 解决 Spring Boot 3.x 与 SpringDoc 兼容性问题的关键配置
+     * 禁用通用响应的自动生成，避免触发 ControllerAdviceBean 的 NoSuchMethodError
+     */
+    @PostConstruct
+    public void init() {
+        System.setProperty("springdoc.override-with-generic-response", "false");
+    }
 
     /**
      * 全部接口分组
