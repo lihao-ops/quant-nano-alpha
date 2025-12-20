@@ -32,8 +32,6 @@ import org.springframework.context.annotation.Configuration;
                 )
         ),
         tags = {
-                @Tag(name = "数据采集", description = "股票、期货、基金等金融数据采集接口"),
-                @Tag(name = "系统管理", description = "系统监控、健康检查和配置管理接口")
         }
 )
 @Configuration
@@ -57,30 +55,6 @@ public class OpenApiConfig {
                 .group("all")
                 .displayName("全部接口")
                 .packagesToScan("com.hao.datacollector.web.controller")
-                .build();
-    }
-
-    /**
-     * 数据采集模块分组
-     */
-    @Bean
-    public GroupedOpenApi dataCollectionApi() {
-        return GroupedOpenApi.builder()
-                .group("data-collection")
-                .displayName("数据采集模块")
-                .pathsToMatch("/data_collection/**")
-                .build();
-    }
-
-    /**
-     * 系统管理模块分组
-     */
-    @Bean
-    public GroupedOpenApi systemApi() {
-        return GroupedOpenApi.builder()
-                .group("system")
-                .displayName("系统管理模块")
-                .pathsToMatch("/health/**")
                 .build();
     }
 }

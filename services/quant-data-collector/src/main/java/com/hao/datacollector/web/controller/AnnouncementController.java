@@ -11,10 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -31,7 +28,7 @@ public class AnnouncementController {
     @Autowired
     private AnnouncementService announcementService;
 
-    @Operation(summary = "个股公告数据源", method = "GET")
+    @Operation(summary = "个股公告数据源")
     @Parameters({
             @Parameter(name = "windCode", description = "股票代码", required = true, schema = @Schema(type = "string")),
             @Parameter(name = "startDate", description = "起始日期", required = true, schema = @Schema(type = "string")),
@@ -39,7 +36,7 @@ public class AnnouncementController {
             @Parameter(name = "pageNo", description = "页号", required = true, schema = @Schema(type = "integer")),
             @Parameter(name = "pageSize", description = "页面规模", required = true, schema = @Schema(type = "integer"))
     })
-    @RequestMapping("/announcement/{windCode}")
+    @RequestMapping(value = "/announcement/{windCode}", method = RequestMethod.GET)
     @ResponseBody
     public List<AnnouncementVO> getAnnouncementSourceData(@PathVariable String windCode, @RequestParam String startDate, @RequestParam String endDate, @RequestParam Integer pageNo, @RequestParam Integer pageSize) {
         return announcementService.getAnnouncementSourceData(windCode, startDate, endDate, pageNo, pageSize);
@@ -55,7 +52,7 @@ public class AnnouncementController {
      * @param pageSize  页面规模
      * @return 个股大事数据源
      */
-    @Operation(summary = "个股大事数据", method = "GET")
+    @Operation(summary = "个股大事数据")
     @Parameters({
             @Parameter(name = "windCode", description = "股票代码", required = true, schema = @Schema(type = "string")),
             @Parameter(name = "startDate", description = "起始日期，格式yyyyMMdd", required = true, schema = @Schema(type = "string")),
@@ -63,7 +60,7 @@ public class AnnouncementController {
             @Parameter(name = "pageNo", description = "页号", required = true, schema = @Schema(type = "integer")),
             @Parameter(name = "pageSize", description = "页面规模", required = true, schema = @Schema(type = "integer"))
     })
-    @RequestMapping("/event/{windCode}")
+    @RequestMapping(value = "/event/{windCode}", method = RequestMethod.GET)
     @ResponseBody
     public List<BigEventVO> getEventSourceData(@PathVariable String windCode, @RequestParam String startDate, @RequestParam String endDate, @RequestParam Integer pageNo, @RequestParam Integer pageSize) {
         return announcementService.getEventSourceData(windCode, startDate, endDate, pageNo, pageSize);
