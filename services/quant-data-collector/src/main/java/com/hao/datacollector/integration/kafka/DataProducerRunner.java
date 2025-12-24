@@ -1,6 +1,5 @@
 package com.hao.datacollector.integration.kafka;
 
-import com.alibaba.fastjson.JSON;
 import com.hao.datacollector.dto.quotation.HistoryTrendDTO;
 import com.hao.datacollector.service.KafkaProducerService;
 import com.hao.datacollector.service.QuotationService;
@@ -10,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j

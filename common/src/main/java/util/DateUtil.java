@@ -34,6 +34,22 @@ public final class DateUtil {
     // 线程安全的DateFormat缓存，避免重复创建SimpleDateFormat对象
     private static final Map<String, ThreadLocal<SimpleDateFormat>> DATE_FORMAT_CACHE = new ConcurrentHashMap<>();
 
+    /**
+     * 标准日期时间格式化器 (线程安全)
+     * 建议优先使用此常量，而非每次调用 DateTimeFormatter.ofPattern()
+     */
+    public static final DateTimeFormatter STANDARD_DATETIME_FORMATTER = DateTimeFormatter.ofPattern(DEFAULT_DATETIME_FORMAT);
+
+    /**
+     * 标准日期格式化器 (线程安全)
+     */
+    public static final DateTimeFormatter STANDARD_DATE_FORMATTER = DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT);
+
+    /**
+     * 紧凑型日期格式化器 (线程安全)
+     */
+    public static final DateTimeFormatter COMPACT_DATE_FORMATTER = DateTimeFormatter.ofPattern(DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT);
+
     // 私有构造函数，防止实例化
     private DateUtil() {
         throw new UnsupportedOperationException("Utility class cannot be instantiated");

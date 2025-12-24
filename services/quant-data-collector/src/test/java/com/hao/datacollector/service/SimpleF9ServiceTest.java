@@ -1,6 +1,5 @@
 package com.hao.datacollector.service;
 
-import com.alibaba.fastjson.JSON;
 import com.hao.datacollector.cache.StockCache;
 import com.hao.datacollector.dal.dao.SimpleF9Mapper;
 import com.hao.datacollector.dto.f9.*;
@@ -9,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import util.JsonUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +71,7 @@ public class SimpleF9ServiceTest {
     @Test
     void getCompanyProfileSource() {
         CompanyProfileDTO companyProfile = simpleF9Service.getCompanyProfileSource("cn", "600519.SH");
-        log.info("日志记录|Log_message,companyProfile={}", JSON.toJSONString(companyProfile));
+        log.info("日志记录|Log_message,companyProfile={}", JsonUtil.toJson(companyProfile));
     }
 
     /**
@@ -84,7 +84,7 @@ public class SimpleF9ServiceTest {
     @Test
     void getInformationSource() {
         List<InformationOceanDTO> information = simpleF9Service.getInformationSource("cn", "600519.SH");
-        log.info("日志记录|Log_message,information={}", JSON.toJSONString(information));
+        log.info("日志记录|Log_message,information={}", JsonUtil.toJson(information));
     }
 
     /**
@@ -97,7 +97,7 @@ public class SimpleF9ServiceTest {
     @Test
     void getKeyStatisticsSource() {
         KeyStatisticsDTO keyStatistics = simpleF9Service.getKeyStatisticsSource("cn", "600519.SH");
-        log.info("日志记录|Log_message,keyStatistics={}", JSON.toJSONString(keyStatistics));
+        log.info("日志记录|Log_message,keyStatistics={}", JsonUtil.toJson(keyStatistics));
     }
 
     /**
@@ -110,7 +110,7 @@ public class SimpleF9ServiceTest {
     @Test
     void getCompanyInfoSource() {
         CompanyInfo companyInfo = simpleF9Service.getCompanyInfoSource("cn", "600519.SH");
-        log.info("日志记录|Log_message,companyInfo={}", JSON.toJSONString(companyInfo));
+        log.info("日志记录|Log_message,companyInfo={}", JsonUtil.toJson(companyInfo));
     }
 
     /**
@@ -123,7 +123,7 @@ public class SimpleF9ServiceTest {
     @Test
     void getNoticeSource() {
         List<NoticeDTO> notice = simpleF9Service.getNoticeSource("cn", "600519.SH");
-        log.info("日志记录|Log_message,notice={}", JSON.toJSONString(notice));
+        log.info("日志记录|Log_message,notice={}", JsonUtil.toJson(notice));
     }
 
     /**
@@ -136,7 +136,7 @@ public class SimpleF9ServiceTest {
     @Test
     void getGreatEventSource() {
         List<GreatEventDTO> greatEvent = simpleF9Service.getGreatEventSource("cn", "600519.SH");
-        log.info("日志记录|Log_message,greatEvent={}", JSON.toJSONString(greatEvent));
+        log.info("日志记录|Log_message,greatEvent={}", JsonUtil.toJson(greatEvent));
     }
 
     /**
@@ -149,7 +149,7 @@ public class SimpleF9ServiceTest {
     @Test
     void getProfitForecastSource() {
         ProfitForecastDTO profitForecast = simpleF9Service.getProfitForecastSource("cn", "600519.SH");
-        log.info("日志记录|Log_message,profitForecast={}", JSON.toJSONString(profitForecast));
+        log.info("日志记录|Log_message,profitForecast={}", JsonUtil.toJson(profitForecast));
     }
 
     /**
@@ -162,7 +162,7 @@ public class SimpleF9ServiceTest {
     @Test
     void getMarketPerformanceSource() {
         MarketPerformanceDTO marketPerformance = simpleF9Service.getMarketPerformanceSource("cn", "600519.SH");
-        log.info("日志记录|Log_message,marketPerformance={}", JSON.toJSONString(marketPerformance));
+        log.info("日志记录|Log_message,marketPerformance={}", JsonUtil.toJson(marketPerformance));
     }
 
     /**
@@ -175,7 +175,7 @@ public class SimpleF9ServiceTest {
     @Test
     void getPeBandSource() {
         List<PeBandVO> peBand = simpleF9Service.getPeBandSource("cn", "600519.SH");
-        log.info("日志记录|Log_message,peBand={}", JSON.toJSONString(peBand));
+        log.info("日志记录|Log_message,peBand={}", JsonUtil.toJson(peBand));
     }
 
     /**
@@ -188,7 +188,7 @@ public class SimpleF9ServiceTest {
     @Test
     void getSecurityMarginSource() {
         List<ValuationIndexDTO> securityMargin = simpleF9Service.getSecurityMarginSource("cn", "600519.SH");
-        log.info("日志记录|Log_message,securityMargin={}", JSON.toJSONString(securityMargin));
+        log.info("日志记录|Log_message,securityMargin={}", JsonUtil.toJson(securityMargin));
     }
 
     /**
@@ -201,6 +201,6 @@ public class SimpleF9ServiceTest {
     @Test
     void getFinancialSummarySource() {
         List<QuickViewGrowthDTO> quickViewGrowthCapability = simpleF9Service.getFinancialSummarySource("cn", "600519.SH");
-        log.info("日志记录|Log_message,quickViewGrowthCapability={}", JSON.toJSONString(quickViewGrowthCapability));
+        log.info("日志记录|Log_message,quickViewGrowthCapability={}", JsonUtil.toJson(quickViewGrowthCapability));
     }
 }

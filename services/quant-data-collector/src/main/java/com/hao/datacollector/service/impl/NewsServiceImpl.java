@@ -1,7 +1,6 @@
 package com.hao.datacollector.service.impl;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.hao.datacollector.common.utils.HttpUtil;
 import com.hao.datacollector.dal.dao.BaseDataMapper;
 import com.hao.datacollector.dal.dao.NewsMapper;
@@ -17,10 +16,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import util.JsonUtil;
 import util.PageUtil;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -73,15 +74,17 @@ public class NewsServiceImpl implements NewsService {
         NewsRequestParams params = new NewsRequestParams();
         params.setWindCode(windCode);
         // 发送请求，设置超时时间
-        String bodyStr = HttpUtil.sendPostRequestTimeOut(url, JSON.toJSONString(params), 10000, header);
-        JSONArray jsonArray = JSON.parseArray(bodyStr);
+        String bodyStr = HttpUtil.sendPostRequestTimeOut(url, JsonUtil.toJson(params), 10000, header);
+        List<Object> jsonArray = JsonUtil.toList(bodyStr, Object.class);
         if (jsonArray == null || !CommonConstants.successCode.equals(jsonArray.get(0))) {
             log.warn("日志记录|Log_message,NewsServiceImpl_transferNewsStockData_error=windCode={}", windCode);
             throw new RuntimeException("数据异常");
         }
         // Wind 返回的数组中，下标 3 为具体数据，先取出再解析
-        JSONArray newsArray = JSON.parseArray(jsonArray.getJSONObject(3).getString("value")).getJSONObject(0).getJSONArray("news");
-        List<NewsInfoVO> newInfoVOList = JSON.parseArray(newsArray.toJSONString(), NewsInfoVO.class);
+        Map<String, Object> dataMap = JsonUtil.toMap(JsonUtil.toJson(jsonArray.get(3)), String.class, Object.class);
+        List<Map<String, Object>> newsListMap = JsonUtil.toList(JsonUtil.toJson(dataMap.get("value")), new TypeReference<List<Map<String, Object>>>() {});
+        List<NewsInfoVO> newInfoVOList = JsonUtil.toList(JsonUtil.toJson(newsListMap.get(0).get("news")), NewsInfoVO.class);
+
         if (newInfoVOList.isEmpty()) {
             boolean insertAbnormalResult = baseDataMapper.insertAbnormalStock(windCode);
             log.warn("日志记录|Log_message,transferNewsStockData_error,windCode={},insertAbnormalResult={}", windCode, insertAbnormalResult);
@@ -106,7 +109,7 @@ public class NewsServiceImpl implements NewsService {
      */
     @Override
     public List<NewsQueryResultVO> queryNewsBaseData(NewsQueryParam queryParam) {
-        log.info("日志记录|Log_message,NewsServiceImpl_queryNewsBaseData_start=queryParam={}", JSON.toJSONString(queryParam));
+        log.info("日志记录|Log_message,NewsServiceImpl_queryNewsBaseData_start=queryParam={}", JsonUtil.toJson(queryParam));
         // 处理分页参数，将pageNo转换为offset
         if (queryParam.getPageNo() != null && queryParam.getPageSize() != null) {
             int offset = PageUtil.calculateOffset(queryParam.getPageNo(), queryParam.getPageSize());

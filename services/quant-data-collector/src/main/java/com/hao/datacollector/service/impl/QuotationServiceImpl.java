@@ -1,8 +1,6 @@
 package com.hao.datacollector.service.impl;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.TypeReference;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.hao.datacollector.common.enums.quotation.TableRangeEnum;
 import com.hao.datacollector.common.utils.HttpUtil;
 import com.hao.datacollector.dal.dao.QuotationMapper;
@@ -22,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import util.DateUtil;
+import util.JsonUtil;
 import util.MathUtil;
 
 import java.time.LocalDate;
@@ -95,7 +94,7 @@ public class QuotationServiceImpl implements QuotationService {
         String url = DataSourceConstants.WIND_PROD_WGQ + String.format(QuotationBaseUrl, windCode, startDate, endDate);
         ResponseEntity<String> response = HttpUtil.sendGetRequest(url, headers, 30000, 30000);
         // Wind 返回二维数组，每行是一日行情数据
-        List<List<Long>> quotationList = JSON.parseObject(response.getBody(), new TypeReference<List<List<Long>>>() {
+        List<List<Long>> quotationList = JsonUtil.toType(response.getBody(), new TypeReference<List<List<Long>>>() {
         });
         List<QuotationStockBaseDTO> quotationStockBaseList = new ArrayList<>();
         if (quotationList == null || quotationList.isEmpty()) {
@@ -210,7 +209,7 @@ public class QuotationServiceImpl implements QuotationService {
             }
         }
         // Wind 接口返回按股票->日期分组的嵌套结构，这里展开为 Map
-        Map<String, Map<String, Object>> rawData = JSON.parseObject(response.getBody(), new TypeReference<Map<String, Map<String, Object>>>() {
+        Map<String, Map<String, Object>> rawData = JsonUtil.toType(response.getBody(), new TypeReference<Map<String, Map<String, Object>>>() {
         });
         List<HistoryTrendDTO> allHistoryTrendList = new ArrayList<>();
         for (Map.Entry<String, Map<String, Object>> stockEntry : rawData.entrySet()) {
@@ -322,13 +321,13 @@ public class QuotationServiceImpl implements QuotationService {
         String actualDataJson = responseBody;
         try {
             // 检查是否有外层包装
-            JSONObject wrapper = JSON.parseObject(responseBody);
+            Map<String, Object> wrapper = JsonUtil.toMap(responseBody, String.class, Object.class);
             if (wrapper != null && wrapper.containsKey("body")) {
                 Object bodyObj = wrapper.get("body");
                 if (bodyObj instanceof String) {
                     actualDataJson = (String) bodyObj;
                 } else {
-                    actualDataJson = JSON.toJSONString(bodyObj);
+                    actualDataJson = JsonUtil.toJson(bodyObj);
                 }
             }
         } catch (Exception e) {
@@ -338,7 +337,7 @@ public class QuotationServiceImpl implements QuotationService {
         // 解析实际数据
         Map<String, Map<String, Object>> rawData;
         try {
-            rawData = JSON.parseObject(actualDataJson, new TypeReference<Map<String, Map<String, Object>>>() {
+            rawData = JsonUtil.toType(actualDataJson, new TypeReference<Map<String, Map<String, Object>>>() {
             });
         } catch (Exception e) {
             log.error("解析JSON数据失败:_{}", e.getMessage(), e);
@@ -365,7 +364,7 @@ public class QuotationServiceImpl implements QuotationService {
                 // 安全转换为List<List<Number>>
                 List<List<Number>> dataArrays;
                 try {
-                    dataArrays = JSON.parseObject(JSON.toJSONString(dateData), new TypeReference<List<List<Number>>>() {
+                    dataArrays = JsonUtil.toType(JsonUtil.toJson(dateData), new TypeReference<List<List<Number>>>() {
                     });
                 } catch (Exception e) {
                     log.warn("转换数据数组失败,_stockCode:_{},_date:_{},_error:_{}", stockCode, date, e.getMessage());
