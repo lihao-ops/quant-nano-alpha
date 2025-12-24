@@ -50,4 +50,10 @@ public class StrategyResult {
 
     /** 策略执行耗时（毫秒） */
     private long durationMs;
+
+    /**
+     * 策略是否执行成功
+     */
+    @Builder.Default
+    private boolean isSuccess = true;
 }
