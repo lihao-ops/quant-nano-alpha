@@ -4,11 +4,14 @@ import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hao.datacollector.common.utils.ExcelReaderUtil;
 import com.hao.datacollector.common.utils.ExcelToDtoConverter;
 import com.hao.datacollector.common.utils.HttpUtil;
 import com.hao.datacollector.dal.dao.BaseDataMapper;
+import com.hao.datacollector.dto.param.base.CloudDataParams;
 import com.hao.datacollector.dto.param.stock.StockBasicInfoQueryParam;
 import com.hao.datacollector.dto.param.stock.StockMarketDataQueryParam;
 import com.hao.datacollector.dto.table.base.StockBasicInfoInsertDTO;
@@ -26,8 +29,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import util.DateUtil;
 import util.ExceptionUtil;
+import util.JsonUtil;
 import util.PageUtil;
 
 import java.io.File;
@@ -76,6 +82,9 @@ public class BaseDataServiceImpl implements BaseDataService {
      */
     @Value("${wind_base.trade.date.url}")
     private String tradeDateBaseUrl;
+
+    @Value("${wind_base.cloud_data.url}")
+    private String cloudDataUrl;
 
     @Autowired
     private BaseDataMapper baseDataMapper;
@@ -407,5 +416,39 @@ public class BaseDataServiceImpl implements BaseDataService {
         List<StockMarketDataQueryResultVO> result = baseDataMapper.queryStockMarketData(queryParam);
         log.info("股票行情查询成功|Stock_market_query_success,resultCount={}", result.size());
         return result;
+    }
+
+    /**
+     * 获取云数据
+     *
+     * @param params 请求参数
+     * @return 云数据响应
+     */
+    @Override
+    public List<List<Object>> getCloudData(CloudDataParams params) {
+        String url = DataSourceConstants.WIND_PROD_WGQ + cloudDataUrl;
+        if (params.getSessionId() == null || params.getSessionId().isEmpty()) {
+            params.setSessionId(properties.getWindSessionId());
+        }
+        log.info("获取云数据|Get_cloud_data,params={}", JsonUtil.toJson(params));
+        // 构造表单数据
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("params", JsonUtil.toJson(params));
+        String responseBody = HttpUtil.sendFormPost(url, formData, null, 10000, 30000).getBody();
+        try {
+            JsonNode rootNode = objectMapper.readTree(responseBody);
+            if (rootNode.has("data")) {
+                String dataJson = rootNode.get("data").toString();
+                // 将 data 字段解析为 List<Map<String, Object>>
+                List<Map<String, Object>> dataList = JsonUtil.toType(dataJson, new TypeReference<List<Map<String, Object>>>() {});
+                // 转换为 List<List<Object>>，只保留 value
+                return dataList.stream()
+                        .map(map -> new ArrayList<>(map.values()))
+                        .collect(Collectors.toList());
+            }
+        } catch (JsonProcessingException e) {
+            log.error("解析云数据响应失败|Parse_cloud_data_error,response={}", responseBody, e);
+        }
+        return new ArrayList<>();
     }
 }

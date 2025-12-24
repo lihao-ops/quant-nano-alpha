@@ -1,5 +1,6 @@
 package com.hao.datacollector.service;
 
+import com.hao.datacollector.dto.param.base.CloudDataParams;
 import com.hao.datacollector.dto.param.stock.StockBasicInfoQueryParam;
 import com.hao.datacollector.dto.param.stock.StockMarketDataQueryParam;
 import com.hao.datacollector.dto.table.base.StockDailyMetricsDTO;
@@ -100,5 +101,12 @@ public interface BaseDataService {
      * @return 返回符合条件的股票行情数据列表
      */
     List<StockMarketDataQueryResultVO> queryStockMarketData(StockMarketDataQueryParam queryParam);
-}
 
+    /**
+     * 获取云数据
+     *
+     * @param params 请求参数
+     * @return 云数据响应
+     */
+    List<List<Object>> getCloudData(CloudDataParams params);
+}

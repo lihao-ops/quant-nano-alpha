@@ -82,7 +82,7 @@ public class NewsServiceImpl implements NewsService {
         }
         // Wind 返回的数组中，下标 3 为具体数据，先取出再解析
         Map<String, Object> dataMap = JsonUtil.toMap(JsonUtil.toJson(jsonArray.get(3)), String.class, Object.class);
-        List<Map<String, Object>> newsListMap = JsonUtil.toList(JsonUtil.toJson(dataMap.get("value")), new TypeReference<List<Map<String, Object>>>() {});
+        List<Map<String, Object>> newsListMap = JsonUtil.toType(JsonUtil.toJson(dataMap.get("value")), new TypeReference<List<Map<String, Object>>>() {});
         List<NewsInfoVO> newInfoVOList = JsonUtil.toList(JsonUtil.toJson(newsListMap.get(0).get("news")), NewsInfoVO.class);
 
         if (newInfoVOList.isEmpty()) {

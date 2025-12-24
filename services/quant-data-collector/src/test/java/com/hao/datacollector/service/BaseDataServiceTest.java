@@ -1,8 +1,13 @@
 package com.hao.datacollector.service;
 
+import com.hao.datacollector.dto.param.base.CloudDataParams;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 基础数据服务测试类
@@ -45,5 +50,22 @@ class BaseDataServiceTest {
         // 1. 使用固定日期范围验证完整链路。
         // 2. 由服务内部处理分段拉取与入库。
         baseDataService.batchInsertStockMarketData("2025-01-01", "2025-06-06");
+    }
+
+    /**
+     * 测试获取云数据
+     */
+    @Test
+    void getCloudData() {
+        CloudDataParams params = new CloudDataParams();
+        params.setCommand("DEV_COMMON_REPORT");
+        params.setCloudType(0);
+        Map<String, String> cloudParams = new HashMap<>();
+        cloudParams.put("reportBody", "WSS('macro=a001010100000000','s_info_name','tradeDate=s_trade_date(windcode,now(), 0)')");
+        params.setCloudParams(cloudParams);
+        params.setLan("zh");
+        // sessionId 可以不传，测试 Service 内部自动填充逻辑
+        List<List<Object>> result = baseDataService.getCloudData(params);
+        System.out.println("Cloud Data Result: " + result);
     }
 }

@@ -1,5 +1,6 @@
 package com.hao.datacollector.web.controller;
 
+import com.hao.datacollector.dto.param.base.CloudDataParams;
 import constants.DateTimeFormatConstants;
 import util.DateUtil;
 import com.hao.datacollector.dto.param.stock.StockBasicInfoQueryParam;
@@ -325,5 +326,17 @@ public class BaseDataController {
         queryParam.setPageSize(pageSize);
         log.info("查询股票行情数据|Query_stock_market_data,queryParam={}", queryParam);
         return baseDataService.queryStockMarketData(queryParam);
+    }
+
+    @Operation(
+            summary = "获取云数据",
+            description = "获取云数据"
+    )
+    @PostMapping("/get_cloud_data")
+    public List<List<Object>> getCloudData(
+            @Parameter(description = "云数据请求参数", required = true)
+            @RequestBody CloudDataParams params) {
+        log.info("获取云数据|Get_cloud_data,params={}", params);
+        return baseDataService.getCloudData(params);
     }
 }
