@@ -131,4 +131,14 @@ public interface BaseDataMapper {
      * @return 影响行数
      */
     int batchInsertStockInfoDaily(@Param("list") List<StockInfoDailyDTO> stockList, @Param("tradeDate") String tradeDate);
+
+    /**
+     * 根据交易日查询日频股票信息
+     *
+     * @param tradeDate 交易日
+     * @param offset    偏移量
+     * @param pageSize  每页大小
+     * @return 股票信息列表
+     */
+    List<StockInfoDailyDTO> queryStockInfoDaily(@Param("tradeDate") String tradeDate, @Param("offset") int offset, @Param("pageSize") int pageSize);
 }

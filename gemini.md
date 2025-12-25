@@ -384,3 +384,9 @@ Controller 禁止直接返回 DO，必须经过 Converter 转换。
 日志格式推荐键值对风格：key=value，便于机器解析。
 
 核心业务必须预留 Metrics 埋点位置（注释说明即可）。
+
+十三、API 设计规范
+
+GET 请求：用于幂等的数据查询。所有参数通过 URL Query Parameters 传递。
+POST 请求：用于非幂等的数据创建或修改。参数通过 Request Body 以 JSON 格式传递。
+分页参数：查询类接口必须支持分页，使用 pageNo (页码，从1开始) 和 pageSize (每页数量) 两个参数。

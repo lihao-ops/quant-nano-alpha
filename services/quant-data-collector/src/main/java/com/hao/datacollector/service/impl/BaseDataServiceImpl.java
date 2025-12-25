@@ -470,4 +470,17 @@ public class BaseDataServiceImpl implements BaseDataService {
         log.info("批量插入日频股票信息成功|Batch_insert_stock_info_daily_success,count={}", count);
         return count > 0;
     }
+
+    /**
+     * 查询日频股票信息
+     *
+     * @param tradeDate 交易日
+     * @param offset    偏移量
+     * @param pageSize  每页大小
+     * @return 股票信息列表
+     */
+    @Override
+    public List<StockInfoDailyDTO> queryStockInfoDaily(String tradeDate, int offset, int pageSize) {
+        return baseDataMapper.queryStockInfoDaily(tradeDate, offset, pageSize);
+    }
 }

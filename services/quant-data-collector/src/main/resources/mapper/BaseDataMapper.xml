@@ -610,7 +610,7 @@
     </select>
 
     <insert id="batchInsertStockInfoDaily" parameterType="java.util.List">
-        INSERT INTO tb_base_stock_info_daily (
+        INSERT INTO tb_base_a_stock_daily (
         wind_code,
         wind_name,
         trade_date
@@ -627,5 +627,21 @@
         wind_name = VALUES(wind_name),
         update_time = NOW()
     </insert>
+
+    <resultMap id="StockInfoDailyResultMap" type="com.hao.datacollector.dto.param.base.StockInfoDailyDTO">
+        <result column="wind_code" property="windCode"/>
+        <result column="wind_name" property="windName"/>
+    </resultMap>
+
+    <select id="queryStockInfoDaily" resultMap="StockInfoDailyResultMap">
+        SELECT
+            wind_code,
+            wind_name
+        FROM
+            tb_base_a_stock_daily
+        WHERE
+            trade_date = #{tradeDate}
+        LIMIT #{offset}, #{pageSize}
+    </select>
 
 </mapper>

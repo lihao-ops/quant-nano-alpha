@@ -119,4 +119,14 @@ public interface BaseDataService {
      * @return 是否插入成功
      */
     Boolean batchInsertStockInfoDaily(List<StockInfoDailyDTO> stockList, String tradeDate);
+
+    /**
+     * 查询日频股票信息
+     *
+     * @param tradeDate 交易日
+     * @param offset    偏移量
+     * @param pageSize  每页大小
+     * @return 股票信息列表
+     */
+    List<StockInfoDailyDTO> queryStockInfoDaily(String tradeDate, int offset, int pageSize);
 }

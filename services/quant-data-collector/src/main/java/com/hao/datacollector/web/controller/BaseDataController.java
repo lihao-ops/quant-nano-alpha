@@ -4,6 +4,7 @@ import com.hao.datacollector.dto.param.base.CloudDataParams;
 import com.hao.datacollector.dto.param.base.StockInfoDailyDTO;
 import constants.DateTimeFormatConstants;
 import util.DateUtil;
+import util.PageUtil;
 import com.hao.datacollector.dto.param.stock.StockBasicInfoQueryParam;
 import com.hao.datacollector.dto.param.stock.StockMarketDataQueryParam;
 import com.hao.datacollector.service.BaseDataService;
@@ -14,10 +15,12 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
@@ -353,5 +356,27 @@ public class BaseDataController {
             @RequestParam String tradeDate) {
         log.info("批量插入日频股票信息|Batch_insert_stock_info_daily,count={},tradeDate={}", stockList.size(), tradeDate);
         return baseDataService.batchInsertStockInfoDaily(stockList, tradeDate);
+    }
+
+    @Operation(
+            summary = "查询日频股票信息",
+            description = "根据交易日查询当天的所有A股股票列表"
+    )
+    @GetMapping("/stock_info_daily_list")
+    public List<StockInfoDailyDTO> queryStockInfoDaily(
+            @Parameter(description = "交易日，格式 yyyy-MM-dd，不传则默认为当天", example = "2025-06-21")
+            @RequestParam(required = false) String tradeDate,
+            @Parameter(description = "页码", example = "1")
+            @RequestParam(defaultValue = "1") Integer pageNo,
+            @Parameter(description = "每页大小", example = "1000")
+            @RequestParam(defaultValue = "1000") Integer pageSize) {
+        String queryDate = tradeDate;
+        if (!StringUtils.hasText(queryDate)) {
+            queryDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
+        }
+        // 计算偏移量
+        int offset = PageUtil.calculateOffset(pageNo, pageSize);
+        log.info("查询日频股票信息|Query_stock_info_daily,tradeDate={},pageNo={},pageSize={}", queryDate, pageNo, pageSize);
+        return baseDataService.queryStockInfoDaily(queryDate, offset, pageSize);
     }
 }
