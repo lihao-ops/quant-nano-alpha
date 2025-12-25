@@ -1,5 +1,6 @@
 package com.hao.datacollector.dal.dao;
 
+import com.hao.datacollector.dto.param.base.StockInfoDailyDTO;
 import com.hao.datacollector.dto.param.stock.StockBasicInfoQueryParam;
 import com.hao.datacollector.dto.param.stock.StockMarketDataQueryParam;
 import com.hao.datacollector.dto.table.base.StockBaseDTO;
@@ -121,4 +122,13 @@ public interface BaseDataMapper {
      * @return 异常股票列表
      */
     List<String> getAbnormalStockList();
+
+    /**
+     * 批量插入日频股票信息
+     *
+     * @param stockList 股票信息列表
+     * @param tradeDate 交易日
+     * @return 影响行数
+     */
+    int batchInsertStockInfoDaily(@Param("list") List<StockInfoDailyDTO> stockList, @Param("tradeDate") String tradeDate);
 }

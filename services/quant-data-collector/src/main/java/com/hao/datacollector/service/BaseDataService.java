@@ -1,6 +1,7 @@
 package com.hao.datacollector.service;
 
 import com.hao.datacollector.dto.param.base.CloudDataParams;
+import com.hao.datacollector.dto.param.base.StockInfoDailyDTO;
 import com.hao.datacollector.dto.param.stock.StockBasicInfoQueryParam;
 import com.hao.datacollector.dto.param.stock.StockMarketDataQueryParam;
 import com.hao.datacollector.dto.table.base.StockDailyMetricsDTO;
@@ -109,4 +110,13 @@ public interface BaseDataService {
      * @return 云数据响应
      */
     List<List<Object>> getCloudData(CloudDataParams params);
+
+    /**
+     * 批量插入日频股票信息
+     *
+     * @param stockList 股票信息列表
+     * @param tradeDate 交易日
+     * @return 是否插入成功
+     */
+    Boolean batchInsertStockInfoDaily(List<StockInfoDailyDTO> stockList, String tradeDate);
 }

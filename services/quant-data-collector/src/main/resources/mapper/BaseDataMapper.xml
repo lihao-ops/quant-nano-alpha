@@ -609,4 +609,23 @@
         WHERE status = 1
     </select>
 
+    <insert id="batchInsertStockInfoDaily" parameterType="java.util.List">
+        INSERT INTO tb_base_stock_info_daily (
+        wind_code,
+        wind_name,
+        trade_date
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.windCode},
+            #{item.windName},
+            #{tradeDate}
+            )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        wind_name = VALUES(wind_name),
+        update_time = NOW()
+    </insert>
+
 </mapper>

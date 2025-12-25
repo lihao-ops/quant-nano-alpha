@@ -1,6 +1,7 @@
 package com.hao.datacollector.web.controller;
 
 import com.hao.datacollector.dto.param.base.CloudDataParams;
+import com.hao.datacollector.dto.param.base.StockInfoDailyDTO;
 import constants.DateTimeFormatConstants;
 import util.DateUtil;
 import com.hao.datacollector.dto.param.stock.StockBasicInfoQueryParam;
@@ -338,5 +339,19 @@ public class BaseDataController {
             @RequestBody CloudDataParams params) {
         log.info("获取云数据|Get_cloud_data,params={}", params);
         return baseDataService.getCloudData(params);
+    }
+
+    @Operation(
+            summary = "批量插入日频股票信息",
+            description = "将传入的股票列表批量插入或更新到日频股票信息表中"
+    )
+    @PostMapping("/insert_stock_info_daily")
+    public Boolean batchInsertStockInfoDaily(
+            @Parameter(description = "股票信息列表", required = true)
+            @RequestBody List<StockInfoDailyDTO> stockList,
+            @Parameter(description = "交易日", example = "2025-06-21", required = true)
+            @RequestParam String tradeDate) {
+        log.info("批量插入日频股票信息|Batch_insert_stock_info_daily,count={},tradeDate={}", stockList.size(), tradeDate);
+        return baseDataService.batchInsertStockInfoDaily(stockList, tradeDate);
     }
 }

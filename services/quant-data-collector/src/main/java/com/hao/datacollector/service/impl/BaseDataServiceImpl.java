@@ -12,6 +12,7 @@ import com.hao.datacollector.common.utils.ExcelToDtoConverter;
 import com.hao.datacollector.common.utils.HttpUtil;
 import com.hao.datacollector.dal.dao.BaseDataMapper;
 import com.hao.datacollector.dto.param.base.CloudDataParams;
+import com.hao.datacollector.dto.param.base.StockInfoDailyDTO;
 import com.hao.datacollector.dto.param.stock.StockBasicInfoQueryParam;
 import com.hao.datacollector.dto.param.stock.StockMarketDataQueryParam;
 import com.hao.datacollector.dto.table.base.StockBasicInfoInsertDTO;
@@ -450,5 +451,23 @@ public class BaseDataServiceImpl implements BaseDataService {
             log.error("解析云数据响应失败|Parse_cloud_data_error,response={}", responseBody, e);
         }
         return new ArrayList<>();
+    }
+
+    /**
+     * 批量插入日频股票信息
+     *
+     * @param stockList 股票信息列表
+     * @param tradeDate 交易日
+     * @return 是否插入成功
+     */
+    @Override
+    public Boolean batchInsertStockInfoDaily(List<StockInfoDailyDTO> stockList, String tradeDate) {
+        if (stockList == null || stockList.isEmpty()) {
+            log.warn("批量插入日频股票信息_列表为空|Batch_insert_stock_info_daily_empty_list");
+            return false;
+        }
+        int count = baseDataMapper.batchInsertStockInfoDaily(stockList, tradeDate);
+        log.info("批量插入日频股票信息成功|Batch_insert_stock_info_daily_success,count={}", count);
+        return count > 0;
     }
 }
