@@ -1,10 +1,13 @@
 package com.hao.datacollector.service;
 
 import com.hao.datacollector.dto.param.base.CloudDataParams;
+import com.hao.datacollector.dto.param.base.StockInfoDailyDTO;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +23,7 @@ import java.util.Map;
  * - 通过Spring上下文加载真实依赖。
  * - 使用固定日期区间回放核心流程。
  */
+@Slf4j
 @SpringBootTest
 class BaseDataServiceTest {
     @Autowired
@@ -53,7 +57,7 @@ class BaseDataServiceTest {
     }
 
     /**
-     * 测试获取云数据
+     * 测试获取云数据并批量入库
      */
     @Test
     void getCloudData() {
@@ -64,8 +68,36 @@ class BaseDataServiceTest {
         cloudParams.put("reportBody", "WSS('macro=a001010100000000','s_info_name','tradeDate=s_trade_date(windcode,now(), 0)')");
         params.setCloudParams(cloudParams);
         params.setLan("zh");
-        // sessionId 可以不传，测试 Service 内部自动填充逻辑
+        
+        // 1. 获取云数据
         List<List<Object>> result = baseDataService.getCloudData(params);
-        System.out.println("Cloud Data Result: " + result);
+        log.info("获取云数据结果|Get_cloud_data_result,size={}", result.size());
+
+        // 2. 转换为 DTO 列表
+        List<StockInfoDailyDTO> stockList = new ArrayList<>();
+        String tradeDate = "20251225";
+        
+        if (result != null && !result.isEmpty()) {
+            for (List<Object> row : result) {
+                if (row.size() >= 2) { // 确保有足够的列: code, name, date
+                    StockInfoDailyDTO dto = new StockInfoDailyDTO();
+                    dto.setWindCode(String.valueOf(row.get(0)));
+                    dto.setWindName(String.valueOf(row.get(1)));
+                    stockList.add(dto);
+                }
+            }
+        }
+
+        // 3. 批量入库
+        if (!stockList.isEmpty() && tradeDate != null) {
+            // 格式化日期，假设返回的是 yyyyMMdd，需要转为 yyyy-MM-dd 或者直接使用（取决于数据库字段类型）
+            // 这里假设数据库是 DATE 类型，且 Mapper 中直接使用了字符串，可能需要根据实际情况调整格式
+            // 如果 tradeDate 是 "20250621"，可能需要转为 "2025-06-21"
+            // 这里简单处理，直接传入
+            Boolean b = baseDataService.batchInsertStockInfoDaily(stockList, tradeDate);
+            log.info("批量入库结果|Batch_insert_result,success={}", b);
+        } else {
+            log.warn("无数据需要入库|No_data_to_insert");
+        }
     }
 }
