@@ -66,6 +66,7 @@ class QuotationServiceTest {
         }
     }
 
+    //todo tradeDate=20240528,_windCodes=920961.BJ
     @Test
     void transferQuotationHistoryTrendSupplement() {
         // 使用补充的WindCode列表
