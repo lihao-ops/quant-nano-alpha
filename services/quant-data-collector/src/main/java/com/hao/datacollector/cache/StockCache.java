@@ -1,12 +1,14 @@
 package com.hao.datacollector.cache;
 
 import com.hao.datacollector.dal.dao.BaseDataMapper;
+import com.hao.datacollector.dto.param.base.StockInfoDailyDTO;
 import com.hao.datacollector.dto.table.base.StockBaseDTO;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,14 +16,14 @@ import java.util.stream.Collectors;
 
 /**
  * 股票相关缓存
- *
+ * <p>
  * 设计目的：
  * 1. 缓存股票代码与基础信息，减少数据库访问。
  * 2. 提供股票ID与WindCode的快速映射。
- *
+ * <p>
  * 为什么需要该类：
  * - 股票基础信息是高频依赖数据，需要集中缓存。
- *
+ * <p>
  * 核心实现思路：
  * - 启动时批量加载股票基础数据并构建映射关系。
  *
@@ -43,6 +45,11 @@ public class StockCache {
     public static List<String> allWindCode;
 
     /**
+     * 补充的A股代码
+     */
+    public static List<String> supplementWindCode;
+
+    /**
      * 股票ID前缀 -> 完整wind_code 映射
      * 例如：000001 -> 000001.SZ
      */
@@ -56,7 +63,7 @@ public class StockCache {
 
     /**
      * 初始化股票基础缓存
-     *
+     * <p>
      * 实现逻辑：
      * 1. 加载A股代码与基础信息。
      * 2. 构建风格代码与名称映射。
@@ -81,11 +88,48 @@ public class StockCache {
             stockIdToWindCodeMap.putIfAbsent(prefix, windCode);
         }
         log.info("股票ID映射缓存完成|Stock_id_mapping_cache_loaded,mapSize={}", stockIdToWindCodeMap.size());
+
+        // 初始化补充列表
+        initSupplementWindCode();
+    }
+
+    /**
+     * 初始化补充WindCode列表
+     */
+    private void initSupplementWindCode() {
+        try {
+            // 获取当前日期作为查询日期
+            String queryDate = "20251225";
+
+            // 查询日频股票信息
+            // offset=1, pageSize=100000
+            List<StockInfoDailyDTO> dailyStockInfos = baseDataMapper.queryStockInfoDaily(queryDate, 1, 100000);
+
+            if (dailyStockInfos != null && !dailyStockInfos.isEmpty()) {
+                // 提取所有windCode
+                List<String> dailyWindCodes = dailyStockInfos.stream()
+                        .map(StockInfoDailyDTO::getWindCode)
+                        .collect(Collectors.toList());
+
+                // 找出allWindCode中没有的windCode
+                supplementWindCode = dailyWindCodes.stream()
+                        .filter(code -> !allWindCode.contains(code))
+                        .collect(Collectors.toList());
+
+                log.info("股票代码补充缓存完成|Stock_supplement_code_cache_loaded,supplementSize={}", supplementWindCode.size());
+            } else {
+                supplementWindCode = new ArrayList<>();
+                log.info("股票代码补充缓存为空|Stock_supplement_code_cache_empty");
+            }
+        } catch (Exception e) {
+            log.error("初始化股票代码补充缓存失败|Init_supplement_wind_code_failed", e);
+            supplementWindCode = new ArrayList<>();
+        }
     }
 
     /**
      * 根据股票ID获取完整wind_code
-     *
+     * <p>
      * 实现逻辑：
      * 1. 通过缓存映射返回WindCode。
      *
@@ -100,7 +144,7 @@ public class StockCache {
 
     /**
      * 根据windCode获取股票名称
-     *
+     * <p>
      * 实现逻辑：
      * 1. 通过缓存映射返回股票名称。
      *
