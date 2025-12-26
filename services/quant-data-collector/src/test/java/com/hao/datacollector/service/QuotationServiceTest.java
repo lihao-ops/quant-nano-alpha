@@ -66,6 +66,33 @@ class QuotationServiceTest {
         }
     }
 
+    @Test
+    void transferQuotationHistoryTrendSupplement() {
+        // 使用补充的WindCode列表
+        List<String> supplementWindCodeList = new ArrayList<>(StockCache.supplementWindCode);
+        if (supplementWindCodeList.isEmpty()) {
+            log.info("补充转档列表为空，无需执行");
+            return;
+        }
+        // 获取2024年至今的交易日历
+        List<String> year2024TradeDateList = DateUtil.formatLocalDateList(DateCache.Year2024TradeDateList, DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT);
+        List<String> currentYearTradeDateList = DateUtil.formatLocalDateList(DateCache.CurrentYearTradeDateList, DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT);
+        List<String> allTradeDateList = new ArrayList<>();
+        allTradeDateList.addAll(year2024TradeDateList);
+        allTradeDateList.addAll(currentYearTradeDateList);
+        // 去重并排序
+        allTradeDateList = allTradeDateList.stream().distinct().sorted().collect(Collectors.toList());
+        // startDate从2024年开始Year2024TradeDateList的第一个元素
+        String startDate = year2024TradeDateList.get(0);
+        // 过滤出startDate之后的日期
+        List<String> targetTradeDateList = allTradeDateList.stream()
+                .filter(date -> date.compareTo(startDate) >= 0)
+                .collect(Collectors.toList());
+        int batchSize = 100;
+        log.info("开始补充转档，共{}个股票，{}个交易日", supplementWindCodeList.size(), targetTradeDateList.size());
+        transferOneDay(targetTradeDateList, supplementWindCodeList, batchSize);
+    }
+
     private void transferOneDay(List<String> yearTradeDateList, List<String> windCodes, int batchSize) {
         int totalSize = windCodes.size();
         for (String tradeDate : yearTradeDateList) {
