@@ -84,7 +84,7 @@ class QuotationServiceTest {
         // 去重并排序
         allTradeDateList = allTradeDateList.stream().distinct().sorted().collect(Collectors.toList());
         // startDate从2024年开始Year2024TradeDateList的第一个元素
-        String startDate = "20240923";
+        String startDate = "20241223";
         // 过滤出startDate之后的日期
         List<String> targetTradeDateList = allTradeDateList.stream()
                 .filter(date -> date.compareTo(startDate) >= 0)
