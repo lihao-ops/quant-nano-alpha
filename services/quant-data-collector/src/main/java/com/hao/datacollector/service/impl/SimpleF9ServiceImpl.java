@@ -3,6 +3,7 @@ package com.hao.datacollector.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.hao.datacollector.common.utils.ExtremeValueUtil;
 import com.hao.datacollector.common.utils.HttpUtil;
 import com.hao.datacollector.dal.dao.SimpleF9Mapper;
 import com.hao.datacollector.dto.f9.*;
@@ -393,12 +394,9 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
         BeanUtils.copyProperties(companyProfileSource, insertCompanyProfileDTO);
         insertCompanyProfileDTO.setLan(f9Param.getLan());
         insertCompanyProfileDTO.setWindCode(f9Param.getWindCode());
-        //处理极大值问题
-        if (insertCompanyProfileDTO.getScore().equals(Double.MAX_VALUE)) {
-            insertCompanyProfileDTO.setScore(null);
-        }
         List<InsertCompanyProfileDTO> insertList = new ArrayList<>();
         insertList.add(insertCompanyProfileDTO);
+        ExtremeValueUtil.handleExtremeValues(insertList);
         // Mapper 采用批量接口，尽管当前仅一条也保持统一入口
         int count = simpleF9Mapper.batchInsertCompanyProfileDataJob(insertList);
         log.info("日志记录|Log_message,insertCompanyProfileDataJob.count={}", count);
@@ -428,6 +426,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
             insertDTO.setTitle(dto.getTitle());
             insertList.add(insertDTO);
         }
+        ExtremeValueUtil.handleExtremeValues(insertList);
         int count = simpleF9Mapper.batchInsertInformation(insertList);
         log.info("日志记录|Log_message,insertInformationDataJob.count={}", count);
         return count >= 0;
@@ -451,6 +450,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
         insertDTO.setLan(f9Param.getLan());
         List<InsertKeyStatisticsDTO> insertList = new ArrayList<>(1);
         insertList.add(insertDTO);
+        ExtremeValueUtil.handleExtremeValues(insertList);
         int count = simpleF9Mapper.batchInsertKeyStatistics(insertList);
         log.info("日志记录|Log_message,insertKeyStatisticsDataJob.count={}", count);
         return count >= 0;
@@ -474,6 +474,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
         insertDTO.setLan(f9Param.getLan());
         List<InsertCompanyInfoDTO> insertList = new ArrayList<>(1);
         insertList.add(insertDTO);
+        ExtremeValueUtil.handleExtremeValues(insertList);
         int count = simpleF9Mapper.batchInsertCompanyInfo(insertList);
         log.info("日志记录|Log_message,insertCompanyInfoDataJob.count={}", count);
         return count >= 0;
@@ -499,6 +500,8 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
             insertDTO.setLan(f9Param.getLan());
             insertList.add(insertDTO);
         }
+
+        ExtremeValueUtil.handleExtremeValues(insertList);
         int count = simpleF9Mapper.batchInsertNotice(insertList);
         log.info("日志记录|Log_message,insertNoticeDataJob.count={}", count);
         return count >= 0;
@@ -524,6 +527,8 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
             insertDTO.setLan(f9Param.getLan());
             insertList.add(insertDTO);
         }
+
+        ExtremeValueUtil.handleExtremeValues(insertList);
         int count = simpleF9Mapper.batchInsertGreatEvent(insertList);
         log.info("日志记录|Log_message,insertGreatEventDataJob.count={}", count);
         return count >= 0;
@@ -547,6 +552,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
         insertDTO.setLan(f9Param.getLan());
         List<InsertProfitForecastDTO> insertList = new ArrayList<>(1);
         insertList.add(insertDTO);
+        ExtremeValueUtil.handleExtremeValues(insertList);
         int count = simpleF9Mapper.batchInsertProfitForecast(insertList);
         log.info("日志记录|Log_message,insertProfitForecastDataJob.count={}", count);
         return count >= 0;
@@ -570,6 +576,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
         insertDTO.setLan(f9Param.getLan());
         List<InsertMarketPerformanceDTO> insertList = new ArrayList<>(1);
         insertList.add(insertDTO);
+        ExtremeValueUtil.handleExtremeValues(insertList);
         int count = simpleF9Mapper.batchInsertMarketPerformance(insertList);
         log.info("日志记录|Log_message,insertMarketPerformanceDataJob.count={}", count);
         return count >= 0;
@@ -595,6 +602,8 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
             insertDTO.setLan(f9Param.getLan());
             insertList.add(insertDTO);
         }
+
+        ExtremeValueUtil.handleExtremeValues(insertList);
         int count = simpleF9Mapper.batchInsertPeBand(insertList);
         log.info("日志记录|Log_message,insertPeBandDataJob.count={}", count);
         return count >= 0;
@@ -624,6 +633,8 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
             insertDTO.setIndustryForward(dto.getIndustry2024E());
             insertList.add(insertDTO);
         }
+
+        ExtremeValueUtil.handleExtremeValues(insertList);
         int count = simpleF9Mapper.batchInsertValuationIndex(insertList);
         log.info("日志记录|Log_message,insertSecurityMarginDataJob.count={}", count);
         return count >= 0;
@@ -649,6 +660,7 @@ public class SimpleF9ServiceImpl implements SimpleF9Service {
             insertDTO.setLan(f9Param.getLan());
             insertList.add(insertDTO);
         }
+        ExtremeValueUtil.handleExtremeValues(insertList);
         int count = simpleF9Mapper.batchInsertFinancialSummary(insertList);
         log.info("日志记录|Log_message,insertFinancialSummaryDataJob.count={}", count);
         return count >= 0;

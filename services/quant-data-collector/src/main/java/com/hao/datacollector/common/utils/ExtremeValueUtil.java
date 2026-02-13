@@ -13,13 +13,16 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * 设计目的：
  * 1. 统一处理数值字段中的非法值与异常极值。
- * 2. 降低极端数据对后续计算的影响。
+ * 2. 截断超长字符串字段，防止 MySQL "Data too long" 错误。
+ * 3. 降低极端数据对后续计算的影响。
  *
  * 为什么需要该类：
  * - 数据源可能存在NaN、Infinity等异常值，需要统一兜底。
+ * - 数据源返回的字符串可能超出数据库列宽度限制。
  *
  * 核心实现思路：
  * - 通过反射扫描对象字段，发现异常值后置为默认值。
+ * - 字符串超长时截断至安全长度。
  * - 对告警日志进行限流，避免刷屏。
  */
 @Slf4j
@@ -27,6 +30,7 @@ public class ExtremeValueUtil {
 
     private static final Map<Class<?>, Number> DEFAULT_MAX_VALUES = new HashMap<>();
     private static final int MAX_WARN_LOGS = 100; // 限制日志输出数量
+    private static final int DEFAULT_MAX_STRING_LENGTH = 200; // 字符串字段默认最大长度
     private static final AtomicInteger warnLogCount = new AtomicInteger(0);
 
     static {
@@ -53,6 +57,23 @@ public class ExtremeValueUtil {
         // 实现思路：
         // 1. 委托到带自定义阈值的方法。
         handleExtremeValues(list, null);
+    }
+
+    /**
+     * 处理单个对象中的异常极值
+     *
+     * 实现逻辑：
+     * 1. 使用默认阈值处理单个对象。
+     *
+     * @param obj 待处理对象
+     * @param <T> 对象类型
+     */
+    public static <T> void handleExtremeValues(T obj) {
+        if (obj == null) {
+            return;
+        }
+        warnLogCount.set(0);
+        handleSingleObject(obj, null);
     }
 
     /**
@@ -101,10 +122,28 @@ public class ExtremeValueUtil {
             try {
                 field.setAccessible(true);
                 Object value = field.get(obj);
-                if (value == null || !isNumericType(field.getType())) continue;
+                if (value == null) {
+                    continue;
+                }
 
                 Class<?> fieldType = field.getType();
                 String fieldName = field.getName();
+
+                // 处理字符串超长截断
+                if (fieldType == String.class) {
+                    String strValue = (String) value;
+                    if (strValue.length() > DEFAULT_MAX_STRING_LENGTH) {
+                        field.set(obj, strValue.substring(0, DEFAULT_MAX_STRING_LENGTH));
+                        logWarnOnce("字段超长截断|Field_string_truncated,fieldName={},originalLength={},maxLength={}",
+                                fieldName, strValue.length(), DEFAULT_MAX_STRING_LENGTH);
+                    }
+                    continue;
+                }
+
+                // 处理数值极值
+                if (!isNumericType(fieldType)) {
+                    continue;
+                }
                 Number numValue = (Number) value;
                 Number maxValue = getMaxValue(fieldName, fieldType, customMaxValues);
 
@@ -204,14 +243,17 @@ public class ExtremeValueUtil {
 
     private static void setDefaultValue(Object obj, Field field, Class<?> fieldType) throws IllegalAccessException {
         // 实现思路：
-        // 1. 按字段类型设置默认值。
-        if (fieldType == double.class || fieldType == Double.class) {
+        // 1. 包装类型置 null（语义为"数据不可用"），基本类型置零。
+        if (fieldType == Double.class || fieldType == Float.class
+                || fieldType == Integer.class || fieldType == Long.class) {
+            field.set(obj, null);
+        } else if (fieldType == double.class) {
             field.set(obj, 0.0);
-        } else if (fieldType == float.class || fieldType == Float.class) {
+        } else if (fieldType == float.class) {
             field.set(obj, 0.0f);
-        } else if (fieldType == int.class || fieldType == Integer.class) {
+        } else if (fieldType == int.class) {
             field.set(obj, 0);
-        } else if (fieldType == long.class || fieldType == Long.class) {
+        } else if (fieldType == long.class) {
             field.set(obj, 0L);
         }
     }

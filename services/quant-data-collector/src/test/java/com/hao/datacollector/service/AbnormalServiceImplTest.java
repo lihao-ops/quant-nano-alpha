@@ -41,7 +41,7 @@ class AbnormalServiceImplTest {
     public void getHomePage() {
         // 实现思路：循环交易日执行转档并记录结果
         //2021，2024已转，20250826(未完整)
-        List<String> tradeDateList = DateUtil.formatLocalDateList(DateCache.Year2025TradeDateList, DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT);
+        List<String> tradeDateList = DateUtil.formatLocalDateList(DateCache.CurrentYearTradeDateList, DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT);
         for (String tradeDate : tradeDateList) {
             IndexSourceParam indexSourceParam = new IndexSourceParam();
             indexSourceParam.setTradeDate(tradeDate);

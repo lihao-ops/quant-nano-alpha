@@ -101,7 +101,7 @@ public class StockCache {
         try {
             // 获取当前日期作为查询日期
             // TODO: 这里使用了硬编码日期，建议改为动态获取最新交易日或从配置读取
-            String queryDate = "20251225";
+            String queryDate = "20260212";
 
             // 查询日频股票信息
             // offset=1, pageSize=100000
