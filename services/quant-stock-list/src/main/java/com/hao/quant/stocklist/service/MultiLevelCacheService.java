@@ -82,9 +82,14 @@ public class MultiLevelCacheService {
     private static final long CACHE_TTL_HOURS = 24;
 
     /**
-     * 空值标记缓存过期时间：1 分钟
+     * 空值标记缓存过期时间：10 秒
+     * <p>
+     * 设为 10 秒而非更长的原因：
+     * 1. 保证数据新鲜度——若数据在空值标记期间入库，最多 10 秒后即可查到
+     * 2. L3 已有 Sentinel QPS=1 限流保护，即使空值频繁过期，MySQL 最多承受 1 QPS，压力可控
+     * 3. L1 Caffeine 本身有 3 秒 TTL，在 10 秒窗口内可再挡住大部分重复请求
      */
-    private static final long EMPTY_CACHE_TTL_MINUTES = 1;
+    private static final long EMPTY_CACHE_TTL_SECONDS = 10;
 
     @Autowired
     @Qualifier("stockSignalCache")
@@ -290,8 +295,8 @@ public class MultiLevelCacheService {
         try {
             RList<String> rlist = redissonClient.getList(cacheKey);
             rlist.add(EMPTY_MARKER);
-            rlist.expire(Duration.ofMinutes(EMPTY_CACHE_TTL_MINUTES));
-            log.info("空值标记已缓存|Empty_marker_cached,key={},ttl={}min", cacheKey, EMPTY_CACHE_TTL_MINUTES);
+            rlist.expire(Duration.ofSeconds(EMPTY_CACHE_TTL_SECONDS));
+            log.info("空值标记已缓存|Empty_marker_cached,key={},ttl={}s", cacheKey, EMPTY_CACHE_TTL_SECONDS);
         } catch (Exception e) {
             log.warn("空值标记缓存失败|Empty_marker_cache_failed,key={}", cacheKey, e);
         }
