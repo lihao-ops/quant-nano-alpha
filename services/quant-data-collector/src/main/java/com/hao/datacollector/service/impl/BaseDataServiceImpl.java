@@ -461,6 +461,36 @@ public class BaseDataServiceImpl implements BaseDataService {
      * @param tradeDate 交易日
      * @return 是否插入成功
      */
+    // Preserve report column names for Cloud report consumers.
+    @Override
+    public List<Map<String, Object>> getCloudDataRows(CloudDataParams params) {
+        String url = DataSourceConstants.WIND_PROD_WGQ + cloudDataUrl;
+        if (params.getSessionId() == null || params.getSessionId().isEmpty()) {
+            params.setSessionId(properties.getWindSessionId());
+        }
+        log.info("获取云数据行|Get_cloud_data_rows,params={}", JsonUtil.toJson(params));
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("params", JsonUtil.toJson(params));
+        String responseBody = HttpUtil.sendFormPost(url, formData, null, 10000, 30000).getBody();
+        try {
+            JsonNode rootNode = objectMapper.readTree(responseBody);
+            if (rootNode.has("status") && rootNode.get("status").asInt() != 0) {
+                log.warn("云数据响应失败|Cloud_data_status_error,status={},errorMessage={}",
+                        rootNode.get("status").asInt(),
+                        rootNode.has("errorMessage") ? rootNode.get("errorMessage").toString() : null);
+                return new ArrayList<>();
+            }
+            if (rootNode.has("data")) {
+                String dataJson = rootNode.get("data").toString();
+                List<Map<String, Object>> dataList = JsonUtil.toType(dataJson, new TypeReference<List<Map<String, Object>>>() {});
+                return dataList == null ? new ArrayList<>() : dataList;
+            }
+        } catch (JsonProcessingException e) {
+            log.error("解析云数据响应失败|Parse_cloud_data_error,response={}", responseBody, e);
+        }
+        return new ArrayList<>();
+    }
+
     @Override
     public Boolean batchInsertStockInfoDaily(List<StockInfoDailyDTO> stockList, String tradeDate) {
         if (stockList == null || stockList.isEmpty()) {

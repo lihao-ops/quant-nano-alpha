@@ -46,6 +46,13 @@
             <scope>provided</scope>
             <optional>true</optional>
         </dependency>
+
+        <!-- ==================== Kafka 监控扩展（可选） ==================== -->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+            <optional>true</optional>
+        </dependency>
     </dependencies>
 
     <build>

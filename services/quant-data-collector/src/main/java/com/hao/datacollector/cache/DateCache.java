@@ -95,6 +95,11 @@ public class DateCache {
      */
     public static List<LocalDate> Year2025TradeDateList;
 
+    /**
+     * 2026年的交易日历
+     */
+    public static List<LocalDate> Year2026TradeDateList;
+
 
     @Autowired
     private BaseDataService baseDataService;
@@ -141,6 +146,9 @@ public class DateCache {
         Year2025TradeDateList = baseDataService.getTradeDateListByTime(
                 DateUtil.getFirstDayOfYear(2025, DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT),
                 DateUtil.getLastDayOfYear(2025, DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT));
+        Year2026TradeDateList = baseDataService.getTradeDateListByTime(
+                DateUtil.getFirstDayOfYear(2026, DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT),
+                DateUtil.getLastDayOfYear(2026, DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT));
 
         // 合并所有年份到 AllTradeDateList（使用 TreeSet 去重并排序）
         buildAllTradeDateList();
@@ -183,6 +191,9 @@ public class DateCache {
         }
         if (Year2025TradeDateList != null) {
             allDates.addAll(Year2025TradeDateList);
+        }
+        if (Year2026TradeDateList != null) {
+            allDates.addAll(Year2026TradeDateList);
         }
         
         AllTradeDateList = new ArrayList<>(allDates);

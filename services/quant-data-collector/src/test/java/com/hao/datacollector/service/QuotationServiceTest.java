@@ -13,7 +13,9 @@ import util.DateUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -47,13 +49,21 @@ class QuotationServiceTest {
         List<String> yearTradeDateList = DateUtil.formatLocalDateList(DateCache.CurrentYearTradeDateList, DateTimeFormatConstants.EIGHT_DIGIT_DATE_FORMAT);
         //从当年已转档的最大日期(包含),并且剔除最大日期已经转档过的windCode,继续开始转档
         String maxEndDate = quotationMapper.getMaxHistoryTrendEndDate();
-//        String maxEndDate = "20260105";
         List<String> completedWindCodes = quotationMapper.getCompletedWindCodes(maxEndDate);
         int tradeDateIndexOf = yearTradeDateList.indexOf(maxEndDate);
         int batchSize = 100;
-        if (tradeDateIndexOf != -1) {
+        log.info("历史分时转档启动|maxEndDate={},tradeDateIndex={},tradeDateSize={},stockSize={},completedSize={}",
+                maxEndDate, tradeDateIndexOf, yearTradeDateList.size(), allWindCodeList.size(), completedWindCodes.size());
+        if (tradeDateIndexOf == -1) {
+            String firstTradeDate = yearTradeDateList.isEmpty() ? null : yearTradeDateList.get(0);
+            String lastTradeDate = yearTradeDateList.isEmpty() ? null : yearTradeDateList.get(yearTradeDateList.size() - 1);
+            throw new IllegalStateException("maxEndDate不在CurrentYearTradeDateList中，转档被跳过。maxEndDate="
+                    + maxEndDate + ", firstTradeDate=" + firstTradeDate + ", lastTradeDate=" + lastTradeDate);
+        }
+        if (!yearTradeDateList.isEmpty()) {
+            Set<String> completedWindCodeSet = new HashSet<>(completedWindCodes);
             List<String> needFillBack = allWindCodeList.stream()
-                    .filter(code -> !completedWindCodes.contains(code))
+                    .filter(code -> !completedWindCodeSet.contains(code))
                     .collect(Collectors.toList());
             if (!needFillBack.isEmpty()) {
                 log.info("补偿转档_{}_日期未完成的_{}_个_windCode", maxEndDate, needFillBack.size());
@@ -63,6 +73,10 @@ class QuotationServiceTest {
             }
             // 正常转档后续日期
             yearTradeDateList = new ArrayList<>(yearTradeDateList.subList(tradeDateIndexOf + 1, yearTradeDateList.size()));
+            log.info("历史分时转档后续日期|dateSize={},firstDate={},lastDate={}",
+                    yearTradeDateList.size(),
+                    yearTradeDateList.isEmpty() ? null : yearTradeDateList.get(0),
+                    yearTradeDateList.isEmpty() ? null : yearTradeDateList.get(yearTradeDateList.size() - 1));
             transferOneDay(yearTradeDateList, allWindCodeList, batchSize);
         }
     }
@@ -95,6 +109,10 @@ class QuotationServiceTest {
 
     private void transferOneDay(List<String> yearTradeDateList, List<String> windCodes, int batchSize) {
         int totalSize = windCodes.size();
+        if (yearTradeDateList.isEmpty() || windCodes.isEmpty()) {
+            log.warn("历史分时转档跳过|dateSize={},stockSize={}", yearTradeDateList.size(), windCodes.size());
+            return;
+        }
         for (String tradeDate : yearTradeDateList) {
             for (int i = 0; i < totalSize; i += batchSize) {
                 List<String> subList = windCodes.subList(i, Math.min(i + batchSize, totalSize));

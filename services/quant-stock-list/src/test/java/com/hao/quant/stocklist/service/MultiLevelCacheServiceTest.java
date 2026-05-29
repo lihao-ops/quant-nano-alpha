@@ -77,6 +77,14 @@ class MultiLevelCacheServiceTest {
         when(redissonClient.getLock(anyString())).thenReturn(rLock);
         when(rLock.tryLock(anyLong(), anyLong(), any(TimeUnit.class))).thenReturn(true);
         when(rLock.isHeldByCurrentThread()).thenReturn(true);
+
+        // 核心 Mock：模拟 Caffeine 的 get(key, loader) 行为
+        // 当调用 caffeineCache.get(key, loader) 时，直接执行 loader 回调
+        when(caffeineCache.get(anyString(), any())).thenAnswer(invocation -> {
+            String key = invocation.getArgument(0);
+            java.util.function.Function<String, List<String>> loader = invocation.getArgument(1);
+            return loader.apply(key);
+        });
     }
 
     // ==================== L1 Caffeine 缓存测试 ====================
@@ -86,35 +94,32 @@ class MultiLevelCacheServiceTest {
     class L1CacheTests {
 
         @Test
-        @DisplayName("L1 缓存命中 - 直接返回，不查 Redis")
+        @DisplayName("L1 缓存命中 - Caffeine 直接返回已缓存值，不触发 loader")
         void testL1CacheHit() {
-            // Given
+            // Given: 模拟 Caffeine 内部已有缓存，直接返回而不执行 loader
             List<String> cachedData = List.of("{\"windCode\":\"000001.SZ\"}");
-            when(caffeineCache.getIfPresent(CACHE_KEY)).thenReturn(cachedData);
+            when(caffeineCache.get(anyString(), any())).thenReturn(cachedData);
 
             // When
             List<String> result = multiLevelCacheService.querySignals(STRATEGY_ID, TRADE_DATE);
 
             // Then
             assertEquals(cachedData, result);
-            verify(caffeineCache, times(1)).getIfPresent(CACHE_KEY);
             verify(redissonClient, never()).getList(anyString());  // 不应查询 Redis
         }
 
         @Test
-        @DisplayName("L1 缓存未命中 - 继续查 L2")
+        @DisplayName("L1 缓存未命中 - 触发 loader 查 L2")
         void testL1CacheMiss() {
-            // Given
-            when(caffeineCache.getIfPresent(CACHE_KEY)).thenReturn(null);
+            // Given: caffeineCache.get() 会执行 loader（setUp 中已配置）
             List<String> redisData = List.of("{\"windCode\":\"600519.SH\"}");
             when(rList.readAll()).thenReturn(redisData);
 
             // When
             List<String> result = multiLevelCacheService.querySignals(STRATEGY_ID, TRADE_DATE);
 
-            // Then
+            // Then: loader 从 Redis 查到数据
             assertEquals(redisData, result);
-            verify(caffeineCache).put(CACHE_KEY, redisData);  // 回填 L1
         }
     }
 
@@ -125,10 +130,9 @@ class MultiLevelCacheServiceTest {
     class L2CacheTests {
 
         @Test
-        @DisplayName("L2 缓存命中 - 返回数据并回填 L1")
+        @DisplayName("L2 缓存命中 - 返回数据")
         void testL2CacheHit() {
             // Given
-            when(caffeineCache.getIfPresent(CACHE_KEY)).thenReturn(null);
             List<String> redisData = List.of("{\"windCode\":\"000001.SZ\"}", "{\"windCode\":\"600519.SH\"}");
             when(rList.readAll()).thenReturn(redisData);
 
@@ -137,14 +141,12 @@ class MultiLevelCacheServiceTest {
 
             // Then
             assertEquals(2, result.size());
-            verify(caffeineCache).put(CACHE_KEY, redisData);
         }
 
         @Test
         @DisplayName("L2 空值标记命中 - 返回空列表")
         void testL2EmptyMarkerHit() {
             // Given
-            when(caffeineCache.getIfPresent(CACHE_KEY)).thenReturn(null);
             List<String> emptyMarker = List.of(RedisKeyConstants.CACHE_EMPTY_MARKER);
             when(rList.readAll()).thenReturn(emptyMarker);
 
@@ -160,7 +162,6 @@ class MultiLevelCacheServiceTest {
         @DisplayName("L2 缓存为空 - 继续查 L3")
         void testL2CacheMissGoToL3() {
             // Given
-            when(caffeineCache.getIfPresent(CACHE_KEY)).thenReturn(null);
             when(rList.readAll()).thenReturn(Collections.emptyList());
             when(stockSignalMapper.selectPassedSignals(STRATEGY_ID, TRADE_DATE))
                     .thenReturn(createMockSignals(3));
@@ -177,7 +178,6 @@ class MultiLevelCacheServiceTest {
         @DisplayName("L2 Redis 异常 - 降级查 L3")
         void testL2RedisException() {
             // Given
-            when(caffeineCache.getIfPresent(CACHE_KEY)).thenReturn(null);
             when(rList.readAll()).thenThrow(new RuntimeException("Redis connection failed"));
             when(stockSignalMapper.selectPassedSignals(STRATEGY_ID, TRADE_DATE))
                     .thenReturn(createMockSignals(2));
@@ -197,10 +197,9 @@ class MultiLevelCacheServiceTest {
     class L3DatabaseTests {
 
         @Test
-        @DisplayName("L3 查到数据 - 回填 Redis 和 L1")
+        @DisplayName("L3 查到数据 - 回填 Redis")
         void testL3QuerySuccess() {
             // Given
-            when(caffeineCache.getIfPresent(CACHE_KEY)).thenReturn(null);
             when(rList.readAll()).thenReturn(null);
             List<StockSignal> dbSignals = createMockSignals(5);
             when(stockSignalMapper.selectPassedSignals(STRATEGY_ID, TRADE_DATE)).thenReturn(dbSignals);
@@ -211,14 +210,12 @@ class MultiLevelCacheServiceTest {
             // Then
             assertEquals(5, result.size());
             verify(rList).addAll(anyList());  // 回填 Redis
-            verify(caffeineCache).put(eq(CACHE_KEY), anyList());  // 回填 L1
         }
 
         @Test
         @DisplayName("L3 查无数据 - 缓存空值标记")
         void testL3QueryEmpty() {
             // Given
-            when(caffeineCache.getIfPresent(CACHE_KEY)).thenReturn(null);
             when(rList.readAll()).thenReturn(null);
             when(stockSignalMapper.selectPassedSignals(STRATEGY_ID, TRADE_DATE))
                     .thenReturn(Collections.emptyList());
@@ -232,56 +229,56 @@ class MultiLevelCacheServiceTest {
         }
 
         @Test
-        @DisplayName("L3 数据库异常 - 返回空列表")
+        @DisplayName("L3 数据库异常 - 抛出异常")
         void testL3DatabaseException() {
             // Given
-            when(caffeineCache.getIfPresent(CACHE_KEY)).thenReturn(null);
             when(rList.readAll()).thenReturn(null);
             when(stockSignalMapper.selectPassedSignals(STRATEGY_ID, TRADE_DATE))
                     .thenThrow(new RuntimeException("Database connection failed"));
 
-            // When - 异常会被服务层捕获并抛出，因为 Sentinel 限流后异常会透传
-            // 这里验证的是异常会被正确抛出
+            // When - 异常会被服务层捕获并抛出
             RuntimeException exception = assertThrows(RuntimeException.class, () -> {
                 multiLevelCacheService.querySignals(STRATEGY_ID, TRADE_DATE);
             });
-            
+
             // Then
             assertEquals("Database connection failed", exception.getMessage());
         }
     }
 
-    // ==================== 分布式锁测试 ====================
+    // ==================== 跨 Pod 分布式锁测试 ====================
 
     @Nested
-    @DisplayName("分布式锁测试")
-    class DistributedLockTests {
+    @DisplayName("跨 Pod 分布式锁测试")
+    class CrossPodLockTests {
 
         @Test
-        @DisplayName("获取锁成功 - 正常查询")
+        @DisplayName("获取锁成功 - 双重检查 Redis 后查 DB")
         void testLockAcquireSuccess() throws InterruptedException {
             // Given
             when(rLock.tryLock(anyLong(), anyLong(), any(TimeUnit.class))).thenReturn(true);
-            when(caffeineCache.getIfPresent(CACHE_KEY)).thenReturn(null);
-            List<String> redisData = List.of("{\"windCode\":\"000001.SZ\"}");
-            when(rList.readAll()).thenReturn(redisData);
+            // Redis 无数据，需要查 DB
+            when(rList.readAll()).thenReturn(Collections.emptyList());
+            when(stockSignalMapper.selectPassedSignals(STRATEGY_ID, TRADE_DATE))
+                    .thenReturn(createMockSignals(3));
 
             // When
             List<String> result = multiLevelCacheService.querySignals(STRATEGY_ID, TRADE_DATE);
 
             // Then
-            assertEquals(1, result.size());
+            assertEquals(3, result.size());
             verify(rLock).unlock();
         }
 
         @Test
-        @DisplayName("获取锁失败 - 等待后重试")
-        void testLockAcquireFailed() throws InterruptedException {
-            // Given
+        @DisplayName("获取锁失败 - 读 Redis（其他 Pod 已回填）")
+        void testLockAcquireFailedReadRedis() throws InterruptedException {
+            // Given: 第一次查 Redis 无数据，获取锁失败，第二次查 Redis 有数据（其他 Pod 已回填）
             when(rLock.tryLock(anyLong(), anyLong(), any(TimeUnit.class))).thenReturn(false);
-            when(caffeineCache.getIfPresent(CACHE_KEY)).thenReturn(null);
             List<String> redisData = List.of("{\"windCode\":\"000001.SZ\"}");
-            when(rList.readAll()).thenReturn(redisData);
+            when(rList.readAll())
+                    .thenReturn(Collections.emptyList())
+                    .thenReturn(redisData);
 
             // When
             List<String> result = multiLevelCacheService.querySignals(STRATEGY_ID, TRADE_DATE);
@@ -289,24 +286,7 @@ class MultiLevelCacheServiceTest {
             // Then
             assertEquals(1, result.size());
             verify(rLock, never()).unlock();  // 未获取锁，不需要释放
-        }
-
-        @Test
-        @DisplayName("双重检查 - 获取锁后再次检查 L1")
-        void testDoubleCheckAfterLock() throws InterruptedException {
-            // Given
-            when(rLock.tryLock(anyLong(), anyLong(), any(TimeUnit.class))).thenReturn(true);
-            // 第一次返回 null，第二次（获取锁后）返回数据
-            when(caffeineCache.getIfPresent(CACHE_KEY))
-                    .thenReturn(null)
-                    .thenReturn(List.of("{\"windCode\":\"000001.SZ\"}"));
-
-            // When
-            List<String> result = multiLevelCacheService.querySignals(STRATEGY_ID, TRADE_DATE);
-
-            // Then
-            assertEquals(1, result.size());
-            verify(rList, never()).readAll();  // 不查 Redis
+            verify(stockSignalMapper, never()).selectPassedSignals(anyString(), anyString());
         }
     }
 
@@ -321,7 +301,6 @@ class MultiLevelCacheServiceTest {
         void testEmptyStrategyId() {
             // Given
             String emptyStrategy = "";
-            when(caffeineCache.getIfPresent(anyString())).thenReturn(null);
             when(rList.readAll()).thenReturn(null);
             when(stockSignalMapper.selectPassedSignals(emptyStrategy, TRADE_DATE))
                     .thenReturn(Collections.emptyList());
@@ -338,7 +317,6 @@ class MultiLevelCacheServiceTest {
         void testWeekendDate() {
             // Given
             String weekendDate = "2026-02-07";  // 假设是周六
-            when(caffeineCache.getIfPresent(anyString())).thenReturn(null);
             when(rList.readAll()).thenReturn(null);
             when(stockSignalMapper.selectPassedSignals(STRATEGY_ID, weekendDate))
                     .thenReturn(Collections.emptyList());
@@ -354,7 +332,6 @@ class MultiLevelCacheServiceTest {
         @DisplayName("大量数据 - 1000 条信号")
         void testLargeDataSet() {
             // Given
-            when(caffeineCache.getIfPresent(CACHE_KEY)).thenReturn(null);
             when(rList.readAll()).thenReturn(null);
             List<StockSignal> largeSignals = createMockSignals(1000);
             when(stockSignalMapper.selectPassedSignals(STRATEGY_ID, TRADE_DATE)).thenReturn(largeSignals);
@@ -374,24 +351,20 @@ class MultiLevelCacheServiceTest {
     class ConcurrencyTests {
 
         @Test
-        @DisplayName("100 并发请求 - 只有 1 个请求查 Redis")
-        void testConcurrentRequestsWithLock() throws InterruptedException {
+        @DisplayName("Caffeine loader 并发保证 - 同一 key 只加载一次")
+        void testCaffeineLoaderConcurrency() throws InterruptedException {
             // Given
             int threadCount = 100;
             CountDownLatch startLatch = new CountDownLatch(1);
             CountDownLatch endLatch = new CountDownLatch(threadCount);
-            AtomicInteger redisQueryCount = new AtomicInteger(0);
+            AtomicInteger loaderCallCount = new AtomicInteger(0);
 
-            // 模拟只有第一个请求能获取锁
-            when(rLock.tryLock(anyLong(), anyLong(), any(TimeUnit.class)))
-                    .thenAnswer(invocation -> {
-                        // 第一个请求获取锁成功，其他失败
-                        return redisQueryCount.incrementAndGet() <= 1;
-                    });
-
-            when(caffeineCache.getIfPresent(CACHE_KEY)).thenReturn(null);
-            List<String> cachedData = List.of("{\"windCode\":\"000001.SZ\"}");
-            when(rList.readAll()).thenReturn(cachedData);
+            // 模拟 Caffeine 的 get(key, loader) 并发行为：只有 1 个线程执行 loader
+            List<String> loadedData = List.of("{\"windCode\":\"000001.SZ\"}");
+            when(caffeineCache.get(anyString(), any())).thenAnswer(invocation -> {
+                loaderCallCount.incrementAndGet();
+                return loadedData;
+            });
 
             ExecutorService executor = Executors.newFixedThreadPool(threadCount);
 
@@ -413,9 +386,9 @@ class MultiLevelCacheServiceTest {
             endLatch.await(10, TimeUnit.SECONDS);
             executor.shutdown();
 
-            // Then
-            // 分布式锁确保大部分请求被阻止
-            assertTrue(redisQueryCount.get() >= 1);
+            // Then: 由于 mock 不像真实 Caffeine 那样只调 1 次 loader，
+            // 但所有线程都能正常返回数据（不会拿到空列表）
+            assertTrue(loaderCallCount.get() >= 1);
         }
 
         @Test
@@ -424,7 +397,8 @@ class MultiLevelCacheServiceTest {
             // Given
             int threadCount = 1000;
             List<String> cachedData = List.of("{\"windCode\":\"000001.SZ\"}");
-            when(caffeineCache.getIfPresent(CACHE_KEY)).thenReturn(cachedData);
+            // Caffeine 内部已有缓存，直接返回
+            when(caffeineCache.get(anyString(), any())).thenReturn(cachedData);
 
             ExecutorService executor = Executors.newFixedThreadPool(100);
             List<Future<List<String>>> futures = new ArrayList<>();

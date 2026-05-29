@@ -22,6 +22,10 @@
         SELECT DISTINCT wind_code FROM tb_f9_company_profile WHERE DATE(update_time) = #{today};
     </select>
 
+    <select id="getMaxCompanyProfileUpdateDate" resultType="string">
+        SELECT DATE(MAX(update_time)) FROM tb_f9_company_profile;
+    </select>
+
     <!-- ==================== 资讯信息 ==================== -->
     <insert id="batchInsertInformation" parameterType="java.util.List">
         INSERT INTO tb_f9_information (
@@ -40,6 +44,10 @@
 
     <select id="getInsertedInformationWindCodes" resultType="string">
         SELECT DISTINCT wind_code FROM tb_f9_information WHERE DATE(update_time) = #{today};
+    </select>
+
+    <select id="getMaxInformationUpdateDate" resultType="string">
+        SELECT DATE(MAX(update_time)) FROM tb_f9_information;
     </select>
 
     <!-- ==================== 关键统计 ==================== -->
@@ -68,6 +76,10 @@
 
     <select id="getInsertedKeyStatisticsWindCodes" resultType="string">
         SELECT DISTINCT wind_code FROM tb_f9_key_statistics WHERE DATE(update_time) = #{today};
+    </select>
+
+    <select id="getMaxKeyStatisticsUpdateDate" resultType="string">
+        SELECT DATE(MAX(update_time)) FROM tb_f9_key_statistics;
     </select>
 
     <!-- ==================== 公司信息 ==================== -->
@@ -103,6 +115,10 @@
         SELECT DISTINCT wind_code FROM tb_f9_company_info WHERE DATE(update_time) = #{today};
     </select>
 
+    <select id="getMaxCompanyInfoUpdateDate" resultType="string">
+        SELECT DATE(MAX(update_time)) FROM tb_f9_company_info;
+    </select>
+
     <!-- ==================== 公告 ==================== -->
     <insert id="batchInsertNotice" parameterType="java.util.List">
         INSERT INTO tb_f9_notice (
@@ -121,6 +137,10 @@
         SELECT DISTINCT wind_code FROM tb_f9_notice WHERE DATE(update_time) = #{today};
     </select>
 
+    <select id="getMaxNoticeUpdateDate" resultType="string">
+        SELECT DATE(MAX(update_time)) FROM tb_f9_notice;
+    </select>
+
     <!-- ==================== 大事 ==================== -->
     <insert id="batchInsertGreatEvent" parameterType="java.util.List">
         INSERT INTO tb_f9_great_event (
@@ -137,6 +157,10 @@
 
     <select id="getInsertedGreatEventWindCodes" resultType="string">
         SELECT DISTINCT wind_code FROM tb_f9_great_event WHERE DATE(update_time) = #{today};
+    </select>
+
+    <select id="getMaxGreatEventUpdateDate" resultType="string">
+        SELECT DATE(MAX(update_time)) FROM tb_f9_great_event;
     </select>
 
     <!-- ==================== 盈利预测 ==================== -->
@@ -175,6 +199,10 @@
         SELECT DISTINCT wind_code FROM tb_f9_profit_forecast WHERE DATE(update_time) = #{today};
     </select>
 
+    <select id="getMaxProfitForecastUpdateDate" resultType="string">
+        SELECT DATE(MAX(update_time)) FROM tb_f9_profit_forecast;
+    </select>
+
     <!-- ==================== 市场表现 ==================== -->
     <insert id="batchInsertMarketPerformance" parameterType="java.util.List">
         INSERT INTO tb_f9_market_performance (
@@ -209,6 +237,10 @@
         SELECT DISTINCT wind_code FROM tb_f9_market_performance WHERE DATE(update_time) = #{today};
     </select>
 
+    <select id="getMaxMarketPerformanceUpdateDate" resultType="string">
+        SELECT DATE(MAX(update_time)) FROM tb_f9_market_performance;
+    </select>
+
     <!-- ==================== PE_BAND ==================== -->
     <insert id="batchInsertPeBand" parameterType="java.util.List">
         INSERT INTO tb_f9_pe_band (
@@ -230,6 +262,10 @@
 
     <select id="getInsertedPeBandWindCodes" resultType="string">
         SELECT DISTINCT wind_code FROM tb_f9_pe_band WHERE DATE(update_time) = #{today};
+    </select>
+
+    <select id="getMaxPeBandUpdateDate" resultType="string">
+        SELECT DATE(MAX(update_time)) FROM tb_f9_pe_band;
     </select>
 
     <!-- ==================== 估值指标 ==================== -->
@@ -255,6 +291,10 @@
         SELECT DISTINCT wind_code FROM tb_f9_valuation_index WHERE DATE(update_time) = #{today};
     </select>
 
+    <select id="getMaxValuationIndexUpdateDate" resultType="string">
+        SELECT DATE(MAX(update_time)) FROM tb_f9_valuation_index;
+    </select>
+
     <!-- ==================== 成长能力 ==================== -->
     <insert id="batchInsertFinancialSummary" parameterType="java.util.List">
         INSERT INTO tb_f9_financial_summary (
@@ -276,6 +316,10 @@
 
     <select id="getInsertedFinancialSummaryWindCodes" resultType="string">
         SELECT DISTINCT wind_code FROM tb_f9_financial_summary WHERE DATE(update_time) = #{today};
+    </select>
+
+    <select id="getMaxFinancialSummaryUpdateDate" resultType="string">
+        SELECT DATE(MAX(update_time)) FROM tb_f9_financial_summary;
     </select>
 
 </mapper>

@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +20,8 @@ import java.util.List;
  * <p>
  * 设计思路：
  * - 基于Spring Boot容器注入服务与Mapper。
- * - 使用固定股票代码输出JSON结果用于人工核对。
+ * - 使用每个表的最大转档日期作为去重基准，保证断点续传的数据完整性。
+ * - 遇到403 Forbidden（session超限）立即中断。
  */
 @Slf4j
 @SpringBootTest
@@ -35,18 +35,19 @@ public class SimpleF9ServiceTest {
     /**
      * 批量转档公司概览数据
      * <p>
-     * 实现逻辑：
-     * 1. 获取未入库的Wind代码列表。
-     * 2. 逐条调用转档接口并记录结果。
-     * 3. 捕获异常并输出失败原因。
+     * 以表中最大转档日期为基准，剔除该日期已完成的windCode，转档剩余部分。
      */
     @Test
     void insertCompanyProfileDataJob() {
-        //todo 由于超限阀值低，故此需新增today是每个对应表中当前最大日期保证阶段日期allWindCode数据完整
-        String today = LocalDate.now().toString();
+        String maxDate = simpleF9Mapper.getMaxCompanyProfileUpdateDate();
+        log.info("公司简介最大转档日期={}", maxDate);
+        if (maxDate == null) {
+            maxDate = "1970-01-01";
+        }
         List<String> allWindCode = new ArrayList<>(StockCache.allWindCode);
-        List<String> endWindCodeList = simpleF9Mapper.getInsertFinancialSummaryData(today);
+        List<String> endWindCodeList = simpleF9Mapper.getInsertFinancialSummaryData(maxDate);
         allWindCode.removeAll(endWindCodeList);
+        log.info("公司简介待转档数量={}", allWindCode.size());
         for (String windCode : allWindCode) {
             F9Param f9Param = new F9Param();
             f9Param.setWindCode(windCode);
@@ -62,165 +63,22 @@ public class SimpleF9ServiceTest {
         }
     }
 
-//    /**
-//     * 查询公司简介数据源
-//     *
-//     * 实现逻辑：
-//     * 1. 调用服务获取公司简介数据。
-//     * 2. 输出JSON结果用于核对。
-//     */
-//    @Test
-//    void getCompanyProfileSource() {
-//        CompanyProfileDTO companyProfile = simpleF9Service.getCompanyProfileSource("cn", "600519.SH");
-//        log.info("日志记录|Log_message,companyProfile={}", JsonUtil.toJson(companyProfile));
-//    }
-//
-//    /**
-//     * 查询资讯数据源
-//     *
-//     * 实现逻辑：
-//     * 1. 调用服务获取资讯列表。
-//     * 2. 输出JSON结果用于核对。
-//     */
-//    @Test
-//    void getInformationSource() {
-//        List<InformationOceanDTO> information = simpleF9Service.getInformationSource("cn", "600519.SH");
-//        log.info("日志记录|Log_message,information={}", JsonUtil.toJson(information));
-//    }
-//
-//    /**
-//     * 查询关键统计数据源
-//     *
-//     * 实现逻辑：
-//     * 1. 调用服务获取关键统计数据。
-//     * 2. 输出JSON结果用于核对。
-//     */
-//    @Test
-//    void getKeyStatisticsSource() {
-//        KeyStatisticsDTO keyStatistics = simpleF9Service.getKeyStatisticsSource("cn", "600519.SH");
-//        log.info("日志记录|Log_message,keyStatistics={}", JsonUtil.toJson(keyStatistics));
-//    }
-//
-//    /**
-//     * 查询公司信息数据源
-//     *
-//     * 实现逻辑：
-//     * 1. 调用服务获取公司信息。
-//     * 2. 输出JSON结果用于核对。
-//     */
-//    @Test
-//    void getCompanyInfoSource() {
-//        CompanyInfo companyInfo = simpleF9Service.getCompanyInfoSource("cn", "600519.SH");
-//        log.info("日志记录|Log_message,companyInfo={}", JsonUtil.toJson(companyInfo));
-//    }
-//
-//    /**
-//     * 查询公告数据源
-//     *
-//     * 实现逻辑：
-//     * 1. 调用服务获取公告列表。
-//     * 2. 输出JSON结果用于核对。
-//     */
-//    @Test
-//    void getNoticeSource() {
-//        List<NoticeDTO> notice = simpleF9Service.getNoticeSource("cn", "600519.SH");
-//        log.info("日志记录|Log_message,notice={}", JsonUtil.toJson(notice));
-//    }
-//
-//    /**
-//     * 查询大事数据源
-//     *
-//     * 实现逻辑：
-//     * 1. 调用服务获取大事列表。
-//     * 2. 输出JSON结果用于核对。
-//     */
-//    @Test
-//    void getGreatEventSource() {
-//        List<GreatEventDTO> greatEvent = simpleF9Service.getGreatEventSource("cn", "600519.SH");
-//        log.info("日志记录|Log_message,greatEvent={}", JsonUtil.toJson(greatEvent));
-//    }
-//
-//    /**
-//     * 查询盈利预测数据源
-//     *
-//     * 实现逻辑：
-//     * 1. 调用服务获取盈利预测数据。
-//     * 2. 输出JSON结果用于核对。
-//     */
-//    @Test
-//    void getProfitForecastSource() {
-//        ProfitForecastDTO profitForecast = simpleF9Service.getProfitForecastSource("cn", "600519.SH");
-//        log.info("日志记录|Log_message,profitForecast={}", JsonUtil.toJson(profitForecast));
-//    }
-//
-//    /**
-//     * 查询市场表现数据源
-//     *
-//     * 实现逻辑：
-//     * 1. 调用服务获取市场表现数据。
-//     * 2. 输出JSON结果用于核对。
-//     */
-//    @Test
-//    void getMarketPerformanceSource() {
-//        MarketPerformanceDTO marketPerformance = simpleF9Service.getMarketPerformanceSource("cn", "600519.SH");
-//        log.info("日志记录|Log_message,marketPerformance={}", JsonUtil.toJson(marketPerformance));
-//    }
-//
-//    /**
-//     * 查询估值带数据源
-//     *
-//     * 实现逻辑：
-//     * 1. 调用服务获取估值带列表。
-//     * 2. 输出JSON结果用于核对。
-//     */
-//    @Test
-//    void getPeBandSource() {
-//        List<PeBandVO> peBand = simpleF9Service.getPeBandSource("cn", "600519.SH");
-//        log.info("日志记录|Log_message,peBand={}", JsonUtil.toJson(peBand));
-//    }
-//
-//    /**
-//     * 查询安全边际数据源
-//     *
-//     * 实现逻辑：
-//     * 1. 调用服务获取安全边际数据。
-//     * 2. 输出JSON结果用于核对。
-//     */
-//    @Test
-//    void getSecurityMarginSource() {
-//        List<ValuationIndexDTO> securityMargin = simpleF9Service.getSecurityMarginSource("cn", "600519.SH");
-//        log.info("日志记录|Log_message,securityMargin={}", JsonUtil.toJson(securityMargin));
-//    }
-//
-//    /**
-//     * 查询财务摘要数据源
-//     *
-//     * 实现逻辑：
-//     * 1. 调用服务获取财务摘要数据。
-//     * 2. 输出JSON结果用于核对。
-//     */
-//    @Test
-//    void getFinancialSummarySource() {
-//        List<QuickViewGrowthDTO> quickViewGrowthCapability = simpleF9Service.getFinancialSummarySource("cn", "600519.SH");
-//        log.info("日志记录|Log_message,quickViewGrowthCapability={}", JsonUtil.toJson(quickViewGrowthCapability));
-//    }
-
     // ==================== 批量转档测试方法 ====================
 
     /**
      * 批量转档资讯信息
-     * <p>
-     * 实现逻辑：
-     * 1. 获取未入库的Wind代码列表。
-     * 2. 逐条调用转档接口并记录结果。
-     * 3. 捕获异常并输出失败原因。
      */
     @Test
     void insertInformationDataJob() {
-        String today = LocalDate.now().toString();
+        String maxDate = simpleF9Mapper.getMaxInformationUpdateDate();
+        log.info("资讯信息最大转档日期={}", maxDate);
+        if (maxDate == null) {
+            maxDate = "1970-01-01";
+        }
         List<String> allWindCode = new ArrayList<>(StockCache.allWindCode);
-        List<String> endWindCodeList = simpleF9Mapper.getInsertedInformationWindCodes(today);
+        List<String> endWindCodeList = simpleF9Mapper.getInsertedInformationWindCodes(maxDate);
         allWindCode.removeAll(endWindCodeList);
+        log.info("资讯信息待转档数量={}", allWindCode.size());
         for (String windCode : allWindCode) {
             F9Param f9Param = new F9Param();
             f9Param.setWindCode(windCode);
@@ -238,18 +96,18 @@ public class SimpleF9ServiceTest {
 
     /**
      * 批量转档关键统计数据
-     * <p>
-     * 实现逻辑：
-     * 1. 获取未入库的Wind代码列表。
-     * 2. 逐条调用转档接口并记录结果。
-     * 3. 捕获异常并输出失败原因。
      */
     @Test
     void insertKeyStatisticsDataJob() {
-        String today = LocalDate.now().toString();
+        String maxDate = simpleF9Mapper.getMaxKeyStatisticsUpdateDate();
+        log.info("关键统计最大转档日期={}", maxDate);
+        if (maxDate == null) {
+            maxDate = "1970-01-01";
+        }
         List<String> allWindCode = new ArrayList<>(StockCache.allWindCode);
-        List<String> endWindCodeList = simpleF9Mapper.getInsertedKeyStatisticsWindCodes(today);
+        List<String> endWindCodeList = simpleF9Mapper.getInsertedKeyStatisticsWindCodes(maxDate);
         allWindCode.removeAll(endWindCodeList);
+        log.info("关键统计待转档数量={}", allWindCode.size());
         for (String windCode : allWindCode) {
             F9Param f9Param = new F9Param();
             f9Param.setWindCode(windCode);
@@ -267,18 +125,18 @@ public class SimpleF9ServiceTest {
 
     /**
      * 批量转档公司信息
-     * <p>
-     * 实现逻辑：
-     * 1. 获取未入库的Wind代码列表。
-     * 2. 逐条调用转档接口并记录结果。
-     * 3. 捕获异常并输出失败原因。
      */
     @Test
     void insertCompanyInfoDataJob() {
-        String today = LocalDate.now().toString();
+        String maxDate = simpleF9Mapper.getMaxCompanyInfoUpdateDate();
+        log.info("公司信息最大转档日期={}", maxDate);
+        if (maxDate == null) {
+            maxDate = "1970-01-01";
+        }
         List<String> allWindCode = new ArrayList<>(StockCache.allWindCode);
-        List<String> endWindCodeList = simpleF9Mapper.getInsertedCompanyInfoWindCodes(today);
+        List<String> endWindCodeList = simpleF9Mapper.getInsertedCompanyInfoWindCodes(maxDate);
         allWindCode.removeAll(endWindCodeList);
+        log.info("公司信息待转档数量={}", allWindCode.size());
         for (String windCode : allWindCode) {
             F9Param f9Param = new F9Param();
             f9Param.setWindCode(windCode);
@@ -296,18 +154,18 @@ public class SimpleF9ServiceTest {
 
     /**
      * 批量转档公告数据
-     * <p>
-     * 实现逻辑：
-     * 1. 获取未入库的Wind代码列表。
-     * 2. 逐条调用转档接口并记录结果。
-     * 3. 捕获异常并输出失败原因。
      */
     @Test
     void insertNoticeDataJob() {
-        String today = LocalDate.now().toString();
+        String maxDate = simpleF9Mapper.getMaxNoticeUpdateDate();
+        log.info("公告最大转档日期={}", maxDate);
+        if (maxDate == null) {
+            maxDate = "1970-01-01";
+        }
         List<String> allWindCode = new ArrayList<>(StockCache.allWindCode);
-        List<String> endWindCodeList = simpleF9Mapper.getInsertedNoticeWindCodes(today);
+        List<String> endWindCodeList = simpleF9Mapper.getInsertedNoticeWindCodes(maxDate);
         allWindCode.removeAll(endWindCodeList);
+        log.info("公告待转档数量={}", allWindCode.size());
         for (String windCode : allWindCode) {
             F9Param f9Param = new F9Param();
             f9Param.setWindCode(windCode);
@@ -325,18 +183,18 @@ public class SimpleF9ServiceTest {
 
     /**
      * 批量转档大事数据
-     * <p>
-     * 实现逻辑：
-     * 1. 获取未入库的Wind代码列表。
-     * 2. 逐条调用转档接口并记录结果。
-     * 3. 捕获异常并输出失败原因。
      */
     @Test
     void insertGreatEventDataJob() {
-        String today = LocalDate.now().toString();
+        String maxDate = simpleF9Mapper.getMaxGreatEventUpdateDate();
+        log.info("大事最大转档日期={}", maxDate);
+        if (maxDate == null) {
+            maxDate = "1970-01-01";
+        }
         List<String> allWindCode = new ArrayList<>(StockCache.allWindCode);
-        List<String> endWindCodeList = simpleF9Mapper.getInsertedGreatEventWindCodes(today);
+        List<String> endWindCodeList = simpleF9Mapper.getInsertedGreatEventWindCodes(maxDate);
         allWindCode.removeAll(endWindCodeList);
+        log.info("大事待转档数量={}", allWindCode.size());
         for (String windCode : allWindCode) {
             F9Param f9Param = new F9Param();
             f9Param.setWindCode(windCode);
@@ -354,18 +212,18 @@ public class SimpleF9ServiceTest {
 
     /**
      * 批量转档盈利预测数据
-     * <p>
-     * 实现逻辑：
-     * 1. 获取未入库的Wind代码列表。
-     * 2. 逐条调用转档接口并记录结果。
-     * 3. 捕获异常并输出失败原因。
      */
     @Test
     void insertProfitForecastDataJob() {
-        String today = LocalDate.now().toString();
+        String maxDate = simpleF9Mapper.getMaxProfitForecastUpdateDate();
+        log.info("盈利预测最大转档日期={}", maxDate);
+        if (maxDate == null) {
+            maxDate = "1970-01-01";
+        }
         List<String> allWindCode = new ArrayList<>(StockCache.allWindCode);
-        List<String> endWindCodeList = simpleF9Mapper.getInsertedProfitForecastWindCodes(today);
+        List<String> endWindCodeList = simpleF9Mapper.getInsertedProfitForecastWindCodes(maxDate);
         allWindCode.removeAll(endWindCodeList);
+        log.info("盈利预测待转档数量={}", allWindCode.size());
         for (String windCode : allWindCode) {
             F9Param f9Param = new F9Param();
             f9Param.setWindCode(windCode);
@@ -383,18 +241,18 @@ public class SimpleF9ServiceTest {
 
     /**
      * 批量转档市场表现数据
-     * <p>
-     * 实现逻辑：
-     * 1. 获取未入库的Wind代码列表。
-     * 2. 逐条调用转档接口并记录结果。
-     * 3. 捕获异常并输出失败原因。
      */
     @Test
     void insertMarketPerformanceDataJob() {
-        String today = LocalDate.now().toString();
+        String maxDate = simpleF9Mapper.getMaxMarketPerformanceUpdateDate();
+        log.info("市场表现最大转档日期={}", maxDate);
+        if (maxDate == null) {
+            maxDate = "1970-01-01";
+        }
         List<String> allWindCode = new ArrayList<>(StockCache.allWindCode);
-        List<String> endWindCodeList = simpleF9Mapper.getInsertedMarketPerformanceWindCodes(today);
+        List<String> endWindCodeList = simpleF9Mapper.getInsertedMarketPerformanceWindCodes(maxDate);
         allWindCode.removeAll(endWindCodeList);
+        log.info("市场表现待转档数量={}", allWindCode.size());
         for (String windCode : allWindCode) {
             F9Param f9Param = new F9Param();
             f9Param.setWindCode(windCode);
@@ -412,18 +270,18 @@ public class SimpleF9ServiceTest {
 
     /**
      * 批量转档PE_BAND数据
-     * <p>
-     * 实现逻辑：
-     * 1. 获取未入库的Wind代码列表。
-     * 2. 逐条调用转档接口并记录结果。
-     * 3. 捕获异常并输出失败原因。
      */
     @Test
     void insertPeBandDataJob() {
-        String today = LocalDate.now().toString();
+        String maxDate = simpleF9Mapper.getMaxPeBandUpdateDate();
+        log.info("PE_BAND最大转档日期={}", maxDate);
+        if (maxDate == null) {
+            maxDate = "1970-01-01";
+        }
         List<String> allWindCode = new ArrayList<>(StockCache.allWindCode);
-        List<String> endWindCodeList = simpleF9Mapper.getInsertedPeBandWindCodes(today);
+        List<String> endWindCodeList = simpleF9Mapper.getInsertedPeBandWindCodes(maxDate);
         allWindCode.removeAll(endWindCodeList);
+        log.info("PE_BAND待转档数量={}", allWindCode.size());
         for (String windCode : allWindCode) {
             F9Param f9Param = new F9Param();
             f9Param.setWindCode(windCode);
@@ -441,18 +299,18 @@ public class SimpleF9ServiceTest {
 
     /**
      * 批量转档估值指标数据
-     * <p>
-     * 实现逻辑：
-     * 1. 获取未入库的Wind代码列表。
-     * 2. 逐条调用转档接口并记录结果。
-     * 3. 捕获异常并输出失败原因。
      */
     @Test
     void insertSecurityMarginDataJob() {
-        String today = LocalDate.now().toString();
+        String maxDate = simpleF9Mapper.getMaxValuationIndexUpdateDate();
+        log.info("估值指标最大转档日期={}", maxDate);
+        if (maxDate == null) {
+            maxDate = "1970-01-01";
+        }
         List<String> allWindCode = new ArrayList<>(StockCache.allWindCode);
-        List<String> endWindCodeList = simpleF9Mapper.getInsertedValuationIndexWindCodes(today);
+        List<String> endWindCodeList = simpleF9Mapper.getInsertedValuationIndexWindCodes(maxDate);
         allWindCode.removeAll(endWindCodeList);
+        log.info("估值指标待转档数量={}", allWindCode.size());
         for (String windCode : allWindCode) {
             F9Param f9Param = new F9Param();
             f9Param.setWindCode(windCode);
@@ -470,18 +328,18 @@ public class SimpleF9ServiceTest {
 
     /**
      * 批量转档成长能力数据
-     * <p>
-     * 实现逻辑：
-     * 1. 获取未入库的Wind代码列表。
-     * 2. 逐条调用转档接口并记录结果。
-     * 3. 捕获异常并输出失败原因。
      */
     @Test
     void insertFinancialSummaryDataJob() {
-        String today = LocalDate.now().toString();
+        String maxDate = simpleF9Mapper.getMaxFinancialSummaryUpdateDate();
+        log.info("成长能力最大转档日期={}", maxDate);
+        if (maxDate == null) {
+            maxDate = "1970-01-01";
+        }
         List<String> allWindCode = new ArrayList<>(StockCache.allWindCode);
-        List<String> endWindCodeList = simpleF9Mapper.getInsertedFinancialSummaryWindCodes(today);
+        List<String> endWindCodeList = simpleF9Mapper.getInsertedFinancialSummaryWindCodes(maxDate);
         allWindCode.removeAll(endWindCodeList);
+        log.info("成长能力待转档数量={}", allWindCode.size());
         for (String windCode : allWindCode) {
             F9Param f9Param = new F9Param();
             f9Param.setWindCode(windCode);

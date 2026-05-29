@@ -75,7 +75,7 @@ class BaseDataServiceTest {
 
         // 2. 转换为 DTO 列表
         List<StockInfoDailyDTO> stockList = new ArrayList<>();
-        String tradeDate = "20260212";
+        String tradeDate = "20260529";
         
         if (result != null && !result.isEmpty()) {
             for (List<Object> row : result) {

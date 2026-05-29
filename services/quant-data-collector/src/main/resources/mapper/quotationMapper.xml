@@ -73,7 +73,7 @@
     <select id="getMaxHistoryTrendEndDate" resultType="string">
         SELECT DATE_FORMAT(MAX(trade_date), '%Y%m%d')
         FROM tb_quotation_history_hot
-        WHERE trade_date >= '2025-11-01'; -- 给定一个近期的时间下限
+        WHERE trade_date >= '2026-02-01'; -- 给定一个近期的时间下限
     </select>
 
     <select id="getCompletedWindCodes" resultType="string">

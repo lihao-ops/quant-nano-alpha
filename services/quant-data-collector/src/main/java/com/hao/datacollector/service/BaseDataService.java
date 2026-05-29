@@ -11,6 +11,7 @@ import com.hao.datacollector.web.vo.stock.StockMarketDataQueryResultVO;
 import java.io.File;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 public interface BaseDataService {
 
@@ -110,6 +111,14 @@ public interface BaseDataService {
      * @return 云数据响应
      */
     List<List<Object>> getCloudData(CloudDataParams params);
+
+    /**
+     * 获取保留列名的云数据。
+     *
+     * @param params 请求参数
+     * @return 云数据行，保留报表列名
+     */
+    List<Map<String, Object>> getCloudDataRows(CloudDataParams params);
 
     /**
      * 批量插入日频股票信息

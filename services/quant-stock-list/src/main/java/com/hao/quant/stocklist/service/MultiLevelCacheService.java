@@ -34,10 +34,16 @@ import java.util.stream.Collectors;
  * 三层保护的高并发设计：
  * L1 Caffeine（3s TTL）-> L2 Redis（24h）-> L3 MySQL（兜底）
  * <p>
- * 保护机制：
- * 1. L1->L2: Redis 分布式锁，本地缓存过期后只有1个线程查 Redis
- * 2. L2->L3: Sentinel 限流（QPS=1），Redis 无数据时只有1个线程查 MySQL
- * 3. 空值保护: EMPTY_MARKER 特殊标记，查无数据时缓存标记，避免重复穿透
+ * 并发保护机制：
+ * 1. L1->L2: 利用 Caffeine 的 {@code get(key, loader)} 内置并发控制，
+ *    同一 key 只有 1 个线程执行 loader，其他线程自动等待结果（非阻塞式）。
+ *    相比旧方案（Redis 分布式锁 + Thread.sleep），优势：
+ *    - 不阻塞 Web 线程，万级并发下不会耗尽线程池
+ *    - 等待线程拿到的是加载完成后的真实数据，不会误返回空列表
+ *    - 无分布式锁网络开销，性能更高
+ * 2. L2->L3: Redis 分布式锁（跨 Pod 保护） + Sentinel 限流（QPS=1），
+ *    多 Pod 部署时只有 1 个 Pod 能查 MySQL，避免数据库被打爆
+ * 3. 空值保护: EMPTY_MARKER 特殊标记（10s TTL），查无数据时缓存标记，避免重复穿透
  *
  * @author hli
  * @date 2026-01-30
@@ -67,14 +73,15 @@ public class MultiLevelCacheService {
     private static final String SENTINEL_RESOURCE_L3_QUERY = SentinelResourceConstants.STOCK_LIST_L3_QUERY;
 
     /**
-     * 获取锁等待时间（秒）
+     * L3 查询分布式锁等待时间（秒），用于跨 Pod 并发保护
      */
-    private static final long LOCK_WAIT_TIME = 1;
+    private static final long DB_LOCK_WAIT_TIME = 2;
 
     /**
-     * 锁自动释放时间（秒），Redisson 会自动续期（看门狗机制）
+     * L3 查询分布式锁自动释放时间（秒），Redisson 看门狗机制会自动续期
+     * todo :注意一定是-1,否则不会生效
      */
-    private static final long LOCK_LEASE_TIME = 10;
+    private static final long DB_LOCK_LEASE_TIME = -1;
 
     /**
      * 正常数据缓存过期时间：24 小时
@@ -122,10 +129,16 @@ public class MultiLevelCacheService {
     /**
      * 多级缓存查询股票信号列表
      * <p>
-     * 查询顺序：
-     * 1. L1 Caffeine 本地缓存（3 秒 TTL）
-     * 2. L2 Redis 分布式缓存（带分布式锁保护）
-     * 3. L3 MySQL 数据库（带 Sentinel 限流保护）
+     * 查询顺序：L1 Caffeine -> L2 Redis -> L3 MySQL
+     * <p>
+     * 并发控制：使用 Caffeine 的 {@code get(key, loader)} 机制，
+     * 底层基于 {@code ConcurrentHashMap.computeIfAbsent}，同一 key 同一时刻只有 1 个线程执行 loader，
+     * 其他线程自动等待结果返回，无需 Thread.sleep 或分布式锁。
+     * <p>
+     * 相比旧方案（Redis 分布式锁 + Thread.sleep(100)）的优势：
+     * 1. 不阻塞 Web 线程——万级并发下不会耗尽 Tomcat 线程池
+     * 2. 等待线程拿到的是真实数据——不会因为抢锁失败误返回空列表
+     * 3. 纯本地操作——无分布式锁的网络 RTT 开销
      *
      * @param strategyId 策略ID
      * @param tradeDate  交易日字符串（yyyy-MM-dd）
@@ -134,68 +147,31 @@ public class MultiLevelCacheService {
     public List<String> querySignals(String strategyId, String tradeDate) {
         String cacheKey = buildCacheKey(strategyId, tradeDate);
 
-        // 1. L1 Caffeine 查询
-        List<String> signals = caffeineCache.getIfPresent(cacheKey);
-        if (signals != null) {
-            log.debug("L1缓存命中|L1_cache_hit,key={}", cacheKey);
-            return signals;
-        }
-
-        // 2. L2 Redis 查询（带分布式锁保护）
-        return queryFromRedisWithLock(strategyId, tradeDate, cacheKey);
+        // Caffeine.get(key, loader)：同一 key 只有 1 个线程执行 loader，其他线程等待结果
+        // loader 内部依次查 L2 Redis -> L3 MySQL，加载完成后自动缓存到 L1
+        return caffeineCache.get(cacheKey, key -> loadFromL2OrL3(strategyId, tradeDate, key));
     }
 
     /**
-     * 从 Redis 查询（带分布式锁保护）
+     * 从 L2 Redis 或 L3 MySQL 加载数据（Caffeine loader 回调）
      * <p>
-     * 本地缓存过期后，只有 1 个线程能进入查 Redis
+     * 此方法由 Caffeine 的 {@code get(key, loader)} 调用，保证同一 key 同一时刻只有 1 个线程进入
+     *
+     * @param strategyId 策略ID
+     * @param tradeDate  交易日
+     * @param cacheKey   缓存键
+     * @return 信号列表
      */
-    private List<String> queryFromRedisWithLock(String strategyId, String tradeDate, String cacheKey) {
-        String lockKey = LOCK_KEY_PREFIX + "redis:" + strategyId + ":" + tradeDate;
-        RLock lock = redissonClient.getLock(lockKey);
-
-        boolean locked = false;
-        try {
-            locked = lock.tryLock(LOCK_WAIT_TIME, LOCK_LEASE_TIME, TimeUnit.SECONDS);
-
-            if (locked) {
-                // 双重检查：再次查询 L1
-                List<String> signals = caffeineCache.getIfPresent(cacheKey);
-                if (signals != null) {
-                    log.debug("获取锁后L1命中|L1_hit_after_lock,key={}", cacheKey);
-                    return signals;
-                }
-
-                // 查询 Redis
-                signals = queryFromRedis(cacheKey);
-                if (signals != null) {
-                    // 回填 L1
-                    caffeineCache.put(cacheKey, signals);
-                    return signals;
-                }
-
-                // L2 未命中，进入 L3（带 Sentinel 限流）
-                return queryFromDbWithSentinel(strategyId, tradeDate, cacheKey);
-            } else {
-                // 未获取到锁，等待后重试
-                log.debug("获取锁失败_重试|Lock_failed_retry,key={}", cacheKey);
-                Thread.sleep(100);
-                List<String> signals = caffeineCache.getIfPresent(cacheKey);
-                if (signals != null) {
-                    return signals;
-                }
-                signals = queryFromRedis(cacheKey);
-                return signals != null ? signals : Collections.emptyList();
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.warn("获取锁被中断|Lock_interrupted,key={}", cacheKey);
-            return Collections.emptyList();
-        } finally {
-            if (locked && lock.isHeldByCurrentThread()) {
-                lock.unlock();
-            }
+    private List<String> loadFromL2OrL3(String strategyId, String tradeDate, String cacheKey) {
+        // 先查 L2 Redis（无需分布式锁，本地 Caffeine 已保证单线程进入）
+        List<String> signals = queryFromRedis(cacheKey);
+        if (signals != null) {
+            log.debug("L2缓存命中_回填L1|L2_hit_backfill_L1,key={}", cacheKey);
+            return signals;
         }
+
+        // L2 未命中，进入 L3（带分布式锁 + Sentinel 限流）
+        return queryFromDbWithLock(strategyId, tradeDate, cacheKey);
     }
 
     /**
@@ -229,9 +205,68 @@ public class MultiLevelCacheService {
     }
 
     /**
-     * 从 MySQL 查询信号列表（带 Sentinel 限流保护）
+     * 从 MySQL 查询信号列表（带分布式锁 + Sentinel 限流双重保护）
      * <p>
-     * Sentinel 限流 QPS=1，防止大量请求同时穿透到数据库
+     * 分布式锁：跨 Pod 保护，多 Pod 部署时只有 1 个 Pod 能执行数据库查询，
+     * 其他 Pod 等锁释放后直接读 Redis（获胜 Pod 已回填），避免 DB 被多 Pod 同时打爆。
+     * <p>
+     * Sentinel 限流：兜底保护，QPS=1 防止单 Pod 内异常场景（如锁故障）导致大量请求穿透到数据库。
+     *
+     * @param strategyId 策略ID
+     * @param tradeDate  交易日
+     * @param cacheKey   缓存键
+     * @return 信号列表
+     */
+    private List<String> queryFromDbWithLock(String strategyId, String tradeDate, String cacheKey) {
+        String lockKey = LOCK_KEY_PREFIX + "db:" + strategyId + ":" + tradeDate;
+        RLock lock = redissonClient.getLock(lockKey);
+
+        boolean locked = false;
+        try {
+            // 尝试获取 Redis 分布式锁 (Distributed Lock)
+            // 参数 1 (waitTime): DB_LOCK_WAIT_TIME -> 抢锁的最大等待时间。若超过此时间仍被其他线程占用，则直接返回 false，触发快速失败 (Fast Fail)。
+            // 参数 2 (leaseTime): -1 -> 核心架构设定！将租期 (Lease Time) 设为 -1，显式开启 Redisson 的看门狗机制 (Watchdog Mechanism)。
+            //    -> 底层行为: 只要当前线程未调用 unlock() 且 JVM 进程存活，底层的 Netty 定时任务会默认每 10 秒自动为该锁续期 (Renew) 至 30 秒。
+            //    -> 适用场景: 确保耗时不确定的长任务能够完整执行，绝对避免业务执行中途锁超时释放导致的并发安全撕裂问题。
+            // 参数 3 (unit): TimeUnit.SECONDS -> 统一时间单位为秒。
+            locked = lock.tryLock(DB_LOCK_WAIT_TIME, -1, TimeUnit.SECONDS);
+
+            if (locked) {
+                // 双重检查：获取锁后先查 Redis，可能其他 Pod 已经回填
+                List<String> signals = queryFromRedis(cacheKey);
+                if (signals != null) {
+                    log.debug("获取锁后L2命中|L2_hit_after_lock,key={}", cacheKey);
+                    return signals;
+                }
+
+                // Redis 无数据，执行数据库查询（Sentinel 限流保护）
+                return queryFromDbWithSentinel(strategyId, tradeDate, cacheKey);
+            } else {
+                // 未获取到锁（其他 Pod 正在查 DB），等待后读 Redis
+                log.debug("L3锁竞争_等待Redis回填|L3_lock_contention,key={}", cacheKey);
+                List<String> signals = queryFromRedis(cacheKey);
+                return signals != null ? signals : Collections.emptyList();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.warn("获取L3锁被中断|L3_lock_interrupted,key={}", cacheKey);
+            return Collections.emptyList();
+        } catch (Exception e) {
+            // 🚀 新增修改点：在这里接住底层抛出的 SocketTimeoutException 等运行时异常
+            // 只要走到这里，代码就会顺理成章地进入下面的 finally 释放锁，看门狗自动销毁！
+            log.error("L3查询遭遇异常(可能是网络假死触发了底层的 socketTimeout)|L3_query_error, key={}", cacheKey, e);
+            return Collections.emptyList();
+        } finally {
+            if (locked && lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
+        }
+    }
+
+    /**
+     * 从 MySQL 查询信号列表（Sentinel 限流保护）
+     * <p>
+     * Sentinel 限流 QPS=1，作为最后一道防线防止数据库被打爆
      */
     private List<String> queryFromDbWithSentinel(String strategyId, String tradeDate, String cacheKey) {
         Entry entry = null;
@@ -257,8 +292,6 @@ public class MultiLevelCacheService {
                 cacheToRedis(cacheKey, signals);
             }
 
-            // 回填 L1
-            caffeineCache.put(cacheKey, signals);
             return signals;
 
         } catch (BlockException e) {
